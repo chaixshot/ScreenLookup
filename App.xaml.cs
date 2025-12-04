@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace ScreenTranslator
+namespace ScreenLookup
 {
     /// <summary>
     /// Interaction logic for App.xaml

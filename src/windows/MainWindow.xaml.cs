@@ -1,6 +1,6 @@
 ﻿using HotkeyUtility;
 using HotkeyUtility.Input;  // Contains HotkeyEventArgs
-using ScreenTranslator.src.windows;
+using ScreenLookup.src.windows;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
@@ -12,7 +12,7 @@ using Wpf.Ui.Controls;
 using Wpf.Ui.Tray.Controls;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 
-namespace ScreenTranslator
+namespace ScreenLookup
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

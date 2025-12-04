@@ -24,7 +24,7 @@ using TesseractOCR.Layout;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 
-namespace ScreenTranslator.src.windows
+namespace ScreenLookup.src.windows
 {
     /// <summary>
     /// Interaction logic for Capture.xaml
