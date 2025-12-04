@@ -10,9 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="src\windows\Dec-3%4021.20.58.png" />
-    <None Remove="src\windows\ico.ico" />
-    <None Remove="Untitled-1.png" />
+    <None Remove="src\windows\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,12 +21,6 @@
     <PackageReference Include="TesseractOCR" Version="5.5.1" />
     <PackageReference Include="WPF-UI" Version="4.1.0" />
     <PackageReference Include="WPF-UI.Tray" Version="4.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="src\windows\Dec-3@21.20.58.png" />
-    <Resource Include="src\windows\ico.ico" />
-    <Resource Include="Untitled-1.png" />
   </ItemGroup>
 
   <ItemGroup>
