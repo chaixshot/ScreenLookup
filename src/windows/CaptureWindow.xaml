@@ -14,120 +14,114 @@
     Topmost="True"
     WindowStyle="None"
     SizeToContent="Height"
-        
+    WindowStartupLocation="CenterScreen"
     Deactivated="App_Deactivated"
     >
-
-    <Grid>
+    <Grid Margin="10,5,10,5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ui:Card Grid.Row="0">
-            <Border
-                BorderThickness="1"
-                BorderBrush="#FF5B5B5B"
-                CornerRadius="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-                <Grid>
-                    <!-- Rounded mask (stretches to fill Grid) -->
-                    <Border Name="mask" Background="White" CornerRadius="3"/>
-                    <!-- Main content container -->
-                    <StackPanel>
-                        <!-- Use a VisualBrush of 'mask' as the opacity mask -->
-                        <StackPanel.OpacityMask>
-                            <VisualBrush Visual="{Binding ElementName=mask}"/>
-                        </StackPanel.OpacityMask>
-                        <!-- Any content -->
-                        <ui:Image x:Name="captureImage" Stretch="None"/>
+        <ui:Card Grid.Row="0" Padding="0">
+            <ui:Image x:Name="captureImage" Stretch="None"/>
+        </ui:Card>
+
+        <ui:Card Grid.Row="1" Margin="0,3,0,0" Visibility="Collapsed">
+            <ui:DynamicScrollViewer>
+                <ui:TextBlock x:Name="originalText" TextWrapping="Wrap" Text="originalText" Grid.Column="1" Margin="45,0,0,0"/>
+            </ui:DynamicScrollViewer>
+        </ui:Card>
+
+        <ui:Card x:Name="originalWords" Grid.Row="2" Margin="0,3,0,0">
+            <ui:DynamicScrollViewer>
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ui:Button
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Click="Button_OriginalTTS"
+                Icon="{ui:SymbolIcon Speaker228,
+                    Filled=True}" VerticalAlignment="Top"/>
+
+
+                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                        <ItemsControl Name="ocrWords">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:Button
+                                    BorderThickness="{Binding Border}"
+                                    Content="{Binding Word}"
+                                    HorizontalAlignment="Left"
+                                    Click="Button_Word"
+                                    Margin="0,0,0,0"
+                                    Padding="1.5,0,1.5,0"
+                                    Width="{Binding Width}" 
+                                    Height="{Binding Height}" 
+                                    />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Grid>
-            </Border>
+            </ui:DynamicScrollViewer>
         </ui:Card>
 
-        <ui:Card Grid.Row="1">
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ui:Button
-                    Grid.Column="0"
-                    HorizontalContentAlignment="Center"
-                    VerticalContentAlignment="Center"
-                    Click="Button_OriginalTTS"
-                    Icon="{ui:SymbolIcon Speaker228,
-                        Filled=True}" VerticalAlignment="Top"/>
-                <ui:TextBlock x:Name="ocrText" TextWrapping="Wrap" Text="ocrText" Grid.Column="1" Margin="5,0,0,0"/>
-
-            </Grid>
-        </ui:Card>
-
-        <ui:Card Grid.Row="2">
-            <StackPanel>
-                <ItemsControl Name="ocrWords">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <ui:Button Content="{Binding Word}" HorizontalAlignment="Left" Click="Button_Word" Margin="0,0,0,0" Padding="1.7,0,1.7,0" >
-                            </ui:Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </ui:Card>
-
-        <ui:Card Grid.Row="3" >
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <ui:Button
+        <ui:Card x:Name="definition" Grid.Row="3" Margin="0,3,0,0" >
+            <ui:DynamicScrollViewer>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordOriginalTTS"
                         Icon="{ui:SymbolIcon Speaker228,
-                            Filled=True}" VerticalAlignment="Top"/>
-                    <ui:TextBlock x:Name="definition_original" Text="11111" Margin="5,0,0,0" />
-
-
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <ui:Button
+                            Filled=True}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ui:TextBlock x:Name="definition_original" Text="11111" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <ui:Button
                          HorizontalContentAlignment="Center"
                          VerticalContentAlignment="Center"
                          Click="Button_WordTranslatedTTS"
                          Icon="{ui:SymbolIcon Speaker228,
-                             Filled=True}" VerticalAlignment="Top"/>
-                    <ui:TextBlock x:Name="definition_translated" Text="222222" Margin="5,0,0,0" />
+                             Filled=True}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ui:TextBlock x:Name="definition_translated" Text="222222" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+            </ui:DynamicScrollViewer>
         </ui:Card>
 
-        <ui:Card Grid.Row="4">
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <ui:Card x:Name="translatedCard" Grid.Row="4" Margin="0,3,0,0">
+            <ui:DynamicScrollViewer >
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <ui:Button
+                    <ui:Button
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     Click="Button_TranslatedTTS"
                     Icon="{ui:SymbolIcon Speaker228,
                         Filled=True}" VerticalAlignment="Top"/>
-                <ui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Text="translatedText" VerticalAlignment="Center" Grid.Column="1" Margin="5,0,0,0"/>
-            </Grid>
+                    <ui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Text="translatedText" Grid.Column="1" Margin="5,0,0,0"/>
+                </Grid>
+            </ui:DynamicScrollViewer>
         </ui:Card>
 
     </Grid>

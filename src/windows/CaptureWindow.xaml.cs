@@ -1,6 +1,8 @@
 ﻿using GTranslate.Translators;
+using HotkeyUtility;
 using NAudio.Wave;
 using ScreenGrab;
+using ScreenLookup.src.pages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +16,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -22,7 +25,9 @@ using System.Windows.Shapes;
 using TesseractOCR;
 using TesseractOCR.Enums;
 using TesseractOCR.Layout;
+using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Button = Wpf.Ui.Controls.Button;
 
 namespace ScreenLookup.src.windows
@@ -33,20 +38,30 @@ namespace ScreenLookup.src.windows
     public partial class CaptureWindow : FluentWindow
     {
         private CancellationTokenSource CTS = new CancellationTokenSource();
-        private class TodoItem
+        private class WordItem
         {
             public string Word { get; set; }
+            public string Width { get; set; }
+            public string Height { get; set; }
+            public string Border { get; set; }
         }
 
         public CaptureWindow()
         {
             InitializeComponent();
-            StartCaptureAndTranslate();
 
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape)
                     this.Close();
+            };
+            Loaded += (s, e) =>
+            {
+                originalText.Text = "";
+                translatedText.Text = "";
+                definition.Visibility = Visibility.Collapsed;
+
+                StartCaptureAndTranslate();
             };
         }
 
@@ -57,7 +72,7 @@ namespace ScreenLookup.src.windows
 
             if (image == null)
             {
- 
+                this.Close();
             }
             else
             {
@@ -66,6 +81,8 @@ namespace ScreenLookup.src.windows
                 // Window size
                 captureImage.Source = writeBmp;
                 this.Width = writeBmp.Width + 50;
+                this.MinWidth = this.Width;
+                this.MaxWidth = this.Width;
 
                 // Image
                 MemoryStream ms = new MemoryStream();
@@ -77,21 +94,18 @@ namespace ScreenLookup.src.windows
                 var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
                 var page = engine.Process(img);
 
-                if (page.Text != "")
+                if (page.Text == "")
                 {
-                    // Text
-                    // Create an instance of the Google Translator
-                    ocrText.Text = page.Text;
+                    originalWords.Visibility = Visibility.Collapsed;
+                    translatedCard.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    // Original text
+                    originalText.Text = page.Text;
 
-                    var translator = new GoogleTranslator2();
-                    var translateResult = await translator.TranslateAsync(page.Text, "th");
-                    translatedText.Text = translateResult.Translation;
-
-                    ////////////////////////////
-                    ////////////////////////////
-                    ////////////////////////////
-
-                    List<TodoItem> items = new List<TodoItem>();
+                    // Original words
+                    List<WordItem> items = [];
                     foreach (var block in page.Layout)
                     {
                         foreach (var paragraph in block.Paragraphs)
@@ -100,12 +114,20 @@ namespace ScreenLookup.src.windows
                             {
                                 foreach (var word in textLine.Words)
                                 {
-                                    items.Add(new TodoItem() { Word = word.Text });
+                                    items.Add(new WordItem() { Word = word.Text, Border = "1" });
                                 }
+                                items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
                             }
+                            items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
                         }
+                        items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
                     }
                     ocrWords.ItemsSource = items;
+
+                    // Translated text
+                    var translator = new GoogleTranslator2();
+                    var translateResult = await translator.TranslateAsync(page.Text, "th");
+                    translatedText.Text = translateResult.Translation;
                 }
             }
         }
@@ -159,7 +181,7 @@ namespace ScreenLookup.src.windows
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(ocrText.Text, "en", CTS);
+            PlayTTS(originalText.Text, "en", CTS);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
@@ -174,12 +196,17 @@ namespace ScreenLookup.src.windows
         {
             Button? word = sender as Button;
 
+            definition.Visibility = Visibility.Visible;
+
             string originalWord = word.Content.ToString();
             definition_original.Text = originalWord;
+            definition_translated.Text = "...";
 
             var translator = new GoogleTranslator2();
             var translateResult = await translator.TranslateAsync(originalWord, "th");
             definition_translated.Text = translateResult.Translation;
+
+            PlayTTS(definition_original.Text, "en", CTS);
         }
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)

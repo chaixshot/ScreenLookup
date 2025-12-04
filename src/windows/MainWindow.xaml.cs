@@ -1,16 +1,12 @@
 ﻿using HotkeyUtility;
-using HotkeyUtility.Input;  // Contains HotkeyEventArgs
 using ScreenLookup.src.pages;
 using ScreenLookup.src.windows;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media.Media3D;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-using Wpf.Ui.Tray.Controls;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 
 namespace ScreenLookup
@@ -84,7 +80,6 @@ namespace ScreenLookup
             {
                 MainWindowShow();
             }
-
         }
 
         private void MainWindowShow()
