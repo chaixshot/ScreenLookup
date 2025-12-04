@@ -2,6 +2,12 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="src\pages\InfoPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="src\pages\SettingPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="src\windows\CaptureWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

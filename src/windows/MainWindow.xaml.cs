@@ -1,5 +1,6 @@
 ﻿using HotkeyUtility;
 using HotkeyUtility.Input;  // Contains HotkeyEventArgs
+using ScreenLookup.src.pages;
 using ScreenLookup.src.windows;
 using System.Diagnostics;
 using System.Drawing;
@@ -17,7 +18,7 @@ namespace ScreenLookup
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : FluentWindow
     {
         public CaptureWindow? CaptureWindow { get; set; } = null;
         public NotifyIcon notifyIcon = new NotifyIcon();
@@ -25,35 +26,42 @@ namespace ScreenLookup
         public MainWindow()
         {
             InitializeComponent();
-            MainWindowHide();
 
-            // Added hotkey
-            Hotkey hotkey = new(Key.A, ModifierKeys.Shift | ModifierKeys.Control, Button_Capture);
-            HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
-            _ = hotkeyManager.TryAddHotkey(hotkey);
-
-            // Now, pressing Shift + Control + A is no longer registered and Hotkey_Pressed
-            // will no longer be triggered by that hotkey.
-            // Instead, Hotkey_Pressed will now be triggered by pressing Alt + B.
-            _ = hotkeyManager.TryReplaceHotkey(Key.A, ModifierKeys.Shift | ModifierKeys.Control, Key.Z, ModifierKeys.Alt);
-
-            //Tray
-            notifyIcon.Icon = new Icon(@"..\..\..\src\logo.ico");
-            notifyIcon.Visible = true;
-            notifyIcon.ShowBalloonTip(1000, "ScreenLookup", "ScreenLookup started in the background", ToolTipIcon.Info);
-
-            notifyIcon.MouseClick += NotifyIcon_Click;
-
-            notifyIcon.ContextMenuStrip = new ContextMenuStrip();
-            notifyIcon.ContextMenuStrip.Items.Add("Open", new Bitmap(1, 1), (s, e) =>
+            Loaded += (s, e) =>
             {
-                MainWindowShow();
-            });
-            notifyIcon.ContextMenuStrip.Items.Add("Capture              Alt+Z", new Bitmap(1, 1), Button_Capture);
-            notifyIcon.ContextMenuStrip.Items.Add("Quit", new Bitmap(1, 1), (s, e) =>
-            {
-                MainWindowHide();
-            });
+                SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
+                RootNavigation.Navigate(typeof(SettingPage));
+
+                //MainWindowHide();
+
+                // Added hotkey
+                Hotkey hotkey = new(Key.A, ModifierKeys.Shift | ModifierKeys.Control, Button_Capture);
+                HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
+                _ = hotkeyManager.TryAddHotkey(hotkey);
+
+                // Now, pressing Shift + Control + A is no longer registered and Hotkey_Pressed
+                // will no longer be triggered by that hotkey.
+                // Instead, Hotkey_Pressed will now be triggered by pressing Alt + B.
+                _ = hotkeyManager.TryReplaceHotkey(Key.A, ModifierKeys.Shift | ModifierKeys.Control, Key.Z, ModifierKeys.Alt);
+
+                //Tray
+                notifyIcon.Icon = new Icon(@"..\..\..\src\logo.ico");
+                notifyIcon.Visible = true;
+                notifyIcon.ShowBalloonTip(1000, "ScreenLookup", "ScreenLookup started in the background", ToolTipIcon.Info);
+
+                notifyIcon.MouseClick += NotifyIcon_Click;
+
+                notifyIcon.ContextMenuStrip = new ContextMenuStrip();
+                notifyIcon.ContextMenuStrip.Items.Add("Open", new Bitmap(1, 1), (s, e) =>
+                {
+                    MainWindowShow();
+                });
+                notifyIcon.ContextMenuStrip.Items.Add("Capture              Alt+Z", new Bitmap(1, 1), Button_Capture);
+                notifyIcon.ContextMenuStrip.Items.Add("Quit", new Bitmap(1, 1), (s, e) =>
+                {
+                    this.Close();
+                });
+            };
         }
 
         private void Button_Capture(object sender, EventArgs e)

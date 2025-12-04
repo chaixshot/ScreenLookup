@@ -1,23 +1,24 @@
-﻿<Window x:Class="ScreenLookup.src.windows.CaptureWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ScreenLookup.src.windows"
-        mc:Ignorable="d"
-        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="Capture"
+﻿<ui:FluentWindow
+    x:Class="ScreenLookup.src.windows.CaptureWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:ScreenLookup.src.windows"
+    mc:Ignorable="d"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="Capture"
         
-        ResizeMode="CanResize"
-        ShowInTaskbar="False"
-        Topmost="True"
-        WindowStyle="None"
-        SizeToContent="Height"
+    ResizeMode="CanResize"
+    ShowInTaskbar="False"
+    Topmost="True"
+    WindowStyle="None"
+    SizeToContent="Height"
         
-        Deactivated="App_Deactivated"
-        >
+    Deactivated="App_Deactivated"
+    >
 
-    <Grid x:Name="mainWindow">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -130,4 +131,4 @@
         </ui:Card>
 
     </Grid>
-</Window>
+</ui:FluentWindow>

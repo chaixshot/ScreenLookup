@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -29,7 +30,7 @@ namespace ScreenLookup.src.windows
     /// <summary>
     /// Interaction logic for Capture.xaml
     /// </summary>
-    public partial class CaptureWindow : Window
+    public partial class CaptureWindow : FluentWindow
     {
         private CancellationTokenSource CTS = new CancellationTokenSource();
         private class TodoItem
@@ -45,7 +46,7 @@ namespace ScreenLookup.src.windows
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape)
-                    this.Hide();
+                    this.Close();
             };
         }
 
@@ -56,7 +57,7 @@ namespace ScreenLookup.src.windows
 
             if (image == null)
             {
-                this.Hide();
+ 
             }
             else
             {
@@ -199,7 +200,7 @@ namespace ScreenLookup.src.windows
         void App_Deactivated(object sender, EventArgs e)
         {
             CTS.Cancel();
-            this.Hide();
+            this.Close();
         }
     }
 }
