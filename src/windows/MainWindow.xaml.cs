@@ -45,9 +45,7 @@ namespace ScreenLookup
                 _ = hotkeyManager.TryReplaceHotkey(Key.A, ModifierKeys.Shift | ModifierKeys.Control, Key.Z, ModifierKeys.Alt);
 
                 if (Setting.StartInBackground)
-                {
                     HideToTray();
-                }
 
                 WindowStateRestore(this, "Main");
             };
@@ -55,25 +53,25 @@ namespace ScreenLookup
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            // setting cancel to true will cancel the close request
-            // so the application is not closed
-            e.Cancel = true;
-
-            HideToTray();
+            if (Setting.MinimizeToTray)
+                e.Cancel = true;
+                HideToTray();
 
             base.OnClosing(e);
         }
 
         private void HideToTray()
         {
-            this.WindowState = (WindowState)FormWindowState.Minimized;
-            NotifyIcon.Visibility = Visibility.Visible;
-
-            Forms.NotifyIcon notifyIcon = new Forms.NotifyIcon();
-            notifyIcon.Icon = new Icon("applicationIcon.ico");
-            notifyIcon.Visible = true;
-            notifyIcon.ShowBalloonTip(500, "ScreenLookup", "ScreenLookup started in the background", Forms.ToolTipIcon.Info);
-            notifyIcon.Visible = false;
+            if (Setting.MinimizeToTray)
+            {
+                this.Hide();
+ 
+                Forms.NotifyIcon notifyIcon = new Forms.NotifyIcon();
+                notifyIcon.Icon = new Icon("applicationIcon.ico");
+                notifyIcon.Visible = true;
+                notifyIcon.ShowBalloonTip(500, "ScreenLookup", "ScreenLookup started in the background", Forms.ToolTipIcon.Info);
+                notifyIcon.Visible = false;
+            }
         }
 
         private void ShowFromTray()
@@ -86,9 +84,7 @@ namespace ScreenLookup
         private void WindowStateChanged(object sender, EventArgs e)
         {
             if (WindowState == (WindowState)FormWindowState.Minimized)
-            {
-                this.Hide();
-            }
+                HideToTray();
         }
 
         private void MainWindow_BoundsChanged(object sender, EventArgs e)
@@ -150,12 +146,6 @@ namespace ScreenLookup
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             App.Current.Shutdown();
-        }
-
-        private void NotifyIcon_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (!NotifyIcon.IsVisible)
-                NotifyIcon.Visibility = Visibility.Visible;
         }
     }
 }

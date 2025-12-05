@@ -113,6 +113,17 @@
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
                     </Grid>
                 </Controls:Card>
+                
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Minimize to tray" Margin="6"/>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" />
+                    </Grid>
+                </Controls:Card>
             </StackPanel>
         </Controls:DynamicScrollViewer>
     </Grid>

@@ -25,7 +25,7 @@
     >
 
     <Window.Resources>
-        <wpfui:ImageIcon x:Key="TextGrabIcon" Source="applicationIcon.ico" />
+        <wpfui:ImageIcon x:Key="AppIcon" Source="applicationIcon.ico" />
         
         <Style x:Key="NavMenuContent" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
@@ -44,7 +44,7 @@
             <wpfui:TitleBar
                 Grid.Row="0"
                 Height="27"
-                Icon="{StaticResource TextGrabIcon}">
+                Icon="{StaticResource AppIcon}">
                 <wpfui:TitleBar.Header>
                     <wpfui:TextBlock Padding="0,0,0,0" VerticalAlignment="Center" FontSize="12">ScreenLookup</wpfui:TextBlock>
                 </wpfui:TitleBar.Header>
@@ -87,7 +87,6 @@
 
         <ui:NotifyIcon
             x:Name="NotifyIcon"
-            IsVisibleChanged="NotifyIcon_IsVisibleChanged"
             LeftClick="NotifyIcon_LeftClick"
             TooltipText="Text Grab" Icon="/src/windows/applicationIcon.ico">
             <ui:NotifyIcon.Menu>
@@ -102,7 +101,7 @@
                     
                     <MenuItem
                         Click="CaptureWindowItem_Click"
-                        Header="Edit Text Window">
+                        Header="Capture             Alt+Z">
                         <MenuItem.Icon>
                             <wpfui:SymbolIcon Symbol="Screenshot20" />
                         </MenuItem.Icon>
@@ -110,7 +109,7 @@
                     
                     <MenuItem
                         Click="Exit_Click"
-                        Header="Close Text Grab">
+                        Header="Close">
                         <MenuItem.Icon>
                             <wpfui:SymbolIcon Symbol="Dismiss24" />
                         </MenuItem.Icon>

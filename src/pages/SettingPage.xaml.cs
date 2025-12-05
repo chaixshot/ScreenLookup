@@ -28,6 +28,7 @@ namespace ScreenLookup.src.pages
             TargetLanguge = Setting.RegSetting.GetValue("TargetLanguge") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguge")) : 1;
             StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
             StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
+            MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
 
             LoadTesseractContent();
         }
@@ -80,6 +81,15 @@ namespace ScreenLookup.src.pages
             set
             {
                 Setting.StartInBackground = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool MinimizeToTray
+        {
+            get { return Setting.MinimizeToTray; }
+            set
+            {
+                Setting.MinimizeToTray = value;
                 OnPropertyChanged();
             }
         }
