@@ -91,7 +91,7 @@ namespace ScreenLookup.src.windows
                 byte[] fileBytes = ms.ToArray();
 
                 // TesseractOCR
-                var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LangugeList.LanguageTesseract[Setting.SourceLanguge], EngineMode.Default);
+                var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LangugeList.GetTesseractTagFromID(Setting.SourceLanguge), EngineMode.Default);
                 var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
                 var page = engine.Process(img);
 
@@ -127,7 +127,7 @@ namespace ScreenLookup.src.windows
 
                     // Translated text
                     var translator = new GoogleTranslator2();
-                    var translateResult = await translator.TranslateAsync(page.Text, LangugeList.LanguageShort[Setting.TargetLanguge]);
+                    var translateResult = await translator.TranslateAsync(page.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
                     translatedText.Text = translateResult.Translation;
                 }
             }
@@ -178,19 +178,22 @@ namespace ScreenLookup.src.windows
             }
         }
 
-        // Paragraph
-        private void Button_OriginalTTS(object sender, RoutedEventArgs e)
+        private void StartTTS(string Text, string Languge)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(originalText.Text, LangugeList.LanguageShort[Setting.SourceLanguge], CTS);
+            PlayTTS(Text, Languge, CTS);
+        }
+
+        // Paragraph
+        private void Button_OriginalTTS(object sender, RoutedEventArgs e)
+        {
+            StartTTS(originalText.Text, LangugeList.GetLanguageShortageFromID(Setting.SourceLanguge));
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            CTS.Cancel();
-            CTS = new CancellationTokenSource();
-            PlayTTS(translatedText.Text, LangugeList.LanguageShort[Setting.TargetLanguge], CTS);
+            StartTTS(translatedText.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
         }
 
         // Word
@@ -204,25 +207,21 @@ namespace ScreenLookup.src.windows
             definition_original.Text = originalWord;
             definition_translated.Text = "...";
 
-            PlayTTS(definition_original.Text, LangugeList.LanguageShort[Setting.SourceLanguge], CTS);
+            StartTTS(definition_original.Text, LangugeList.GetLanguageShortageFromID(Setting.SourceLanguge));
 
             var translator = new GoogleTranslator2();
-            var translateResult = await translator.TranslateAsync(originalWord, LangugeList.LanguageShort[Setting.TargetLanguge]);
+            var translateResult = await translator.TranslateAsync(originalWord, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
             definition_translated.Text = translateResult.Translation;
         }
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            CTS.Cancel();
-            CTS = new CancellationTokenSource();
-            PlayTTS(definition_original.Text, LangugeList.LanguageShort[Setting.SourceLanguge], CTS);
+            StartTTS(definition_original.Text, LangugeList.GetLanguageShortageFromID(Setting.SourceLanguge));
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            CTS.Cancel();
-            CTS = new CancellationTokenSource();
-            PlayTTS(definition_translated.Text, LangugeList.LanguageShort[Setting.TargetLanguge], CTS);
+            StartTTS(definition_translated.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
         }
 
         // Utility

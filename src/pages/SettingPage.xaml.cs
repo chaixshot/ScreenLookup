@@ -1,18 +1,23 @@
-﻿using Microsoft.Win32;
+﻿using GTranslate;
+using Microsoft.Win32;
 using ScreenLookup.src.models;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScreenLookup.src.pages
 {
     public partial class SettingPage : Page, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        private bool isLoading = false;
 
         public SettingPage()
         {
@@ -23,6 +28,8 @@ namespace ScreenLookup.src.pages
             TargetLanguge = Setting.RegSetting.GetValue("TargetLanguge") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguge")) : 1;
             StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
             StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
+
+            LoadTesseractContent();
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -36,6 +43,7 @@ namespace ScreenLookup.src.pages
             set
             {
                 Setting.SourceLanguge = value;
+                ToggleDownloadTesseractButton();
                 OnPropertyChanged();
             }
         }
@@ -70,7 +78,41 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        public async Task CopyFileWithElevatedPermissions(string sourcePath, string destinationPath)
+        private void LoadTesseractContent()
+        {
+            sourceLanguge.Items.Clear();
+            targetLanguge.Items.Clear();
+
+            foreach (string textName in LangugeList.LanguageTesseract)
+            {
+                string tesseractTag = LangugeList.GetTesseractTagFromName(textName);
+                string paddedTextName = textName.PadRight(26);
+
+                try
+                {
+                    string text = $"{paddedTextName}\t{LangugeList.CultureDisplayName(tesseractTag)}";
+                    sourceLanguge.Items.Add(text);
+                    targetLanguge.Items.Add(text);
+                }
+                catch
+                {
+                    string text = $"{paddedTextName}\t{tesseractTag}";
+                    sourceLanguge.Items.Add(text);
+                    targetLanguge.Items.Add(text);
+                }
+            }
+        }
+
+        private void ToggleDownloadTesseractButton()
+        {
+            var lang = Setting.RegDownloadedLang.GetValue(LangugeList.GetTesseractTagFromID(Setting.SourceLanguge));
+            if (lang == null)
+                downloadTesseract.Visibility = Visibility.Visible;
+            else
+                downloadTesseract.Visibility = Visibility.Hidden;
+        }
+
+        private static async Task CopyFileWithElevatedPermissions(string sourcePath, string destinationPath)
         {
             // Create tessdata folder
             string arguments = $"/c if not exist \"{destinationPath}\" mkdir \"{destinationPath}\"";
@@ -119,9 +161,11 @@ namespace ScreenLookup.src.pages
 
         private async void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
-            string? pickedLanguageFile = LangugeList.LanguageTesseract[sourceLanguge.SelectedIndex]+ ".traineddata";
-            if (string.IsNullOrWhiteSpace(pickedLanguageFile))
+            string? pickedLanguageFile = LangugeList.LanguageTesseract[sourceLanguge.SelectedIndex];
+            if (isLoading || string.IsNullOrWhiteSpace(pickedLanguageFile))
                 return;
+
+            isLoading = true;
 
             string tesseractFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}tessdata";
             string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
@@ -130,6 +174,11 @@ namespace ScreenLookup.src.pages
             await fileDownloader.DownloadFileAsync(pickedLanguageFile, tempFilePath);
             await CopyFileWithElevatedPermissions(tempFilePath, tesseractFilePath);
             File.Delete(tempFilePath);
+
+            Setting.RegDownloadedLang.SetValue(LangugeList.GetTesseractTagFromID(sourceLanguge.SelectedIndex), true);
+            ToggleDownloadTesseractButton();
+
+            isLoading = false;
         }
     }
 }

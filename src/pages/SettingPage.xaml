@@ -36,12 +36,10 @@
                                 Icon="{ui:SymbolIcon ArrowDownload16, Filled=True}"
                                 VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,5,0"/>
                             <ComboBox x:Name="sourceLanguge"
-                                Width="135"
+                                Width="200"
                                 Grid.Column="1"
                                 SelectedIndex="{Binding SourceLanguge}"
                                 >
-                                <ComboBoxItem Content="English"/>
-                                <ComboBoxItem Content="Thai"/>
                             </ComboBox>
                         </Grid>
                     </Grid>
@@ -54,13 +52,11 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Target Languge" Margin="6"/>
-                        <ComboBox
-                            Width="135"
+                        <ComboBox x:Name="targetLanguge"
+                            Width="200"
                             Grid.Column="1" 
                             SelectedIndex="{Binding TargetLanguge}"
                             >
-                            <ComboBoxItem Content="English"/>
-                            <ComboBoxItem Content="Thai"/>
                         </ComboBox>
                     </Grid>
                 </Controls:Card>
@@ -73,7 +69,7 @@
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Translation Service" Margin="6"/>
                         <ComboBox
-                            Width="135"
+                            Width="200"
                             Grid.Column="1" SelectedIndex="0"
                             >
                             <ComboBoxItem Content="Google"/>
