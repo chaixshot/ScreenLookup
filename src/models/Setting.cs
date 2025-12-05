@@ -14,33 +14,33 @@ namespace ScreenLookup.src.models
         public static readonly RegistryKey RegDownloadedLang = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\DownloadedLang\\");
         public static readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
-        public static int sourceLanguge;
-        public static int targetLanguge;
+        public static int sourceLanguage;
+        public static int targetLanguage;
         public static bool startupWithWindows;
         public static bool startInBackground;
         public static bool minimizeToTray;
 
-        public static int SourceLanguge
+        public static int SourceLanguage
         {
-            get { return sourceLanguge; }
+            get { return sourceLanguage; }
             set
             {
-                sourceLanguge = value;
+                sourceLanguage = value;
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
-                key.SetValue("SourceLanguge", value.ToString());
+                key.SetValue("SourceLanguage", value.ToString());
             }
         }
 
-        public static int TargetLanguge
+        public static int TargetLanguage
         {
-            get { return targetLanguge; }
+            get { return targetLanguage; }
             set
             {
-                targetLanguge = value;
+                targetLanguage = value;
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
-                key.SetValue("TargetLanguge", value.ToString());
+                key.SetValue("TargetLanguage", value.ToString());
             }
         }
 
@@ -80,9 +80,9 @@ namespace ScreenLookup.src.models
             }
         }
 
-        public static bool IsLangugeInstalled(int langID)
+        public static bool IsLanguageInstalled(int langID)
         {
-            var reg = RegDownloadedLang.GetValue(LangugeList.GetTesseractTagFromID(langID));
+            var reg = RegDownloadedLang.GetValue(LanguageList.GetTesseractTagFromID(langID));
 
             return reg != null;
         }

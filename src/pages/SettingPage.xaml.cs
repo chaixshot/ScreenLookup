@@ -24,8 +24,8 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            SourceLanguge = Setting.RegSetting.GetValue("SourceLanguge") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguge")) : 0;
-            TargetLanguge = Setting.RegSetting.GetValue("TargetLanguge") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguge")) : 1;
+            SourceLanguage = Setting.RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguage")) : 0;
+            TargetLanguage = Setting.RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguage")) : 1;
             StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
             StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
             MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
@@ -38,23 +38,23 @@ namespace ScreenLookup.src.pages
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public int SourceLanguge
+        public int SourceLanguage
         {
-            get { return Setting.SourceLanguge; }
+            get { return Setting.SourceLanguage; }
             set
             {
-                Setting.SourceLanguge = value;
+                Setting.SourceLanguage = value;
                 ToggleDownloadTesseractButton();
                 OnPropertyChanged();
             }
         }
 
-        public int TargetLanguge
+        public int TargetLanguage
         {
-            get { return Setting.TargetLanguge; }
+            get { return Setting.TargetLanguage; }
             set
             {
-                Setting.TargetLanguge = value;
+                Setting.TargetLanguage = value;
                 OnPropertyChanged();
             }
         }
@@ -96,22 +96,22 @@ namespace ScreenLookup.src.pages
 
         private void LoadTesseractContent()
         {
-            sourceLanguge.Items.Clear();
-            targetLanguge.Items.Clear();
+            sourceLanguage.Items.Clear();
+            targetLanguage.Items.Clear();
 
-            foreach (string textName in LangugeList.LanguageTesseract)
+            foreach (string textName in LanguageList.LanguageTesseract)
             {
-                string tesseractTag = LangugeList.GetTesseractTagFromName(textName);
+                string tesseractTag = LanguageList.GetTesseractTagFromName(textName);
 
-                string text = $"{LangugeList.CultureDisplayName(tesseractTag).PadRight(42)}\t{textName}";
-                sourceLanguge.Items.Add(text);
-                targetLanguge.Items.Add(text);
+                string text = $"{LanguageList.CultureDisplayName(tesseractTag).PadRight(42)}\t{textName}";
+                sourceLanguage.Items.Add(text);
+                targetLanguage.Items.Add(text);
             }
         }
 
         private void ToggleDownloadTesseractButton()
         {
-            if (isLoading || Setting.IsLangugeInstalled(Setting.SourceLanguge))
+            if (isLoading || Setting.IsLanguageInstalled(Setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
                 downloadTesseract.Visibility = Visibility.Visible;
@@ -166,14 +166,14 @@ namespace ScreenLookup.src.pages
 
         private async void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
-            int langID = Setting.SourceLanguge;
+            int langID = Setting.SourceLanguage;
 
-            string? pickedLanguageFile = LangugeList.LanguageTesseract[langID];
+            string? pickedLanguageFile = LanguageList.LanguageTesseract[langID];
             if (isLoading || string.IsNullOrWhiteSpace(pickedLanguageFile))
                 return;
 
             isLoading = true;
-            Notification.Show($"Downloading {LangugeList.CultureDisplayName(LangugeList.GetTesseractTagFromID(langID))}", 500);
+            Notification.Show($"Downloading {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(langID))}", 500);
             downloadTesseract.Visibility = Visibility.Hidden;
 
             string tesseractFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}tessdata";
@@ -185,9 +185,9 @@ namespace ScreenLookup.src.pages
             File.Delete(tempFilePath);
 
             isLoading = false;
-            Setting.RegDownloadedLang.SetValue(LangugeList.GetTesseractTagFromID(langID), true);
+            Setting.RegDownloadedLang.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
             ToggleDownloadTesseractButton();
-            Notification.Show($"Download {LangugeList.CultureDisplayName(LangugeList.GetTesseractTagFromID(langID))} successfully", 500);
+            Notification.Show($"Download {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(langID))} successfully", 500);
         }
     }
 }

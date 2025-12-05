@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ScreenLookup.src.models
 {
-    internal class LangugeList
+    internal class LanguageList
     {
         public static readonly string[] LanguageTesseract = [
             "afr.traineddata",
@@ -149,14 +149,14 @@ namespace ScreenLookup.src.models
 
         public static string GetTesseractTagFromID(int langID)
         {
-            string tesseractTag = GetTesseractTagFromName(LangugeList.LanguageTesseract[langID]);
+            string tesseractTag = GetTesseractTagFromName(LanguageList.LanguageTesseract[langID]);
 
             return tesseractTag;
         }
 
         public static string GetLanguageShortageFromID(int langID)
         {
-            string tesseractTag = LangugeList.GetTesseractTagFromID(langID);
+            string tesseractTag = LanguageList.GetTesseractTagFromID(langID);
             string shorted = tesseractTag.Substring(0, 2);
 
             return shorted;

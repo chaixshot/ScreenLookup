@@ -68,9 +68,9 @@ namespace ScreenLookup.src.windows
 
         private async void StartCaptureAndTranslate()
         {
-            if (!Setting.IsLangugeInstalled(Setting.SourceLanguge))
+            if (!Setting.IsLanguageInstalled(Setting.SourceLanguage))
             {
-                Notification.Show($"Install {LangugeList.CultureDisplayName(LangugeList.GetTesseractTagFromID(Setting.SourceLanguge))} in the setting", 1000);
+                Notification.Show($"Install {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(Setting.SourceLanguage))} in the setting", 1000);
                 this.Close();
                 return;
             }
@@ -98,7 +98,7 @@ namespace ScreenLookup.src.windows
             byte[] fileBytes = ms.ToArray();
 
             // TesseractOCR
-            var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LangugeList.GetTesseractTagFromID(Setting.SourceLanguge), EngineMode.Default);
+            var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LanguageList.GetTesseractTagFromID(Setting.SourceLanguage), EngineMode.Default);
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
             var page = engine.Process(img);
 
@@ -134,7 +134,7 @@ namespace ScreenLookup.src.windows
 
                 // Translated text
                 var translator = new GoogleTranslator2();
-                var translateResult = await translator.TranslateAsync(page.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
+                var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
                 translatedText.Text = translateResult.Translation;
             }
         }
@@ -194,12 +194,12 @@ namespace ScreenLookup.src.windows
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(originalText.Text, LangugeList.GetLanguageShortageFromID(Setting.SourceLanguge));
+            StartTTS(originalText.Text, LanguageList.GetLanguageShortageFromID(Setting.SourceLanguage));
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(translatedText.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
+            StartTTS(translatedText.Text, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
         }
 
         // Word
