@@ -19,6 +19,8 @@
     WindowBackdropType="Mica"
     WindowStartupLocation="Manual"
     WindowStyle="None"
+    LocationChanged="MainWindow_BoundsChanged"
+    SizeChanged="MainWindow_BoundsChanged"
     >
 
     <Grid>
@@ -29,11 +31,10 @@
             </Grid.RowDefinitions>
 
             <ui:TitleBar
-            Grid.Row="0"
-            Height="27"
-            ShowMaximize="False">
+                Grid.Row="0"
+                Height="27">
                 <ui:TitleBar.Header>
-                    <ui:TextBlock Padding="15,0,0,0" VerticalAlignment="Center">LiveCaptions Translator</ui:TextBlock>
+                    <ui:TextBlock Padding="15,0,0,0" VerticalAlignment="Center">ScreenLookup</ui:TextBlock>
                 </ui:TitleBar.Header>
             </ui:TitleBar>
 
@@ -41,12 +42,8 @@
                 x:Name="RootNavigation"
                 Grid.Row="1"
                 Height="Auto"
-                HeaderVisibility="Collapsed"
                 IsBackButtonVisible="Collapsed"
-                IsPaneOpen="False"
-                IsPaneToggleVisible="False"
-                PaneDisplayMode="LeftMinimal">
-
+                PaneDisplayMode="LeftMinimal" OpenPaneLength="150" HeaderVisibility="Collapsed" IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ui:NavigationView.MenuItems>
                     <ui:NavigationViewItem
                         Margin="0,6,0,3"
@@ -63,10 +60,11 @@
                         NavigationCacheMode="Required"
                         TargetPageType="{x:Type local:InfoPage}" />
                 </ui:NavigationView.MenuItems>
-
             </ui:NavigationView>
         </Grid>
+
         <ui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
+
         <ContentPresenter
         x:Name="DialogHostContainer"
         MinHeight="167"

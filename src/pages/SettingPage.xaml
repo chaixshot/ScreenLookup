@@ -21,14 +21,11 @@
                         <Controls:TextBlock Text="Source Languge" Margin="6"/>
                         <ComboBox
                             Width="135"
-                            Grid.Column="1" SelectedIndex="0"
+                            Grid.Column="1"
+                            SelectedIndex="{Binding SourceLanguge}"
                             >
-                            <ComboBoxItem Content="en"/>
-                            <ComboBoxItem Content="th"/>
-                            <ComboBoxItem Content="fr"/>
-                            <ComboBoxItem Content="cn"/>
-                            <ComboBoxItem Content="tw"/>
-                            <ComboBoxItem Content="mx"/>
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="Thai"/>
                         </ComboBox>
                     </Grid>
                 </Controls:Card>
@@ -42,14 +39,11 @@
                         <Controls:TextBlock Text="Target Languge" Margin="6"/>
                         <ComboBox
                             Width="135"
-                            Grid.Column="1" SelectedIndex="1"
+                            Grid.Column="1" 
+                            SelectedIndex="{Binding TargetLanguge}"
                             >
-                            <ComboBoxItem Content="en"/>
-                            <ComboBoxItem Content="th"/>
-                            <ComboBoxItem Content="fr"/>
-                            <ComboBoxItem Content="cn"/>
-                            <ComboBoxItem Content="tw"/>
-                            <ComboBoxItem Content="mx"/>
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="Thai"/>
                         </ComboBox>
                     </Grid>
                 </Controls:Card>
@@ -82,6 +76,28 @@
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Capture Shortcut" Margin="6"/>
                         <Controls:TextBox Grid.Column="1" Text="Alt+Z" />
+                    </Grid>
+                </Controls:Card>
+                
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Startup with windows" Margin="6"/>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
+                    </Grid>
+                </Controls:Card>
+                
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Start in background" Margin="6"/>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
                     </Grid>
                 </Controls:Card>
             </StackPanel>

@@ -2,6 +2,7 @@
 using HotkeyUtility;
 using NAudio.Wave;
 using ScreenGrab;
+using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using System;
 using System.Collections.Generic;
@@ -90,7 +91,7 @@ namespace ScreenLookup.src.windows
                 byte[] fileBytes = ms.ToArray();
 
                 // TesseractOCR
-                var engine = new Engine(@"C:\Program Files\Tesseract-OCR\tessdata", "eng", EngineMode.Default);
+                var engine = new Engine(@"C:\Program Files\Tesseract-OCR\tessdata", LangugeList.LanguageTesseract[Setting.SourceLanguge], EngineMode.Default);
                 var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
                 var page = engine.Process(img);
 
@@ -126,7 +127,7 @@ namespace ScreenLookup.src.windows
 
                     // Translated text
                     var translator = new GoogleTranslator2();
-                    var translateResult = await translator.TranslateAsync(page.Text, "th");
+                    var translateResult = await translator.TranslateAsync(page.Text, LangugeList.LanguageShort[Setting.TargetLanguge]);
                     translatedText.Text = translateResult.Translation;
                 }
             }
@@ -173,6 +174,7 @@ namespace ScreenLookup.src.windows
                 {
                     await Task.Delay(100);
                 }
+                waveOut.Dispose();
             }
         }
 
@@ -181,14 +183,14 @@ namespace ScreenLookup.src.windows
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(originalText.Text, "en", CTS);
+            PlayTTS(originalText.Text, LangugeList.LanguageShort[Setting.SourceLanguge], CTS);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(translatedText.Text, "th", CTS);
+            PlayTTS(translatedText.Text, LangugeList.LanguageShort[Setting.TargetLanguge], CTS);
         }
 
         // Word
@@ -202,25 +204,25 @@ namespace ScreenLookup.src.windows
             definition_original.Text = originalWord;
             definition_translated.Text = "...";
 
-            var translator = new GoogleTranslator2();
-            var translateResult = await translator.TranslateAsync(originalWord, "th");
-            definition_translated.Text = translateResult.Translation;
+            PlayTTS(definition_original.Text, LangugeList.LanguageShort[Setting.SourceLanguge], CTS);
 
-            PlayTTS(definition_original.Text, "en", CTS);
+            var translator = new GoogleTranslator2();
+            var translateResult = await translator.TranslateAsync(originalWord, LangugeList.LanguageShort[Setting.TargetLanguge]);
+            definition_translated.Text = translateResult.Translation;
         }
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(definition_original.Text, "en", CTS);
+            PlayTTS(definition_original.Text, LangugeList.LanguageShort[Setting.SourceLanguge], CTS);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(definition_translated.Text, "th", CTS);
+            PlayTTS(definition_translated.Text, LangugeList.LanguageShort[Setting.TargetLanguge], CTS);
         }
 
         // Utility
