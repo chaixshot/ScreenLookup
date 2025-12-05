@@ -68,68 +68,74 @@ namespace ScreenLookup.src.windows
 
         private async void StartCaptureAndTranslate()
         {
+            if (!Setting.IsLangugeInstalled(Setting.SourceLanguge))
+            {
+                Notification.Show($"Install {LangugeList.CultureDisplayName(LangugeList.GetTesseractTagFromID(Setting.SourceLanguge))} in the setting", 1000);
+                this.Close();
+                return;
+            }
+
             // Screenshot   
             Bitmap image = ScreenGrabber.CaptureDialog(false);
-
             if (image == null)
             {
+                Notification.Show("No image has been captured", 1000);
                 this.Close();
+                return;
+            }
+
+            BitmapSource writeBmp = GetImageSourceFromBitmap(image);
+
+            // Window size
+            captureImage.Source = writeBmp;
+            this.Width = writeBmp.Width + 50;
+            this.MinWidth = this.Width;
+            this.MaxWidth = this.Width;
+
+            // Image
+            MemoryStream ms = new MemoryStream();
+            image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            byte[] fileBytes = ms.ToArray();
+
+            // TesseractOCR
+            var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LangugeList.GetTesseractTagFromID(Setting.SourceLanguge), EngineMode.Default);
+            var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
+            var page = engine.Process(img);
+
+            if (page.Text == "")
+            {
+                originalWords.Visibility = Visibility.Collapsed;
+                translatedCard.Visibility = Visibility.Collapsed;
             }
             else
             {
-                BitmapSource writeBmp = GetImageSourceFromBitmap(image);
+                // Original text
+                originalText.Text = page.Text;
 
-                // Window size
-                captureImage.Source = writeBmp;
-                this.Width = writeBmp.Width + 50;
-                this.MinWidth = this.Width;
-                this.MaxWidth = this.Width;
-
-                // Image
-                MemoryStream ms = new MemoryStream();
-                image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                byte[] fileBytes = ms.ToArray();
-
-                // TesseractOCR
-                var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LangugeList.GetTesseractTagFromID(Setting.SourceLanguge), EngineMode.Default);
-                var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
-                var page = engine.Process(img);
-
-                if (page.Text == "")
+                // Original words
+                List<WordItem> items = [];
+                foreach (var block in page.Layout)
                 {
-                    originalWords.Visibility = Visibility.Collapsed;
-                    translatedCard.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    // Original text
-                    originalText.Text = page.Text;
-
-                    // Original words
-                    List<WordItem> items = [];
-                    foreach (var block in page.Layout)
+                    foreach (var paragraph in block.Paragraphs)
                     {
-                        foreach (var paragraph in block.Paragraphs)
+                        foreach (var textLine in paragraph.TextLines)
                         {
-                            foreach (var textLine in paragraph.TextLines)
+                            foreach (var word in textLine.Words)
                             {
-                                foreach (var word in textLine.Words)
-                                {
-                                    items.Add(new WordItem() { Word = word.Text, Border = "1" });
-                                }
-                                items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
+                                items.Add(new WordItem() { Word = word.Text, Border = "1" });
                             }
-                            items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
+                            items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
                         }
                         items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
                     }
-                    ocrWords.ItemsSource = items;
-
-                    // Translated text
-                    var translator = new GoogleTranslator2();
-                    var translateResult = await translator.TranslateAsync(page.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
-                    translatedText.Text = translateResult.Translation;
+                    items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
                 }
+                ocrWords.ItemsSource = items;
+
+                // Translated text
+                var translator = new GoogleTranslator2();
+                var translateResult = await translator.TranslateAsync(page.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
+                translatedText.Text = translateResult.Translation;
             }
         }
 

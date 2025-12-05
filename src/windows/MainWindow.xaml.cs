@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-using Forms = System.Windows.Forms;
+
 
 namespace ScreenLookup
 {
@@ -65,12 +65,7 @@ namespace ScreenLookup
             if (Setting.MinimizeToTray)
             {
                 this.Hide();
- 
-                Forms.NotifyIcon notifyIcon = new Forms.NotifyIcon();
-                notifyIcon.Icon = new Icon("applicationIcon.ico");
-                notifyIcon.Visible = true;
-                notifyIcon.ShowBalloonTip(500, "ScreenLookup", "ScreenLookup started in the background", Forms.ToolTipIcon.Info);
-                notifyIcon.Visible = false;
+                Notification.Show("ScreenLookup started in the background", 500);
             }
         }
 

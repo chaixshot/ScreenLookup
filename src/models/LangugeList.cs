@@ -147,16 +147,16 @@ namespace ScreenLookup.src.models
             return tesseractTag;
         }
 
-        public static string GetTesseractTagFromID(int langIndex)
+        public static string GetTesseractTagFromID(int langID)
         {
-            string tesseractTag = GetTesseractTagFromName(LangugeList.LanguageTesseract[langIndex]);
+            string tesseractTag = GetTesseractTagFromName(LangugeList.LanguageTesseract[langID]);
 
             return tesseractTag;
         }
 
-        public static string GetLanguageShortageFromID(int langIndex)
+        public static string GetLanguageShortageFromID(int langID)
         {
-            string tesseractTag = LangugeList.GetTesseractTagFromID(langIndex);
+            string tesseractTag = LangugeList.GetTesseractTagFromID(langID);
             string shorted = tesseractTag.Substring(0, 2);
 
             return shorted;

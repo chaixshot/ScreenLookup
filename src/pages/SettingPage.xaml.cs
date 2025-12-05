@@ -111,11 +111,10 @@ namespace ScreenLookup.src.pages
 
         private void ToggleDownloadTesseractButton()
         {
-            var lang = Setting.RegDownloadedLang.GetValue(LangugeList.GetTesseractTagFromID(Setting.SourceLanguge));
-            if (lang == null)
-                downloadTesseract.Visibility = Visibility.Visible;
-            else
+            if (isLoading || Setting.IsLangugeInstalled(Setting.SourceLanguge))
                 downloadTesseract.Visibility = Visibility.Hidden;
+            else
+                downloadTesseract.Visibility = Visibility.Visible;
         }
 
         private static async Task CopyFileWithElevatedPermissions(string sourcePath, string destinationPath)
@@ -167,11 +166,15 @@ namespace ScreenLookup.src.pages
 
         private async void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
-            string? pickedLanguageFile = LangugeList.LanguageTesseract[sourceLanguge.SelectedIndex];
+            int langID = Setting.SourceLanguge;
+
+            string? pickedLanguageFile = LangugeList.LanguageTesseract[langID];
             if (isLoading || string.IsNullOrWhiteSpace(pickedLanguageFile))
                 return;
 
             isLoading = true;
+            Notification.Show($"Downloading {LangugeList.CultureDisplayName(LangugeList.GetTesseractTagFromID(langID))}", 500);
+            downloadTesseract.Visibility = Visibility.Hidden;
 
             string tesseractFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}tessdata";
             string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
@@ -181,10 +184,10 @@ namespace ScreenLookup.src.pages
             await CopyFileWithElevatedPermissions(tempFilePath, tesseractFilePath);
             File.Delete(tempFilePath);
 
-            Setting.RegDownloadedLang.SetValue(LangugeList.GetTesseractTagFromID(sourceLanguge.SelectedIndex), true);
-            ToggleDownloadTesseractButton();
-
             isLoading = false;
+            Setting.RegDownloadedLang.SetValue(LangugeList.GetTesseractTagFromID(langID), true);
+            ToggleDownloadTesseractButton();
+            Notification.Show($"Download {LangugeList.CultureDisplayName(LangugeList.GetTesseractTagFromID(langID))} successfully", 500);
         }
     }
 }

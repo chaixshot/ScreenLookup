@@ -79,5 +79,12 @@ namespace ScreenLookup.src.models
                 key.SetValue("MinimizeToTray", value.ToString());
             }
         }
+
+        public static bool IsLangugeInstalled(int langID)
+        {
+            var reg = RegDownloadedLang.GetValue(LangugeList.GetTesseractTagFromID(langID));
+
+            return reg != null;
+        }
     }
 }
