@@ -12,6 +12,7 @@ namespace ScreenLookup.src.models
         public static readonly RegistryKey RegSetting = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
         public static readonly RegistryKey RegWindowBounds = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\WindowBounds\\");
         public static readonly RegistryKey RegDownloadedLang = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\DownloadedLang\\");
+        public static readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
         public static int sourceLanguge;
         public static int targetLanguge;

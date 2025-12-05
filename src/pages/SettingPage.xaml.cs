@@ -64,6 +64,12 @@ namespace ScreenLookup.src.pages
             set
             {
                 Setting.StartupWithWindows = value;
+
+                if (value)
+                    Setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
+                else
+                    Setting.RegAutorun.DeleteValue("ScreenLookup", false);
+
                 OnPropertyChanged();
             }
         }
@@ -86,20 +92,10 @@ namespace ScreenLookup.src.pages
             foreach (string textName in LangugeList.LanguageTesseract)
             {
                 string tesseractTag = LangugeList.GetTesseractTagFromName(textName);
-                string paddedTextName = textName.PadRight(26);
 
-                try
-                {
-                    string text = $"{paddedTextName}\t{LangugeList.CultureDisplayName(tesseractTag)}";
-                    sourceLanguge.Items.Add(text);
-                    targetLanguge.Items.Add(text);
-                }
-                catch
-                {
-                    string text = $"{paddedTextName}\t{tesseractTag}";
-                    sourceLanguge.Items.Add(text);
-                    targetLanguge.Items.Add(text);
-                }
+                string text = $"{LangugeList.CultureDisplayName(tesseractTag).PadRight(42)}\t{textName}";
+                sourceLanguge.Items.Add(text);
+                targetLanguge.Items.Add(text);
             }
         }
 
