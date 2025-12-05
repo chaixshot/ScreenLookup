@@ -26,11 +26,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="src\windows\applicationIcon.ico" />
+    <Resource Include="src\windows\applicationIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
     <None Update="applicationIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="src\applicationIcon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

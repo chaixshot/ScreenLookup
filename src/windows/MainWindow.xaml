@@ -1,4 +1,4 @@
-﻿<ui:FluentWindow 
+﻿<wpfui:FluentWindow 
     xmlns:Controls="clr-namespace:Wpf.Ui.Tray.Controls;assembly=Wpf.Ui.Tray"
     x:Class="ScreenLookup.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,7 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:WpfUiIcon="http://schemas.lepo.co/wpfui/2022/xaml/tray"
+    xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     mc:Ignorable="d"
     Title="MainWindow"
     Height="450"
@@ -30,44 +31,78 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <ui:TitleBar
+            <wpfui:TitleBar
                 Grid.Row="0"
                 Height="27">
-                <ui:TitleBar.Header>
-                    <ui:TextBlock Padding="15,0,0,0" VerticalAlignment="Center">ScreenLookup</ui:TextBlock>
-                </ui:TitleBar.Header>
-            </ui:TitleBar>
+                <wpfui:TitleBar.Header>
+                    <wpfui:TextBlock Padding="15,0,0,0" VerticalAlignment="Center">ScreenLookup</wpfui:TextBlock>
+                </wpfui:TitleBar.Header>
+            </wpfui:TitleBar>
 
-            <ui:NavigationView
+            <wpfui:NavigationView
                 x:Name="RootNavigation"
                 Grid.Row="1"
                 Height="Auto"
                 IsBackButtonVisible="Collapsed"
                 PaneDisplayMode="LeftMinimal" OpenPaneLength="150" HeaderVisibility="Collapsed" IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                <ui:NavigationView.MenuItems>
-                    <ui:NavigationViewItem
+                <wpfui:NavigationView.MenuItems>
+                    <wpfui:NavigationViewItem
                         Margin="0,6,0,3"
                         Content="Caption"
                         FontFamily="Bahnschrift"
-                        Icon="{ui:SymbolIcon Home24}"
+                        Icon="{wpfui:SymbolIcon Home24}"
                         NavigationCacheMode="Enabled"
                         TargetPageType="{x:Type local:SettingPage}" />
-                    <ui:NavigationViewItem
+                    <wpfui:NavigationViewItem
                         Margin="0,3,0,0"
                         Content="Info"
                         FontFamily="Bahnschrift"
-                        Icon="{ui:SymbolIcon Info24}"
+                        Icon="{wpfui:SymbolIcon Info24}"
                         NavigationCacheMode="Required"
                         TargetPageType="{x:Type local:InfoPage}" />
-                </ui:NavigationView.MenuItems>
-            </ui:NavigationView>
+                </wpfui:NavigationView.MenuItems>
+            </wpfui:NavigationView>
         </Grid>
 
-        <ui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
+        <wpfui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
 
         <ContentPresenter
         x:Name="DialogHostContainer"
         MinHeight="167"
         Visibility="Collapsed" />
+
+        <WpfUiIcon:NotifyIcon
+            x:Name="NotifyIcon"
+            IsVisibleChanged="NotifyIcon_IsVisibleChanged"
+            LeftClick="NotifyIcon_LeftClick"
+            TooltipText="Text Grab" Icon="/src/windows/applicationIcon.ico">
+            <WpfUiIcon:NotifyIcon.Menu>
+                <ContextMenu>
+                    <MenuItem
+                        Click="SettingsMenuItem_Click"
+                        Header="Settings">
+                        <MenuItem.Icon>
+                            <wpfui:SymbolIcon Symbol="Settings24" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    
+                    <MenuItem
+                        Click="CaptureWindowItem_Click"
+                        Header="Edit Text Window">
+                        <MenuItem.Icon>
+                            <wpfui:SymbolIcon Symbol="Screenshot20" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    
+                    <MenuItem
+                        Click="Exit_Click"
+                        Header="Close Text Grab">
+                        <MenuItem.Icon>
+                            <wpfui:SymbolIcon Symbol="Dismiss24" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </WpfUiIcon:NotifyIcon.Menu>
+        </WpfUiIcon:NotifyIcon>
     </Grid>
-</ui:FluentWindow>
+</wpfui:FluentWindow>
