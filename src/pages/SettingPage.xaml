@@ -8,13 +8,14 @@
       xmlns:local="clr-namespace:ScreenLookup.src.pages"
       mc:Ignorable="d" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      d:DesignHeight="450" d:DesignWidth="800"
       Title="SettingPage">
 
     <Grid Margin="20,12,40,40">
         <Controls:DynamicScrollViewer>
             <StackPanel Grid.Column="0" Orientation="Vertical">
-                <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Margin="0,0,0,10" />
+                <TextBlock Text="Settings" FontSize="25" FontWeight="SemiBold" Margin="32,0,0,10" />
+
+                <TextBlock Text="General" FontWeight="SemiBold" Margin="5,0,0,5" />
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
@@ -113,7 +114,7 @@
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
                     </Grid>
                 </Controls:Card>
-                
+
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -124,6 +125,58 @@
                         <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" />
                     </Grid>
                 </Controls:Card>
+
+                <TextBlock Text="Appearance" FontWeight="SemiBold" Margin="5,0,0,5" />
+
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Show image" Margin="6"/>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding ShowIimage}" />
+                    </Grid>
+                </Controls:Card>
+
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Font" Margin="6"/>
+                        <ComboBox
+                            ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
+                            Grid.Column="1" 
+                            Width="200"
+                            IsEditable="True"
+                            Text="{Binding FontFamily}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Label FontFamily="{Binding .}" Content="{Binding Source}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Controls:Card>
+
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Font size" Margin="6"/>
+                        <Controls:NumberBox
+                            Grid.Column="1"
+                            Maximum="100"
+                            Minimum="10"
+                            Value="{Binding FontSize}"
+                            Width="200"/>
+                    </Grid>
+                </Controls:Card>
+
             </StackPanel>
         </Controls:DynamicScrollViewer>
     </Grid>
