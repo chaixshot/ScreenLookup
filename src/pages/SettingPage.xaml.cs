@@ -2,7 +2,10 @@
 using ScreenLookup.src.models;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace ScreenLookup.src.pages
@@ -65,6 +68,68 @@ namespace ScreenLookup.src.pages
                 Setting.StartInBackground = value;
                 OnPropertyChanged();
             }
+        }
+
+        public async Task CopyFileWithElevatedPermissions(string sourcePath, string destinationPath)
+        {
+            // Create tessdata folder
+            string arguments = $"/c if not exist \"{destinationPath}\" mkdir \"{destinationPath}\"";
+            ProcessStartInfo startInfo = new()
+            {
+                UseShellExecute = true,
+                WorkingDirectory = Environment.CurrentDirectory,
+                FileName = "cmd.exe",
+                Verb = "runas",
+                Arguments = arguments,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+            try
+            {
+                Process? process = Process.Start(startInfo);
+                if (process is not null)
+                    await process.WaitForExitAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            // Move *.traineddata
+            arguments = $"/c copy \"{sourcePath}\" \"{destinationPath}\"";
+            startInfo = new()
+            {
+                UseShellExecute = true,
+                WorkingDirectory = Environment.CurrentDirectory,
+                FileName = "cmd.exe",
+                Verb = "runas",
+                Arguments = arguments,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+            try
+            {
+                Process? process = Process.Start(startInfo);
+                if (process is not null)
+                    await process.WaitForExitAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private async void DownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            string? pickedLanguageFile = LangugeList.LanguageTesseract[sourceLanguge.SelectedIndex]+ ".traineddata";
+            if (string.IsNullOrWhiteSpace(pickedLanguageFile))
+                return;
+
+            string tesseractFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}tessdata";
+            string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
+
+            TesseractGitHubFileDownloader fileDownloader = new();
+            await fileDownloader.DownloadFileAsync(pickedLanguageFile, tempFilePath);
+            await CopyFileWithElevatedPermissions(tempFilePath, tesseractFilePath);
+            File.Delete(tempFilePath);
         }
     }
 }

@@ -44,11 +44,11 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <ui:Button
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Click="Button_OriginalTTS"
-                Icon="{ui:SymbolIcon Speaker228,
-                    Filled=True}" VerticalAlignment="Top"/>
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="Button_OriginalTTS"
+                        Icon="{ui:SymbolIcon Speaker228, Filled=True}"
+                        VerticalAlignment="Top"/>
 
 
                     <StackPanel Grid.Column="1" Margin="5,0,0,0">

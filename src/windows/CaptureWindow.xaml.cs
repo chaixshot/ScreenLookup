@@ -91,7 +91,7 @@ namespace ScreenLookup.src.windows
                 byte[] fileBytes = ms.ToArray();
 
                 // TesseractOCR
-                var engine = new Engine(@"C:\Program Files\Tesseract-OCR\tessdata", LangugeList.LanguageTesseract[Setting.SourceLanguge], EngineMode.Default);
+                var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LangugeList.LanguageTesseract[Setting.SourceLanguge], EngineMode.Default);
                 var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
                 var page = engine.Process(img);
 

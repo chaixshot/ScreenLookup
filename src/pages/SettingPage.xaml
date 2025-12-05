@@ -6,6 +6,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:ScreenLookup.src.pages"
       mc:Ignorable="d" 
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       d:DesignHeight="450" d:DesignWidth="800"
       Title="SettingPage">
 
@@ -19,14 +20,28 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Source Languge" Margin="6"/>
-                        <ComboBox
-                            Width="135"
-                            Grid.Column="1"
-                            SelectedIndex="{Binding SourceLanguge}"
-                            >
-                            <ComboBoxItem Content="English"/>
-                            <ComboBoxItem Content="Thai"/>
-                        </ComboBox>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ui:Button
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                Click="DownloadButton_Click"
+                                Icon="{ui:SymbolIcon ArrowDownload16, Filled=True}"
+                                VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,5,0"/>
+                            <ComboBox x:Name="sourceLanguge"
+                                Width="135"
+                                Grid.Column="1"
+                                SelectedIndex="{Binding SourceLanguge}"
+                                >
+                                <ComboBoxItem Content="English"/>
+                                <ComboBoxItem Content="Thai"/>
+                            </ComboBox>
+                        </Grid>
+
                     </Grid>
                 </Controls:Card>
 
@@ -47,7 +62,7 @@
                         </ComboBox>
                     </Grid>
                 </Controls:Card>
-                
+
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -67,7 +82,7 @@
                         </ComboBox>
                     </Grid>
                 </Controls:Card>
-                
+
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -78,7 +93,7 @@
                         <Controls:TextBox Grid.Column="1" Text="Alt+Z" />
                     </Grid>
                 </Controls:Card>
-                
+
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -89,7 +104,7 @@
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
                     </Grid>
                 </Controls:Card>
-                
+
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
