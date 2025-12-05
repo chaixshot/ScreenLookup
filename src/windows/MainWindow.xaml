@@ -25,6 +25,8 @@
     >
 
     <Window.Resources>
+        <wpfui:ImageIcon x:Key="TextGrabIcon" Source="applicationIcon.ico" />
+        
         <Style x:Key="NavMenuContent" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -41,9 +43,10 @@
 
             <wpfui:TitleBar
                 Grid.Row="0"
-                Height="27">
+                Height="27"
+                Icon="{StaticResource TextGrabIcon}">
                 <wpfui:TitleBar.Header>
-                    <wpfui:TextBlock Padding="15,0,0,0" VerticalAlignment="Center">ScreenLookup</wpfui:TextBlock>
+                    <wpfui:TextBlock Padding="0,0,0,0" VerticalAlignment="Center" FontSize="12">ScreenLookup</wpfui:TextBlock>
                 </wpfui:TitleBar.Header>
             </wpfui:TitleBar>
 
