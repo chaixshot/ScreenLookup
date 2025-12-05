@@ -16,7 +16,6 @@ namespace ScreenLookup.src.models
         public static int targetLanguge;
         public static bool startupWithWindows;
         public static bool startInBackground;
-        public static bool isPaneOpen;
 
         public static int SourceLanguge
         {
@@ -63,18 +62,6 @@ namespace ScreenLookup.src.models
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("StartInBackground", value.ToString());
-            }
-        }
-
-        public static bool IsPaneOpen
-        {
-            get { return isPaneOpen; }
-            set
-            {
-                isPaneOpen = value;
-
-                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
-                key.SetValue("IsPaneOpen", value.ToString());
             }
         }
     }

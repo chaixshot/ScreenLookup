@@ -18,24 +18,8 @@ namespace ScreenLookup
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : FluentWindow, INotifyPropertyChanged
+    public partial class MainWindow : FluentWindow
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public bool IsPaneOpen
-        {
-            get { return Setting.IsPaneOpen; }
-            set
-            {
-                Setting.IsPaneOpen = value;
-                OnPropertyChanged();
-            }
-        }
-
         public MainWindow()
         {
             DataContext = this;
@@ -65,9 +49,7 @@ namespace ScreenLookup
                     HideToTray();
                 }
 
-
                 WindowStateRestore(this, "Main");
-                IsPaneOpen = Setting.RegSetting.GetValue("IsPaneOpen") == null || Setting.RegSetting.GetValue("IsPaneOpen").ToString() == "True";
             };
         }
 

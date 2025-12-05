@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
-    xmlns:WpfUiIcon="http://schemas.lepo.co/wpfui/2022/xaml/tray"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml/tray"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     mc:Ignorable="d"
     Title="MainWindow"
@@ -23,6 +23,14 @@
     LocationChanged="MainWindow_BoundsChanged"
     SizeChanged="MainWindow_BoundsChanged"
     >
+
+    <Window.Resources>
+        <Style x:Key="NavMenuContent" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+    </Window.Resources>
 
     <Grid>
         <Grid x:Name="MainContent">
@@ -44,22 +52,25 @@
                 Grid.Row="1"
                 Height="Auto"
                 IsBackButtonVisible="Collapsed"
-                PaneDisplayMode="LeftMinimal" OpenPaneLength="150" HeaderVisibility="Collapsed" IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                PaneDisplayMode="LeftFluent">
                 <wpfui:NavigationView.MenuItems>
-                    <wpfui:NavigationViewItem
-                        Margin="0,6,0,3"
-                        Content="Caption"
-                        FontFamily="Bahnschrift"
-                        Icon="{wpfui:SymbolIcon Home24}"
-                        NavigationCacheMode="Enabled"
-                        TargetPageType="{x:Type local:SettingPage}" />
-                    <wpfui:NavigationViewItem
-                        Margin="0,3,0,0"
-                        Content="Info"
-                        FontFamily="Bahnschrift"
-                        Icon="{wpfui:SymbolIcon Info24}"
-                        NavigationCacheMode="Required"
-                        TargetPageType="{x:Type local:InfoPage}" />
+                    <wpfui:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:SettingPage}">
+                        <wpfui:NavigationViewItem.Content>
+                            <TextBlock Style="{StaticResource NavMenuContent}" Text="Setting" />
+                        </wpfui:NavigationViewItem.Content>
+                        <wpfui:NavigationViewItem.Icon>
+                            <wpfui:SymbolIcon Symbol="Settings24" />
+                        </wpfui:NavigationViewItem.Icon>
+                    </wpfui:NavigationViewItem>
+
+                    <wpfui:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:InfoPage}">
+                        <wpfui:NavigationViewItem.Content>
+                            <TextBlock Style="{StaticResource NavMenuContent}" Text="About" />
+                        </wpfui:NavigationViewItem.Content>
+                        <wpfui:NavigationViewItem.Icon>
+                            <wpfui:SymbolIcon Symbol="Info24" />
+                        </wpfui:NavigationViewItem.Icon>
+                    </wpfui:NavigationViewItem>
                 </wpfui:NavigationView.MenuItems>
             </wpfui:NavigationView>
         </Grid>
@@ -71,12 +82,12 @@
         MinHeight="167"
         Visibility="Collapsed" />
 
-        <WpfUiIcon:NotifyIcon
+        <ui:NotifyIcon
             x:Name="NotifyIcon"
             IsVisibleChanged="NotifyIcon_IsVisibleChanged"
             LeftClick="NotifyIcon_LeftClick"
             TooltipText="Text Grab" Icon="/src/windows/applicationIcon.ico">
-            <WpfUiIcon:NotifyIcon.Menu>
+            <ui:NotifyIcon.Menu>
                 <ContextMenu>
                     <MenuItem
                         Click="SettingsMenuItem_Click"
@@ -102,7 +113,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                 </ContextMenu>
-            </WpfUiIcon:NotifyIcon.Menu>
-        </WpfUiIcon:NotifyIcon>
+            </ui:NotifyIcon.Menu>
+        </ui:NotifyIcon>
     </Grid>
 </wpfui:FluentWindow>
