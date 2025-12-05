@@ -6,10 +6,12 @@ using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -28,17 +30,19 @@ using TesseractOCR.Enums;
 using TesseractOCR.Layout;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Button = Wpf.Ui.Controls.Button;
 
 namespace ScreenLookup.src.windows
 {
-    /// <summary>
-    /// Interaction logic for Capture.xaml
-    /// </summary>
-    public partial class CaptureWindow : FluentWindow
+    public partial class CaptureWindow : FluentWindow, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
         private CancellationTokenSource CTS = new CancellationTokenSource();
+
+        public bool isFlyOutOpen = false;
+
         private class WordItem
         {
             public string Word { get; set; }
@@ -49,6 +53,7 @@ namespace ScreenLookup.src.windows
 
         public CaptureWindow()
         {
+            DataContext = this;
             InitializeComponent();
 
             PreviewKeyDown += (s, e) =>
@@ -60,10 +65,24 @@ namespace ScreenLookup.src.windows
             {
                 originalText.Text = "";
                 translatedText.Text = "";
-                definition.Visibility = Visibility.Collapsed;
 
                 StartCaptureAndTranslate();
             };
+        }
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public bool IsFlyOutOpen
+        {
+            get { return isFlyOutOpen; }
+            set
+            {
+                isFlyOutOpen = value;
+                OnPropertyChanged();
+            }
         }
 
         private async void StartCaptureAndTranslate()
@@ -122,7 +141,10 @@ namespace ScreenLookup.src.windows
                         {
                             foreach (var word in textLine.Words)
                             {
-                                items.Add(new WordItem() { Word = word.Text, Border = "1" });
+                                if (!string.IsNullOrEmpty(word.Text.Replace(" ", "")))
+                                {
+                                    items.Add(new WordItem() { Word = word.Text, Border = "1" });
+                                }
                             }
                             items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
                         }
@@ -154,10 +176,10 @@ namespace ScreenLookup.src.windows
             finally { DeleteObject(handle); }
         }
 
-        private static async void PlayTTS(string Text, string Languge, CancellationTokenSource token)
+        private static async void PlayTTS(string Text, string Language, CancellationTokenSource token)
         {
             var translator = new GoogleTranslator2();
-            Stream stream = await translator.TextToSpeechAsync(Text, Languge, false);
+            Stream stream = await translator.TextToSpeechAsync(Text, Language, false);
 
             Stream ms = new MemoryStream();
             byte[] buffer = new byte[32768];
@@ -184,11 +206,11 @@ namespace ScreenLookup.src.windows
             }
         }
 
-        private void StartTTS(string Text, string Languge)
+        private void StartTTS(string Text, string Language)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            PlayTTS(Text, Languge, CTS);
+            PlayTTS(Text, Language, CTS);
         }
 
         // Paragraph
@@ -205,29 +227,40 @@ namespace ScreenLookup.src.windows
         // Word
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            Button? word = sender as Button;
+            IsFlyOutOpen = false;
 
-            definition.Visibility = Visibility.Visible;
+            Button? button = sender as Button;
 
-            string originalWord = word.Content.ToString();
-            definition_original.Text = originalWord;
-            definition_translated.Text = "...";
+            // Change flyout position follow cursor
+            var MousePos_Point = Mouse.GetPosition(originalWords);
+            Matrix matrix = new Matrix();
+            matrix.Translate(MousePos_Point.X - 50, MousePos_Point.Y);
+            mt.Matrix = matrix;
+            flayOut.LayoutTransform = Transform.Identity;
 
-            StartTTS(definition_original.Text, LangugeList.GetLanguageShortageFromID(Setting.SourceLanguge));
+            string originalWord = button.Content.ToString();
+            if (string.IsNullOrEmpty(originalWord.Replace(" ", "")))
+                return;
+
+            IsFlyOutOpen = true;
+            definitionOriginal.Text = originalWord;
+            definitionTranslated.Text = "...";
+
+            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageShortageFromID(Setting.SourceLanguage));
 
             var translator = new GoogleTranslator2();
-            var translateResult = await translator.TranslateAsync(originalWord, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
-            definition_translated.Text = translateResult.Translation;
+            var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
+            definitionTranslated.Text = translateResult.Translation;
         }
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definition_original.Text, LangugeList.GetLanguageShortageFromID(Setting.SourceLanguge));
+            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageShortageFromID(Setting.SourceLanguage));
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definition_translated.Text, LangugeList.GetLanguageShortageFromID(Setting.TargetLanguge));
+            StartTTS(definitionTranslated.Text, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
         }
 
         // Utility
