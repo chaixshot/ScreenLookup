@@ -237,5 +237,16 @@ namespace ScreenLookup.src.pages
             DownloadTesseractButtonStateChange();
             Notification.Show($"Download {LanguageList.CultureDisplayNameFromID(langID)} successfully", 500);
         }
+
+        private async void ResetButton(object sender, RoutedEventArgs e)
+        {
+
+            bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This operation cannot be undone!", 0);
+            if (isYes)
+            {
+                Setting.Reset();
+                await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
+            }
+        }
     }
 }

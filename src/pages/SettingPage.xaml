@@ -192,6 +192,16 @@
                     </Grid>
                 </Controls:Card>
 
+                <TextBlock Text="Reset" FontWeight="SemiBold" Margin="5,0,0,5" />
+
+                <Controls:Card Margin="0,0,0,4">
+                    <wpfui:Button
+                        Margin="5,0,0,0"
+                        HorizontalAlignment="Left"
+                        Icon="{wpfui:SymbolIcon ArrowCounterclockwise24, Filled=False}"
+                        ToolTip="Reset" Click="ResetButton" />
+                </Controls:Card>
+
             </StackPanel>
         </Controls:DynamicScrollViewer>
     </Grid>

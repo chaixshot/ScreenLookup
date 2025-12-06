@@ -9,9 +9,10 @@ namespace ScreenLookup.src.utils
 {
     internal class Setting
     {
-        public static readonly RegistryKey RegSetting = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
-        public static readonly RegistryKey RegWindowBounds = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\WindowBounds\\");
-        public static readonly RegistryKey RegDownloadedLang = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\InstalledLanguage\\");
+        public static RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
+        public static readonly RegistryKey RegSetting = ScreenLookupReg.CreateSubKey("Settings");
+        public static readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
+        public static readonly RegistryKey RegDownloadedLang = ScreenLookupReg.CreateSubKey("InstalledLanguage");
         public static readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
         public static int sourceLanguageAccuracy = 1;
@@ -176,6 +177,11 @@ namespace ScreenLookup.src.utils
         {
             RegistryKey key = RegDownloadedLang.CreateSubKey(accID.ToString());
             key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
+        }
+
+        public static void Reset()
+        {
+            Setting.ScreenLookupReg.DeleteSubKeyTree("");
         }
     }
 }
