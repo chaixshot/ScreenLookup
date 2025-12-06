@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace ScreenLookup.src.models
+namespace ScreenLookup.src.utils
 {
     internal class Setting
     {

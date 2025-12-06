@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Text;
 using GLanguage = GTranslate.Language;
 
-namespace ScreenLookup.src.models
+namespace ScreenLookup.src.utils
 {
     internal class LanguageList
     {

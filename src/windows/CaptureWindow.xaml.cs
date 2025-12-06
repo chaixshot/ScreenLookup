@@ -4,7 +4,7 @@ using HotkeyUtility;
 using HunspellSharp;
 using NAudio.Wave;
 using ScreenGrab;
-using ScreenLookup.src.models;
+using ScreenLookup.src.utils;
 using ScreenLookup.src.pages;
 using System;
 using System.Collections.Generic;
@@ -23,6 +23,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using TesseractOCR;
 using TesseractOCR.Enums;
+using TesseractOCR.Layout;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 using GLanguage = GTranslate.Language;
@@ -149,7 +150,6 @@ namespace ScreenLookup.src.windows
             }), DispatcherPriority.ContextIdle, null);
         }
 
-
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -163,6 +163,13 @@ namespace ScreenLookup.src.windows
                 isFlyOutOpen = value;
                 OnPropertyChanged();
             }
+        }
+
+        private void StartTTS(string Text, string Language)
+        {
+            CTS.Cancel();
+            CTS = new CancellationTokenSource();
+            TextToSpeech.PlayTTS(Text, Language, CTS);
         }
 
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
@@ -240,52 +247,6 @@ namespace ScreenLookup.src.windows
             finally { DeleteObject(handle); }
         }
 
-        private static async void PlayTTS(string Text, string lang, CancellationTokenSource token)
-        {
-            var languageData = GLanguage.GetLanguage(lang);
-            var translator = LanguageList.GetTranslatorService();
-
-            try
-            {
-                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6391);
-
-                Stream ms = new MemoryStream();
-                byte[] buffer = new byte[32768];
-                int read;
-                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-
-                ms.Position = 0;
-                using (WaveStream blockAlignedStream =
-                    new BlockAlignReductionStream(
-                        WaveFormatConversionStream.CreatePcmStream(
-                            new Mp3FileReader(ms))))
-                {
-                    WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback());
-                    waveOut.Init(blockAlignedStream);
-                    waveOut.Play();
-                    while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
-                    {
-                        await Task.Delay(100);
-                    }
-                    waveOut.Dispose();
-                }
-            }
-            catch
-            {
-                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.TranslationProviders[Setting.TranslationProvider]}");
-            }
-        }
-
-        private void StartTTS(string Text, string Language)
-        {
-            CTS.Cancel();
-            CTS = new CancellationTokenSource();
-            PlayTTS(Text, Language, CTS);
-        }
-
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
@@ -320,6 +281,8 @@ namespace ScreenLookup.src.windows
             definitionTranslated.Text = "";
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
+            SavedWordButtonStateChange(originalWord);
+
             StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
 
             var translator = LanguageList.GetTranslatorService();
@@ -341,7 +304,6 @@ namespace ScreenLookup.src.windows
         // Utility
         private void App_Deactivated(object sender, EventArgs e)
         {
-            CTS.Cancel();
             this.Close();
         }
 
@@ -358,6 +320,25 @@ namespace ScreenLookup.src.windows
                     break;
             }
 
+        }
+
+        private async void SavedWordButtonStateChange(string word)
+        {
+            var saveButton = wordSave as Button;
+            var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
+            saveSymbolIcon?.Filled = await SavedWord.IsExist(word);
+        }
+
+        private async void Button_WordSave(object sender, RoutedEventArgs e)
+        {
+            string word = definitionOriginal.Text;
+            bool isExist = SavedWord.IsExist(word).Result;
+
+            if (isExist)
+                await SavedWord.Remove(word);
+            else
+                await SavedWord.Add(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
+            SavedWordButtonStateChange(word);
         }
     }
 }

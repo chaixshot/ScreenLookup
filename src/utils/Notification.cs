@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ScreenLookup.src.models
+namespace ScreenLookup.src.utils
 {
-    class Notification
+    public class Notification
     {
         public static void Show(string text = "Notification", int timeout = 1000)
         {

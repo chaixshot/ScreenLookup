@@ -15,9 +15,175 @@
         <Controls:DynamicScrollViewer>
             <StackPanel Grid.Column="0" Orientation="Vertical">
                 <TextBlock Text="Saved" FontSize="25" FontWeight="SemiBold" Margin="32,0,0,10" />
-                <TextBlock Text="General" FontWeight="SemiBold" Margin="5,0,0,5" />
 
+                <Grid Margin="15" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            MaxHeight="34.94"
+                            Margin="0,0,3,0"
+                            HorizontalAlignment="Left"
+                            Orientation="Horizontal">
+                            <wpfui:Button
+                                x:Name="PageDown"
+                                Appearance="Transparent"
+                                Click="PageDown_click"
+                                Icon="{wpfui:SymbolIcon chevronLeft12, Filled=False}"
+                                MouseOverBackground="#07000000"
+                                ToolTip="Previous " />
+
+                            <wpfui:TextBlock
+                                x:Name="PageNumber"
+                                Margin="10,0,10,0"
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                Text="1/1" />
+
+                            <wpfui:Button
+                                x:Name="PageUp"
+                                Appearance="Transparent"
+                                Click="PageUp_click"
+                                Icon="{wpfui:SymbolIcon chevronRight12, Filled=False}"
+                                MouseOverBackground="#07000000"
+                                ToolTip="Next Page" />
+
+                            <ComboBox
+                                x:Name="HistoryMaxRow"
+                                MinHeight="0"
+                                Margin="5,0,0,0"
+                                Padding="10,4,10,7"
+                                VerticalAlignment="Stretch"
+                                SelectedIndex="1">
+                                <ComboBoxItem Content="20/page" Tag="20" />
+                                <ComboBoxItem Content="30/page" Tag="30" />
+                                <ComboBoxItem Content="50/page" Tag="50" />
+                                <ComboBoxItem Content="100/page" Tag="100" />
+                            </ComboBox>
+
+                            <wpfui:AutoSuggestBox
+                                x:Name="HistorySearchBox"
+                                MinWidth="200"
+                                MaxWidth="200"
+                                Margin="5,0,0,0"
+                                PlaceholderText="Search"
+                                QuerySubmitted="HistorySearchBox_QuerySubmitted"
+                                TextChanged="HistorySearchBox_TextChanged" />
+
+                        </StackPanel>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            MaxHeight="34.94"
+                            Margin="3,0,3,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <wpfui:Button
+                                x:Name="Export"
+                                Margin="0,0,0,0"
+                                HorizontalAlignment="Right"
+                                Appearance="Transparent"
+                                Click="Export_click"
+                                Icon="{wpfui:SymbolIcon ArrowDown12,
+                                                     Filled=False}"
+                                MouseOverBackground="#07000000"
+                                ToolTip="Export" />
+                            <wpfui:Button
+                                x:Name="Delete"
+                                Margin="5,0,0,0"
+                                HorizontalAlignment="Right"
+                                Appearance="Transparent"
+                                Click="Clear_click"
+                                Icon="{wpfui:SymbolIcon Delete12,
+                                                     Filled=False}"
+                                MouseOverBackground="#07000000"
+                                ToolTip="Delete All" />
+
+                            <wpfui:Button
+                                x:Name="Refresh"
+                                Margin="5,0,0,0"
+                                HorizontalAlignment="Right"
+                                Appearance="Transparent"
+                                Click="Refresh_click"
+                                Icon="{wpfui:SymbolIcon ArrowClockwise12,
+                                                     Filled=False}"
+                                MouseOverBackground="#07000000"
+                                ToolTip="Refresh" />
+                        </StackPanel>
+                    </Grid>
+
+                    <DataGrid
+                        x:Name="HistoryDataGrid"
+                        Grid.Row="1"
+                        Margin="0,5,20,0"
+                        VerticalAlignment="Stretch"
+                        AutoGenerateColumns="False"
+                        BorderThickness="0,0,0,0"
+                        EnableRowVirtualization="True"
+                        GridLinesVisibility="Horizontal"
+                        IsReadOnly="True"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling">
+                        <DataGrid.VerticalGridLinesBrush>
+                            <LinearGradientBrush MappingMode="Absolute" EndPoint="0,3">
+                                <GradientStop Offset="0.33" Color="#18FFFFFF" />
+                                <GradientStop Offset="1" Color="Transparent" />
+                            </LinearGradientBrush>
+                        </DataGrid.VerticalGridLinesBrush>
+                        <DataGrid.HorizontalGridLinesBrush>
+                            <LinearGradientBrush MappingMode="Absolute" EndPoint="0,3">
+                                <GradientStop Offset="0.33" Color="#18FFFFFF" />
+                                <GradientStop Offset="1" Color="#33000000" />
+                            </LinearGradientBrush>
+                        </DataGrid.HorizontalGridLinesBrush>
+                        <DataGrid.BorderBrush>
+                            <LinearGradientBrush MappingMode="Absolute" EndPoint="0,3">
+                                <GradientStop Offset="0.33" Color="#18FFFFFF" />
+                                <GradientStop Offset="1" Color="Transparent" />
+                            </LinearGradientBrush>
+                        </DataGrid.BorderBrush>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Width="*" Header="Original">
+                                <DataGridTemplateColumn.CellTemplate>
+                                     <DataTemplate>
+                                        <wpfui:Button Content="{Binding Original}" Tag="{Binding SourceLanguage}" Click="Button_Word" MinWidth="200" HorizontalContentAlignment="Stretch" Margin="3"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Width="*" Header="Translated">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <wpfui:Button Content="{Binding Translated}" Tag="{Binding TargetLanguage}" Click="Button_Word" MinWidth="200" HorizontalContentAlignment="Stretch" Margin="3"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <DataGridTemplateColumn Width="0.2*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <wpfui:Button
+                                            Margin="5,0,0,0"
+                                            HorizontalAlignment="Right"
+                                            Appearance="Transparent"
+                                            Icon="{wpfui:SymbolIcon Dismiss24, Filled=False}"
+                                            MouseOverBackground="#07000000"
+                                            ToolTip="Refresh" Tag="{Binding Original}" Click="Delete_click" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <wpfui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
+                </Grid>
             </StackPanel>
         </Controls:DynamicScrollViewer>
     </Grid>

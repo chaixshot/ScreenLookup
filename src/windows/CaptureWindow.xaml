@@ -140,14 +140,13 @@
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Width="20" Height="20" Padding="0"/>
-                        <wpfui:Button
+                        <wpfui:Button x:Name="wordSave"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="Button_WordOriginalTTS"
                             Icon="{wpfui:SymbolIcon Star24, Filled=False}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            Width="20" Height="20" Padding="0" Margin="5,0,0,0"/>
+                            Width="20" Height="20" Padding="0" Margin="5,0,0,0" Click="Button_WordSave"/>
                     </StackPanel>
                 </wpfui:Card>
             </StackPanel>

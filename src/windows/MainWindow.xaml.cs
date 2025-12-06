@@ -1,6 +1,6 @@
 ﻿using HotkeyUtility;
 using Microsoft.Win32;
-using ScreenLookup.src.models;
+using ScreenLookup.src.utils;
 using ScreenLookup.src.pages;
 using ScreenLookup.src.windows;
 using System.ComponentModel;

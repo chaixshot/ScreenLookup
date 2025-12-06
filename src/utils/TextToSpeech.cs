@@ -1,0 +1,52 @@
+﻿using NAudio.Wave;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using GLanguage = GTranslate.Language;
+
+namespace ScreenLookup.src.utils
+{
+    class TextToSpeech
+    {
+        private CancellationTokenSource CTS = new CancellationTokenSource();
+        public static async void PlayTTS(string Text, string lang, CancellationTokenSource token)
+        {
+            var languageData = GLanguage.GetLanguage(lang);
+            var translator = LanguageList.GetTranslatorService();
+
+            try
+            {
+                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6391);
+
+                Stream ms = new MemoryStream();
+                byte[] buffer = new byte[32768];
+                int read;
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+
+                ms.Position = 0;
+                using (WaveStream blockAlignedStream =
+                    new BlockAlignReductionStream(
+                        WaveFormatConversionStream.CreatePcmStream(
+                            new Mp3FileReader(ms))))
+                {
+                    WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback());
+                    waveOut.Init(blockAlignedStream);
+                    waveOut.Play();
+                    while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
+                    {
+                        await Task.Delay(100);
+                    }
+                    waveOut.Dispose();
+                }
+            }
+            catch
+            {
+                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.TranslationProviders[Setting.TranslationProvider]}");
+            }
+        }
+    }
+}

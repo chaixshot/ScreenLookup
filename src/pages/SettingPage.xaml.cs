@@ -1,6 +1,6 @@
 ﻿using GTranslate;
 using Microsoft.Win32;
-using ScreenLookup.src.models;
+using ScreenLookup.src.utils;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
