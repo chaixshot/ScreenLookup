@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using Wpf.Ui.Controls;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScreenLookup.src.pages
@@ -17,19 +18,20 @@ namespace ScreenLookup.src.pages
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private bool isLoading = false;
+        private bool isDownloading = false;
 
         public SettingPage()
         {
             DataContext = this;
             InitializeComponent();
 
+            SourceLanguageAccuracy = Setting.RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
             SourceLanguage = Setting.RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguage")) : 29;
             TargetLanguage = Setting.RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguage")) : 117;
             StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
             StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
             MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
-            Topmost = Setting.RegSetting.GetValue("Topmost") == null || Setting.RegSetting.GetValue("Topmost").ToString() == "True";
+            Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
 
             LoadTesseractContent();
         }
@@ -39,13 +41,24 @@ namespace ScreenLookup.src.pages
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public int SourceLanguageAccuracy
+        {
+            get { return Setting.SourceLanguageAccuracy; }
+            set
+            {
+                Setting.SourceLanguageAccuracy = value;
+                DownloadTesseractButtonStateChange();
+                OnPropertyChanged();
+            }
+        }
+
         public int SourceLanguage
         {
             get { return Setting.SourceLanguage; }
             set
             {
                 Setting.SourceLanguage = value;
-                ToggleDownloadTesseractButton();
+                DownloadTesseractButtonStateChange();
                 OnPropertyChanged();
             }
         }
@@ -119,85 +132,54 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void ToggleDownloadTesseractButton()
+        private void DownloadTesseractButtonStateChange()
         {
-            if (isLoading || Setting.IsLanguageInstalled(Setting.SourceLanguage))
+            var symbolIcon = downloadTesseract?.Icon as SymbolIcon;
+
+            symbolIcon.Filled = false;
+            if (isDownloading)
+                symbolIcon.Symbol = SymbolRegular.ClockArrowDownload24;
+            else if (Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
+            {
+                symbolIcon.Symbol = SymbolRegular.ArrowDownload24;
                 downloadTesseract.Visibility = Visibility.Visible;
+            }
         }
 
-        private static async Task CopyFileWithElevatedPermissions(string sourcePath, string destinationPath)
+        private static async Task MoveFileToFolder(string sourcePath, string destinationPath)
         {
-            // Create tessdata folder
-            string arguments = $"/c if not exist \"{destinationPath}\" mkdir \"{destinationPath}\"";
-            ProcessStartInfo startInfo = new()
-            {
-                UseShellExecute = true,
-                WorkingDirectory = Environment.CurrentDirectory,
-                FileName = "cmd.exe",
-                Verb = "runas",
-                Arguments = arguments,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
-            try
-            {
-                Process? process = Process.Start(startInfo);
-                if (process is not null)
-                    await process.WaitForExitAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-
-            // Move *.traineddata
-            arguments = $"/c copy \"{sourcePath}\" \"{destinationPath}\"";
-            startInfo = new()
-            {
-                UseShellExecute = true,
-                WorkingDirectory = Environment.CurrentDirectory,
-                FileName = "cmd.exe",
-                Verb = "runas",
-                Arguments = arguments,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
-            try
-            {
-                Process? process = Process.Start(startInfo);
-                if (process is not null)
-                    await process.WaitForExitAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+            System.IO.Directory.CreateDirectory(destinationPath);
+            FileInfo file = new FileInfo(sourcePath);
+            file.MoveTo($@"{destinationPath}\{file.Name}");
         }
 
         private async void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = Setting.SourceLanguage;
+            int accID = Setting.SourceLanguageAccuracy;
 
             string? pickedLanguageFile = LanguageList.LanguageTesseract[langID];
-            if (isLoading || string.IsNullOrWhiteSpace(pickedLanguageFile))
+            if (isDownloading || string.IsNullOrWhiteSpace(pickedLanguageFile))
                 return;
 
-            isLoading = true;
+            isDownloading = true;
+            DownloadTesseractButtonStateChange();
             Notification.Show($"Downloading {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(langID))}", 500);
-            downloadTesseract.Visibility = Visibility.Hidden;
 
-            string tesseractFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}tessdata";
+            string tesseractFilePath = TesseractHelper.GetTessdataPath();
             string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
 
             TesseractGitHubFileDownloader fileDownloader = new();
             await fileDownloader.DownloadFileAsync(pickedLanguageFile, tempFilePath);
-            await CopyFileWithElevatedPermissions(tempFilePath, tesseractFilePath);
-            File.Delete(tempFilePath);
+            await MoveFileToFolder(tempFilePath, tesseractFilePath);
 
-            isLoading = false;
-            Setting.RegDownloadedLang.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
-            ToggleDownloadTesseractButton();
+            isDownloading = false;
+            DownloadTesseractButtonStateChange();
             Notification.Show($"Download {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(langID))} successfully", 500);
+
+            Setting.SaveLanguageInstalled(accID, langID);
         }
     }
 }

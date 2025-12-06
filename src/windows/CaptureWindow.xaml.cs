@@ -87,7 +87,7 @@ namespace ScreenLookup.src.windows
 
         private async void StartCaptureAndTranslate()
         {
-            if (!Setting.IsLanguageInstalled(Setting.SourceLanguage))
+            if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
                 Notification.Show($"Install {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(Setting.SourceLanguage))} in the setting", 1000);
                 this.Close();
@@ -117,7 +117,7 @@ namespace ScreenLookup.src.windows
             byte[] fileBytes = ms.ToArray();
 
             // TesseractOCR
-            var engine = new Engine($"{AppDomain.CurrentDomain.BaseDirectory}\\tessdata", LanguageList.GetTesseractTagFromID(Setting.SourceLanguage), EngineMode.Default);
+            var engine = new Engine(TesseractHelper.GetTessdataPath(), LanguageList.GetTesseractTagFromID(Setting.SourceLanguage), EngineMode.Default);
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
             var page = engine.Process(img);
 
@@ -141,7 +141,7 @@ namespace ScreenLookup.src.windows
                         {
                             foreach (var word in textLine.Words)
                             {
-                                if (!string.IsNullOrEmpty(word.Text.Replace(" ", "")))
+                                if (!string.IsNullOrWhiteSpace(word.Text))
                                 {
                                     items.Add(new WordItem() { Word = word.Text, Border = "1" });
                                 }
@@ -239,7 +239,7 @@ namespace ScreenLookup.src.windows
             flayOut.LayoutTransform = Transform.Identity;
 
             string originalWord = button.Content.ToString();
-            if (string.IsNullOrEmpty(originalWord.Replace(" ", "")))
+            if (string.IsNullOrWhiteSpace(originalWord))
                 return;
 
             IsFlyOutOpen = true;

@@ -25,25 +25,30 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Source Language" Margin="6"/>
-                        <Grid Grid.Column="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
 
+                        <StackPanel Orientation="Horizontal" Grid.Column="1">
                             <wpfui:Button x:Name="downloadTesseract"
                                 HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center"
                                 Click="DownloadButton_Click"
-                                Icon="{wpfui:SymbolIcon ArrowDownload16, Filled=True}"
+                                Icon="{wpfui:SymbolIcon ArrowDownload24, Filled=True}"
                                 VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,5,0"/>
-                            <ComboBox x:Name="sourceLanguage"
-                                Width="200"
+                            <ComboBox
+                                Width="110"
                                 Grid.Column="1"
-                                SelectedIndex="{Binding SourceLanguage}"
+                                SelectedIndex="{Binding SourceLanguageAccuracy}"
                                 >
+                                <ComboBoxItem Content="Fast"/>
+                                <ComboBoxItem Content="Normal"/>
+                                <ComboBoxItem Content="Accurate"/>
                             </ComboBox>
-                        </Grid>
+                            <ComboBox x:Name="sourceLanguage"
+                                    Width="200"
+                                    Grid.Column="1"
+                                    SelectedIndex="{Binding SourceLanguage}" Margin="5,0,0,0"
+                                    >
+                            </ComboBox>
+                        </StackPanel>
                     </Grid>
                 </Controls:Card>
 

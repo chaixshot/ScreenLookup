@@ -11,15 +11,28 @@ namespace ScreenLookup.src.models
     {
         public static readonly RegistryKey RegSetting = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
         public static readonly RegistryKey RegWindowBounds = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\WindowBounds\\");
-        public static readonly RegistryKey RegDownloadedLang = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\DownloadedLang\\");
+        public static readonly RegistryKey RegDownloadedLang = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\InstalledLanguage\\");
         public static readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
-        public static int sourceLanguage;
-        public static int targetLanguage;
+        public static int sourceLanguageAccuracy = 1;
+        public static int sourceLanguage = 29;
+        public static int targetLanguage = 117;
         public static bool startupWithWindows = true;
-        public static bool startInBackground = true;
+        public static bool startInBackground = false;
         public static bool minimizeToTray = true;
         public static bool topmost = false;
+
+        public static int SourceLanguageAccuracy
+        {
+            get { return sourceLanguageAccuracy; }
+            set
+            {
+                sourceLanguageAccuracy = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("SourceLanguageAccuracy", value.ToString());
+            }
+        }
 
         public static int SourceLanguage
         {
@@ -93,11 +106,18 @@ namespace ScreenLookup.src.models
             }
         }
 
-        public static bool IsLanguageInstalled(int langID)
+        public static bool IsLanguageInstalled(int accID, int langID)
         {
-            var reg = RegDownloadedLang.GetValue(LanguageList.GetTesseractTagFromID(langID));
+            RegistryKey key = RegDownloadedLang.CreateSubKey(accID.ToString());
+            var reg = key.GetValue(LanguageList.GetTesseractTagFromID(langID));
 
             return reg != null;
+        }
+
+        public static void SaveLanguageInstalled(int accID, int langID)
+        {
+            RegistryKey key = RegDownloadedLang.CreateSubKey(accID.ToString());
+            key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
         }
     }
 }

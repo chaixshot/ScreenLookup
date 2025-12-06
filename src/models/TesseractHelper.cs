@@ -1,4 +1,5 @@
 ﻿using GTranslate;
+using ScreenLookup.src.models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +8,16 @@ using System.Text;
 
 internal class TesseractHelper
 {
-    
+    public static string GetTessdataPath()
+    {
+        var appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
+        int accID = Setting.SourceLanguageAccuracy;
+        if (accID == 0)
+            return $"{appData}\\ScreenLookup\\tessdata_fast";
+        if (accID == 1)
+            return $"{appData}\\ScreenLookup\\tessdata";
+        return $"{appData}\\ScreenLookup\\tessdata_best";
+    }
 }
 
 public class TesseractGitHubFileDownloader
@@ -23,9 +33,12 @@ public class TesseractGitHubFileDownloader
 
     public async Task DownloadFileAsync(string filenameToDownload, string localDestination)
     {
-        // Construct the URL to the raw content of the file in the GitHub repository
-        // https://github.com/tesseract-ocr/tessdata
-        string fileUrl = $"https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/{filenameToDownload}";
+        int accID = Setting.SourceLanguageAccuracy;
+        string fileUrl = $"https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/{filenameToDownload}";
+        if (accID == 0)
+            fileUrl = $"https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/{filenameToDownload}";
+        if (accID == 1)
+            fileUrl = $"https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/main/{filenameToDownload}";
 
         try
         {
