@@ -1,4 +1,5 @@
-﻿using ScreenGrab;
+﻿using HunspellSharp;
+using ScreenGrab;
 using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -52,9 +53,9 @@ namespace ScreenLookup.src.windows
 
         public void StartCaptureScreen()
         {
-            if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
+            if (!Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
-                Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
+                Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)} in the setting", 1000);
                 this.Hide();
                 return;
             }
@@ -89,6 +90,7 @@ namespace ScreenLookup.src.windows
                 }));
             });
 
+            CenterWindowOnScreen();
             this.Show();
         }
 
@@ -199,7 +201,20 @@ namespace ScreenLookup.src.windows
                         {
                             if (!string.IsNullOrWhiteSpace(word.Text))
                             {
-                                items.Add(new WordItem() { Word = word.Text, Border = "1", FontSizeS = Setting.FontSizeS, FontFace = new FontFamily(Setting.FontFace) });
+                                string text = word.Text;
+
+                                if (Setting.HunSpell)
+                                {
+                                    var hunspell = new Hunspell($"{HunspellHelper.FilePath}\\en_US.aff", $"{HunspellHelper.FilePath}\\en_US.dic");
+                                    if (!hunspell.Spell(word.Text))
+                                    {
+                                        List<string> suggestions = hunspell.Suggest(word.Text);
+                                        if (suggestions.Count != 0)
+                                            text = suggestions[0];
+                                    }
+                                }
+
+                                items.Add(new WordItem() { Word = text, Border = "1", FontSizeS = Setting.FontSizeS, FontFace = new FontFamily(Setting.FontFace) });
                             }
                         }
                         items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
@@ -212,10 +227,13 @@ namespace ScreenLookup.src.windows
             ocrWordsLoading.Visibility = Visibility.Collapsed;
 
             // Translated text
-            var translator = LanguageList.GetTranslatorService();
-            var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
-            translatedText.Text = translateResult.Translation;
-            translatedTextLoading.Visibility = Visibility.Collapsed;
+            if (!string.IsNullOrWhiteSpace(page.Text))
+            {
+                var translator = LanguageList.GetTranslatorService();
+                var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
+                translatedText.Text = translateResult.Translation;
+                translatedTextLoading.Visibility = Visibility.Collapsed;
+            }
 
             CenterWindowOnScreen();
         }

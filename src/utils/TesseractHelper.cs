@@ -1,10 +1,6 @@
-﻿using GTranslate;
-using ScreenLookup.src.utils;
-using System;
-using System.Collections.Generic;
+﻿using ScreenLookup.src.utils;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 
 internal class TesseractHelper
 {

@@ -1,10 +1,5 @@
 ﻿using GTranslate.Translators;
-using HunspellSharp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Text;
 using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.utils
@@ -185,7 +180,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static string CultureDisplayNameFromTesseractTag(string tesseractTag)
+        public static string GetDisplayNameFromTesseractTag(string tesseractTag, bool isNative)
         {
             string tessLangTag = tesseractTag.Replace("_frak", "");
             tessLangTag = tessLangTag.Replace("_old", "");
@@ -195,7 +190,7 @@ namespace ScreenLookup.src.utils
             try
             {
                 GLanguage languageData = GLanguage.GetLanguage(tessLangTag);
-                return languageData.NativeName;
+                return isNative ? languageData.NativeName : languageData.Name;
             }
             catch
             {
@@ -237,7 +232,7 @@ namespace ScreenLookup.src.utils
                 try
                 {
                     GLanguage languageData = GLanguage.GetLanguage(DisplayName);
-                    return languageData.NativeName;
+                    return isNative ? languageData.NativeName : languageData.Name;
                 }
                 catch
                 {
@@ -246,10 +241,10 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static string CultureDisplayNameFromID(int langID)
+        public static string GetDisplayNameFromID(int langID, bool isNative)
         {
             string tesseractTag = GetTesseractTagFromID(langID);
-            return CultureDisplayNameFromTesseractTag(tesseractTag);
+            return GetDisplayNameFromTesseractTag(tesseractTag, isNative);
         }
 
         public static dynamic GetTranslatorService()

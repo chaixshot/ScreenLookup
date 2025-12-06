@@ -29,11 +29,11 @@
 
                         <StackPanel Orientation="Horizontal" Grid.Column="1">
                             <wpfui:Button x:Name="downloadTesseract"
-                                Click="DownloadButton_Click"
+                                Click="DownloadTesseractButton_Click"
                                  Margin="0,0,5,0">
                                 <StackPanel >
-                                    <xControls:LoadingSpiner x:Name="downloadingIcon" Width="12" />
-                                    <Controls:SymbolIcon x:Name="downloadIcon" Symbol="ArrowDownload24" Filled="True"/>
+                                    <xControls:LoadingSpiner x:Name="tesseractLoadingIcon" Width="12" />
+                                    <Controls:SymbolIcon x:Name="tesseractLoadIcon" Symbol="ArrowDownload24" Filled="True"/>
                                 </StackPanel >
                             </wpfui:Button>
                             <ComboBox
@@ -51,6 +51,27 @@
                                     SelectedIndex="{Binding SourceLanguage}" Margin="5,0,0,0"
                                     >
                             </ComboBox>
+                        </StackPanel>
+                    </Grid>
+                </Controls:Card>
+
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Source Language Correction (Hunspell)" Margin="6"/>
+                        <StackPanel Orientation="Horizontal" Grid.Column="1">
+                            <wpfui:Button x:Name="downloadHunspell" 
+                                Click="DownloadHunspellButton_Click"
+                                Margin="0,0,5,0">
+                                <StackPanel >
+                                    <xControls:LoadingSpiner x:Name="hunspellLoadingIcon" Width="12" />
+                                    <Controls:SymbolIcon x:Name="hunspellLoadIcon" Symbol="ArrowDownload24" Filled="True"/>
+                                </StackPanel >
+                            </wpfui:Button>
+                            <CheckBox IsChecked="{Binding HunSpell}" />
                         </StackPanel>
                     </Grid>
                 </Controls:Card>

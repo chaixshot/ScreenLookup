@@ -11,7 +11,8 @@ namespace ScreenLookup.src.pages
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private bool isDownloading = false;
+        private bool isTessractloading = false;
+        private bool isHunspellloading = false;
 
         public SettingPage()
         {
@@ -20,6 +21,8 @@ namespace ScreenLookup.src.pages
 
             LoadTesseractContent();
             LoadTranslationProvidersContent();
+            DownloadTesseractButtonStateChange();
+            DownloadHunspellButtonStateChange();
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -45,6 +48,25 @@ namespace ScreenLookup.src.pages
             {
                 Setting.SourceLanguage = value;
                 DownloadTesseractButtonStateChange();
+                DownloadHunspellButtonStateChange();
+                OnPropertyChanged();
+            }
+        }
+
+        public bool HunSpell
+        {
+            get { return Setting.HunSpell; }
+            set
+            {
+                if (Setting.IsHunspellInstalled(Setting.SourceLanguage))
+                    Setting.HunSpell = value;
+                else
+                {
+                    if (value)
+                        Notification.Show($"You have to download Hunspell {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}");
+                    Setting.HunSpell = false;
+                }
+
                 OnPropertyChanged();
             }
         }
@@ -150,7 +172,7 @@ namespace ScreenLookup.src.pages
             {
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
 
-                string text = $"{LanguageList.CultureDisplayNameFromTesseractTag(tesseractTag).PadRight(42)}\t{languageTesseract}";
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(42)}\t{languageTesseract}";
                 sourceLanguage.Items.Add(text);
                 targetLanguage.Items.Add(text);
             }
@@ -169,39 +191,64 @@ namespace ScreenLookup.src.pages
         private void DownloadTesseractButtonStateChange()
         {
             downloadTesseract.Visibility = Visibility.Visible;
-            if (isDownloading)
+            if (isTessractloading)
             {
-                downloadingIcon.Visibility = Visibility.Visible;
-                downloadIcon.Visibility = Visibility.Collapsed;
+                tesseractLoadingIcon.Visibility = Visibility.Visible;
+                tesseractLoadIcon.Visibility = Visibility.Collapsed;
             }
-            else if (Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
+            else if (Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
             {
-                downloadingIcon.Visibility = Visibility.Collapsed;
-                downloadIcon.Visibility = Visibility.Visible;
+                tesseractLoadingIcon.Visibility = Visibility.Collapsed;
+                tesseractLoadIcon.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void DownloadHunspellButtonStateChange()
+        {
+            downloadHunspell.Visibility = Visibility.Visible;
+            if (isHunspellloading)
+            {
+                hunspellLoadingIcon.Visibility = Visibility.Visible;
+                hunspellLoadIcon.Visibility = Visibility.Collapsed;
+            }
+            else if (Setting.IsHunspellInstalled(Setting.SourceLanguage))
+                downloadHunspell.Visibility = Visibility.Hidden;
+            else
+            {
+                HunSpell = false;
+                hunspellLoadingIcon.Visibility = Visibility.Collapsed;
+                hunspellLoadIcon.Visibility = Visibility.Visible;
             }
         }
 
         private static async Task MoveFileToFolder(string sourcePath, string destinationPath)
         {
             System.IO.Directory.CreateDirectory(destinationPath);
-            FileInfo file = new FileInfo(sourcePath);
-            file.MoveTo($@"{destinationPath}\{file.Name}");
+            FileInfo file = new(sourcePath);
+            string filePath = $@"{destinationPath}\{file.Name}";
+
+            if (File.Exists(filePath))
+            {
+                FileInfo oldFile = new(filePath);
+                oldFile.Delete();
+            }
+            file.MoveTo(filePath);
         }
 
-        private async void DownloadButton_Click(object sender, RoutedEventArgs e)
+        private async void DownloadTesseractButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = Setting.SourceLanguage;
             int accID = Setting.SourceLanguageAccuracy;
 
             string? pickedLanguageFile = LanguageList.LanguageTesseract[langID];
-            if (isDownloading || string.IsNullOrWhiteSpace(pickedLanguageFile))
+            if (isTessractloading || string.IsNullOrWhiteSpace(pickedLanguageFile))
                 return;
 
-            isDownloading = true;
+            isTessractloading = true;
             DownloadTesseractButtonStateChange();
-            Notification.Show($"Downloading {LanguageList.CultureDisplayNameFromID(langID)}", 500);
+            Notification.Show($"Downloading {LanguageList.GetDisplayNameFromID(langID, true)}", 500);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath();
             string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
@@ -210,10 +257,64 @@ namespace ScreenLookup.src.pages
             await fileDownloader.DownloadFileAsync(pickedLanguageFile, tempFilePath);
             await MoveFileToFolder(tempFilePath, tesseractFilePath);
 
-            isDownloading = false;
-            Setting.SaveLanguageInstalled(accID, langID);
+            isTessractloading = false;
+            Setting.SaveTesseractInstalled(accID, langID);
             DownloadTesseractButtonStateChange();
-            Notification.Show($"Download {LanguageList.CultureDisplayNameFromID(langID)} successfully", 500);
+            Notification.Show($"Download {LanguageList.GetDisplayNameFromID(langID, true)} successfully", 500);
+        }
+
+        private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
+        {
+            int langID = Setting.SourceLanguage;
+            string DisplayName = LanguageList.GetDisplayNameFromID(langID, false);
+
+            if (!HunspellHelper.FileNames.ContainsKey(DisplayName))
+            {
+                Notification.Show($"{LanguageList.GetDisplayNameFromID(langID, true)} dosen't support Hunspell");
+                return;
+            }
+
+            var fileName = HunspellHelper.FileNames[DisplayName];
+
+            isHunspellloading = true;
+            DownloadHunspellButtonStateChange();
+            Notification.Show($"Downloading Hunspell {LanguageList.GetDisplayNameFromID(langID, true)}", 500);
+
+            //aff
+            string tempPath = Path.GetTempPath();
+            string nameTag = fileName.Split('.')[1];
+            string zipName = fileName.Replace(".", $"\\") + ".aff.zip";
+            string zipPath = tempPath + nameTag + ".aff.zip"; ;
+            string unzipName = nameTag + ".aff";
+            string unzipPath = tempPath + unzipName;
+
+            HunspellFileDownloader fileDownloader = new();
+            await fileDownloader.DownloadFileAsync(zipName, zipPath);
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
+            FileInfo zipFile = new(zipPath);
+            zipFile.Delete();
+            await MoveFileToFolder(unzipPath, HunspellHelper.FilePath);
+
+            //dic
+            tempPath = Path.GetTempPath();
+            nameTag = fileName.Split('.')[1];
+            zipName = fileName.Replace(".", $"\\") + ".dic.zip";
+            zipPath = tempPath + nameTag + ".dic.zip"; ;
+            unzipName = nameTag + ".dic";
+            unzipPath = tempPath + unzipName;
+
+            await fileDownloader.DownloadFileAsync(zipName, zipPath);
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
+            zipFile = new(zipPath);
+            zipFile.Delete();
+            await MoveFileToFolder(unzipPath, HunspellHelper.FilePath);
+
+            isHunspellloading = false;
+            Setting.SaveHunspellInstalled(langID);
+            DownloadHunspellButtonStateChange();
+            Notification.Show($"Download Hunspell {LanguageList.GetDisplayNameFromID(langID, true)} successfully", 500);
         }
 
         private async void ResetButton(object sender, RoutedEventArgs e)

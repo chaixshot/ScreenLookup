@@ -7,11 +7,13 @@ namespace ScreenLookup.src.utils
         public static RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
         public static readonly RegistryKey RegSetting = ScreenLookupReg.CreateSubKey("Settings");
         public static readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
-        public static readonly RegistryKey RegDownloadedLang = ScreenLookupReg.CreateSubKey("InstalledLanguage");
+        public static readonly RegistryKey RegLoadedTesseract = ScreenLookupReg.CreateSubKey("InstalledTesseract");
+        public static readonly RegistryKey RegLoadedHunspell = ScreenLookupReg.CreateSubKey("InstalledHunspell");
         public static readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
         public static int sourceLanguageAccuracy = RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
         public static int sourceLanguage = RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguage")) : 29;
+        public static bool hunSpell = RegSetting.GetValue("hunSpell") != null ? RegSetting.GetValue("hunSpell").ToString() == "True" : false;
         public static int targetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : 117;
         public static int translationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : 1;
         public static bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") != null ? RegSetting.GetValue("StartupWithWindows").ToString() == "True" : true;
@@ -51,6 +53,18 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("SourceLanguage", value.ToString());
+            }
+        }
+
+        public static bool HunSpell
+        {
+            get { return hunSpell; }
+            set
+            {
+                hunSpell = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("HunSpell", value.ToString());
             }
         }
 
@@ -160,18 +174,30 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool IsLanguageInstalled(int accID, int langID)
+        public static bool IsTesseractInstalled(int accID, int langID)
         {
-            RegistryKey key = RegDownloadedLang.CreateSubKey(accID.ToString());
+            RegistryKey key = RegLoadedTesseract.CreateSubKey(accID.ToString());
             var reg = key.GetValue(LanguageList.GetTesseractTagFromID(langID));
 
             return reg != null;
         }
 
-        public static void SaveLanguageInstalled(int accID, int langID)
+        public static void SaveTesseractInstalled(int accID, int langID)
         {
-            RegistryKey key = RegDownloadedLang.CreateSubKey(accID.ToString());
+            RegistryKey key = RegLoadedTesseract.CreateSubKey(accID.ToString());
             key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
+        }
+
+        public static bool IsHunspellInstalled(int langID)
+        {
+            var reg = RegLoadedHunspell.GetValue(langID.ToString());
+
+            return reg != null;
+        }
+
+        public static void SaveHunspellInstalled(int langID)
+        {
+            RegLoadedHunspell.SetValue(langID.ToString(), true);
         }
 
         public static void Reset()
