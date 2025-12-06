@@ -344,5 +344,20 @@ namespace ScreenLookup.src.windows
             CTS.Cancel();
             this.Close();
         }
+
+        private void Button_OpenBrowser(object sender, RoutedEventArgs e)
+        {
+            switch (Setting.translationProvider)
+            {
+                case 4:
+                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}") { UseShellExecute = true });
+
+                    break;
+                default:
+                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
+                    break;
+            }
+
+        }
     }
 }

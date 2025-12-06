@@ -98,39 +98,59 @@
             </wpfui:DynamicScrollViewer>
         </wpfui:Card>
 
-        <wpfui:Flyout x:Name="flayOut"
+        <wpfui:Flyout
+            x:Name="flayOut"
+            Padding="0"
             IsOpen="{Binding IsFlyOutOpen, Mode=OneWay}"
             Placement="Top">
             <wpfui:Flyout.RenderTransform>
                 <MatrixTransform x:Name="mt"/>
             </wpfui:Flyout.RenderTransform>
-            <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
-                <StackPanel>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <wpfui:Button
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="Button_WordOriginalTTS"
+                        Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="20" Height="20" Padding="0"/>
+                    <wpfui:TextBlock x:Name="definitionOriginal" Text="definitionOriginal" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <wpfui:Button
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="Button_WordTranslatedTTS"
+                        Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="20" Height="20" Padding="0"/>
+                    <wpfui:TextBlock x:Name="definitionTranslated" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <xControls:LoadingSpiner x:Name="definitionTranslatedLoading" Width="20" Height="20"/>
+                </StackPanel>
+                <wpfui:Card Margin="0,10,0,0" Padding="5">
                     <StackPanel Orientation="Horizontal">
                         <wpfui:Button
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="Button_WordOriginalTTS"
-                            Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                            Click="Button_OpenBrowser"
+                            Icon="{wpfui:SymbolIcon Globe24, Filled=False}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Width="20" Height="20" Padding="0"/>
-                        <wpfui:TextBlock x:Name="definitionOriginal" Text="definitionOriginal" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                         <wpfui:Button
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="Button_WordTranslatedTTS"
-                            Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                            Click="Button_WordOriginalTTS"
+                            Icon="{wpfui:SymbolIcon Star24, Filled=False}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            Width="20" Height="20" Padding="0"/>
-                        <wpfui:TextBlock x:Name="definitionTranslated" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        <xControls:LoadingSpiner x:Name="definitionTranslatedLoading" Width="20" Height="20"/>
+                            Width="20" Height="20" Padding="0" Margin="5,0,0,0"/>
                     </StackPanel>
-                </StackPanel>
-            </wpfui:DynamicScrollViewer>
+                </wpfui:Card>
+            </StackPanel>
         </wpfui:Flyout>
 
     </Grid>
