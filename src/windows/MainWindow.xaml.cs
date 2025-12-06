@@ -17,13 +17,14 @@ namespace ScreenLookup
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
-        CaptureWindow captureWindow = new CaptureWindow();
 
         public MainWindow()
         {
             DataContext = this;
             InitializeComponent();
             WindowStateRestore(this, "Main");
+
+            CaptureWindow captureWindow = new CaptureWindow();
 
             Loaded += (s, e) =>
             {
