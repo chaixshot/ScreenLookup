@@ -43,6 +43,7 @@ namespace ScreenLookup.src.windows
             public string Width { get; set; }
             public string Height { get; set; }
             public string Border { get; set; }
+            public int FontSizeS { get; set; }
         }
 
         public CaptureWindow()
@@ -60,6 +61,21 @@ namespace ScreenLookup.src.windows
             {
                 originalText.Text = "";
                 originalTextCard.Visibility = Visibility.Collapsed;
+                translatedText.FontSize = Setting.FontSizeS;
+                definitionOriginal.FontSize = Setting.FontSizeS;
+                definitionTranslated.FontSize = Setting.FontSizeS;
+                originalTTS.Width = Setting.FontSizeS + 10;
+                originalTTS.Height = Setting.FontSizeS + 10;
+                translatedTSS.Width = Setting.FontSizeS + 10;
+                translatedTSS.Height = Setting.FontSizeS + 10;
+                flayoutOriginalTSS.Width = Setting.FontSizeS + 10;
+                flayoutOriginalTSS.Height = Setting.FontSizeS + 10;
+                flayoutTranslatedTSS.Width = Setting.FontSizeS + 10;
+                flayoutTranslatedTSS.Height = Setting.FontSizeS + 10;
+                openBrowser.Width = Setting.FontSizeS + 10;
+                openBrowser.Height = Setting.FontSizeS + 10;
+                wordSave.Width = Setting.FontSizeS + 10;
+                wordSave.Height = Setting.FontSizeS + 10;
                 if (!Setting.ShowImage)
                     captureImageCard.Visibility = Visibility.Collapsed;
             };
@@ -81,7 +97,7 @@ namespace ScreenLookup.src.windows
             }
 
             // Window size
-            this.Width = image.Width + 50;
+            this.Width = image.Width + 50 + (Setting.FontSizeS * 10);
             this.MinWidth = this.Width;
             this.MaxWidth = this.Width;
 
@@ -210,7 +226,7 @@ namespace ScreenLookup.src.windows
                             {
                                 if (!string.IsNullOrWhiteSpace(word.Text))
                                 {
-                                    items.Add(new WordItem() { Word = word.Text, Border = "1" });
+                                    items.Add(new WordItem() { Word = word.Text, Border = "1", FontSizeS = Setting.FontSizeS });
                                 }
                             }
                             items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
@@ -272,7 +288,7 @@ namespace ScreenLookup.src.windows
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            string originalWord = button.Content.ToString();
+            string originalWord = button.Tag.ToString();
             if (string.IsNullOrWhiteSpace(originalWord))
                 return;
 

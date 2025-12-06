@@ -129,6 +129,15 @@ namespace ScreenLookup.src.pages
                 OnPropertyChanged();
             }
         }
+        public int FontSizeS
+        {
+            get { return Setting.FontSizeS; }
+            set
+            {
+                Setting.FontSizeS = value;
+                OnPropertyChanged();
+            }
+        }
 
         private void LoadSetting()
         {
@@ -141,6 +150,7 @@ namespace ScreenLookup.src.pages
             MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
             ShowImage = Setting.RegSetting.GetValue("ShowImage") == null || Setting.RegSetting.GetValue("ShowImage").ToString() == "True";
             Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
+            FontSizeS = Setting.RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("FontSizeS")) : 14;
         }
         private void LoadTesseractContent()
         {

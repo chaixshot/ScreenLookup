@@ -66,15 +66,21 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <wpfui:Button
-                                    BorderThickness="{Binding Border}"
-                                    Content="{Binding Word}"
-                                    HorizontalAlignment="Left"
-                                    Click="Button_Word"
-                                    Margin="0,0,0,0"
-                                    Padding="1.5,0,1.5,0"
-                                    Width="{Binding Width}" 
-                                    Height="{Binding Height}" 
-                                    />
+                                        BorderThickness="{Binding Border}"
+                                        HorizontalAlignment="Left"
+                                        Click="Button_Word"
+                                        Margin="0"
+                                        Padding="1.5,0,1.5,0"
+                                        Width="{Binding Width}" 
+                                        Height="{Binding Height}" Tag="{Binding Word}"
+                                        >
+                                        <wpfui:Button.Content>
+                                            <TextBlock
+                                                Margin="1.5,0,1.5,0"
+                                                Text="{Binding Word}"
+                                                FontSize="{Binding FontSizeS, Mode=OneWay}"/>
+                                        </wpfui:Button.Content>
+                                    </wpfui:Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -86,13 +92,13 @@
         <wpfui:Card x:Name="translatedCard" Grid.Row="3" Margin="0,3,0,0">
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible" >
                 <StackPanel Orientation="Horizontal">
-                    <wpfui:Button
+                    <wpfui:Button x:Name="translatedTSS"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_TranslatedTTS"
                         Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
                         VerticalAlignment="Top" Width="20" Height="20" Padding="0"/>
-                    <wpfui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Grid.Column="1" Margin="5,0,0,0"/>
+                    <wpfui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Grid.Column="1" Margin="5,0,0,0" />
                     <xControls:LoadingSpiner x:Name="translatedTextLoading" Width="20" Height="20"/>
                 </StackPanel>
             </wpfui:DynamicScrollViewer>
@@ -108,7 +114,7 @@
             </wpfui:Flyout.RenderTransform>
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
-                    <wpfui:Button
+                    <wpfui:Button x:Name="flayoutOriginalTSS"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordOriginalTTS"
@@ -119,7 +125,7 @@
                     <wpfui:TextBlock x:Name="definitionOriginal" Text="definitionOriginal" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
-                    <wpfui:Button
+                    <wpfui:Button x:Name="flayoutTranslatedTSS"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordTranslatedTTS"
@@ -132,7 +138,7 @@
                 </StackPanel>
                 <wpfui:Card Margin="0,10,0,0" Padding="5">
                     <StackPanel Orientation="Horizontal">
-                        <wpfui:Button
+                        <wpfui:Button x:Name="openBrowser"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
                             Click="Button_OpenBrowser"

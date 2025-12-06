@@ -23,6 +23,7 @@ namespace ScreenLookup.src.utils
         public static bool minimizeToTray = true;
         public static bool showImage = false;
         public static bool topmost = false;
+        public static int fontSizes = 14;
 
         public static readonly string[] TranslationProviders = [
             "Google",
@@ -137,6 +138,17 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("Topmost", value.ToString());
+            }
+        }
+        public static int FontSizeS
+        {
+            get { return fontSizes; }
+            set
+            {
+                fontSizes = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("FontSizeS", value.ToString());
             }
         }
 

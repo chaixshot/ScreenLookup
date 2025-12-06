@@ -176,7 +176,7 @@
                             Grid.Column="1"
                             Maximum="100"
                             Minimum="10"
-                            Value="{Binding FontSize}"
+                            Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}"
                             Width="200"/>
                     </Grid>
                 </Controls:Card>
