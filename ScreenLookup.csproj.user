@@ -4,7 +4,13 @@
     <_LastSelectedProfileId>E:\github\ScreenLookup\ScreenLookup\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Update="src\pages\HistoryPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="src\pages\InfoPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="src\pages\SavedPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="src\pages\SettingPage.xaml.cs">

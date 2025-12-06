@@ -1,5 +1,5 @@
 ﻿<Page 
-    x:Class="ScreenLookup.src.pages.InfoPage"
+    x:Class="ScreenLookup.src.pages.HistoryPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -8,13 +8,13 @@
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
     mc:Ignorable="d" 
-    Title="Info"
+    Title="History"
     >
 
     <Grid Margin="20,12,40,40">
         <Controls:DynamicScrollViewer>
             <StackPanel Grid.Column="0" Orientation="Vertical">
-                <TextBlock Text="About" FontSize="25" FontWeight="SemiBold" Margin="32,0,0,10" />
+                <TextBlock Text="History" FontSize="25" FontWeight="SemiBold" Margin="32,0,0,10" />
                 <TextBlock Text="General" FontWeight="SemiBold" Margin="5,0,0,5" />
 
 

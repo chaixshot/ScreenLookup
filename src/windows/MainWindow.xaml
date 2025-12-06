@@ -79,6 +79,24 @@
                         </wpfui:NavigationViewItem.Icon>
                     </wpfui:NavigationViewItem>
 
+                    <wpfui:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:HistoryPage}">
+                        <wpfui:NavigationViewItem.Content>
+                            <TextBlock Style="{StaticResource NavMenuContent}" Text="History" />
+                        </wpfui:NavigationViewItem.Content>
+                        <wpfui:NavigationViewItem.Icon>
+                            <wpfui:SymbolIcon Symbol="History24" />
+                        </wpfui:NavigationViewItem.Icon>
+                    </wpfui:NavigationViewItem>
+
+                    <wpfui:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:SavedPage}">
+                        <wpfui:NavigationViewItem.Content>
+                            <TextBlock Style="{StaticResource NavMenuContent}" Text="Saved" />
+                        </wpfui:NavigationViewItem.Content>
+                        <wpfui:NavigationViewItem.Icon>
+                            <wpfui:SymbolIcon Symbol="Star24" />
+                        </wpfui:NavigationViewItem.Icon>
+                    </wpfui:NavigationViewItem>
+
                     <wpfui:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:InfoPage}">
                         <wpfui:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="About" />
