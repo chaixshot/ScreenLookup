@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TesseractOCR.Renderers;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
@@ -101,29 +102,9 @@ namespace ScreenLookup.src.pages
 
         private async void Clear_click(object sender, RoutedEventArgs e)
         {
-            var dialogHostContainer = (App.Current.MainWindow as MainWindow)?.DialogHostContainer;
+            bool isYes = await DialogBox.Show("Do you want to delete all saved word?", "This operation cannot be undone!", 0);
 
-            var dialog = new ContentDialog
-            {
-                Title = new Wpf.Ui.Controls.TextBlock
-                {
-                    Text = "Do you want to delete all saved word?",
-                    FontSize = 18,
-                    FontWeight = FontWeights.Regular
-                },
-                Content = "This operation cannot be undone!",
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
-                DefaultButton = ContentDialogButton.Close,
-                DialogHost = dialogHostContainer,
-                Padding = new Thickness(8, 4, 8, 8),
-            };
-
-            dialogHostContainer.Visibility = Visibility.Visible;
-            var result = await dialog.ShowAsync();
-            dialogHostContainer.Visibility = Visibility.Collapsed;
-
-            if (result == ContentDialogResult.Primary)
+            if (isYes)
             {
                 currentPage = 1;
                 SavedWord.Clear();
@@ -211,30 +192,9 @@ namespace ScreenLookup.src.pages
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
+            bool isYes = await DialogBox.Show($"Do you want to saved word \"{button.Tag.ToString()}\"?", "This operation cannot be undone!", 0);
 
-            var dialogHostContainer = (App.Current.MainWindow as MainWindow)?.DialogHostContainer;
-
-            var dialog = new ContentDialog
-            {
-                Title = new Wpf.Ui.Controls.TextBlock
-                {
-                    Text = $"Do you want to saved word \"{button.Tag.ToString()}\"?",
-                    FontSize = 18,
-                    FontWeight = FontWeights.Regular
-                },
-                Content = "This operation cannot be undone!",
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
-                DefaultButton = ContentDialogButton.Close,
-                DialogHost = dialogHostContainer,
-                Padding = new Thickness(8, 4, 8, 8),
-            };
-
-            dialogHostContainer.Visibility = Visibility.Visible;
-            var result = await dialog.ShowAsync();
-            dialogHostContainer.Visibility = Visibility.Collapsed;
-
-            if (result == ContentDialogResult.Primary)
+            if (isYes)
             {
                 SavedWord.Remove(button.Tag.ToString());
                 LoadSavedWord();
