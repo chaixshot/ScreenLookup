@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ScreenLookup.src.windows"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:xControls="clr-namespace:ScreenLookup.src.controls"
     mc:Ignorable="d"
     Title="Capture"
         
@@ -34,12 +35,13 @@
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
                 <wpfui:TextBlock x:Name="originalText" TextWrapping="Wrap" Text="originalText" Grid.Column="1" Margin="45,0,0,0"/>
             </wpfui:DynamicScrollViewer>
-        </wpfui:Card> 
+        </wpfui:Card>
 
         <wpfui:Card x:Name="originalWords" Grid.Row="2" Margin="0,3,0,0">
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
                 <Grid >
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
@@ -50,9 +52,10 @@
                         Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
                         VerticalAlignment="Top"
                         Width="20" Height="20" Padding="0"/>
+                    
+                    <xControls:LoadingSpiner x:Name="ocrWordsLoading" Width="20" Height="20" Grid.Column="1" Margin="5,0,0,0"/>
 
-
-                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                    <StackPanel Grid.Column="2" Margin="5,0,0,0">
                         <ItemsControl Name="ocrWords">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -82,20 +85,16 @@
 
         <wpfui:Card x:Name="translatedCard" Grid.Row="3" Margin="0,3,0,0">
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible" >
-                <Grid >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
+                <StackPanel Orientation="Horizontal">
                     <wpfui:Button
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_TranslatedTTS"
                         Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
                         VerticalAlignment="Top" Width="20" Height="20" Padding="0"/>
-                    <wpfui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Text="translatedText" Grid.Column="1" Margin="5,0,0,0"/>
-                </Grid>
+                    <wpfui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Grid.Column="1" Margin="5,0,0,0"/>
+                    <xControls:LoadingSpiner x:Name="translatedTextLoading" Width="20" Height="20"/>
+                </StackPanel>
             </wpfui:DynamicScrollViewer>
         </wpfui:Card>
 
@@ -127,8 +126,8 @@
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Width="20" Height="20" Padding="0"/>
-                        <wpfui:TextBlock x:Name="definitionTranslated" Text="definitionTranslated" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
-
+                        <wpfui:TextBlock x:Name="definitionTranslated" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <xControls:LoadingSpiner x:Name="definitionTranslatedLoading" Width="20" Height="20"/>
                     </StackPanel>
                 </StackPanel>
             </wpfui:DynamicScrollViewer>

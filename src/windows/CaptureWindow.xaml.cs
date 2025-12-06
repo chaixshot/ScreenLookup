@@ -12,30 +12,18 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq.Expressions;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using TesseractOCR;
 using TesseractOCR.Enums;
-using TesseractOCR.Layout;
-using Windows.Globalization;
-using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Button = Wpf.Ui.Controls.Button;
 using GLanguage = GTranslate.Language;
 
@@ -70,15 +58,97 @@ namespace ScreenLookup.src.windows
             Loaded += (s, e) =>
             {
                 originalText.Text = "";
-                translatedText.Text = "";
                 originalTextCard.Visibility = Visibility.Collapsed;
-
-
                 if (!Setting.ShowImage)
                     captureImageCard.Visibility = Visibility.Collapsed;
-                StartCaptureAndTranslate();
             };
+
+            if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
+            {
+                Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
+                this.Close();
+                return;
+            }
+
+            //// Screenshot   
+            Bitmap image = ScreenGrabber.CaptureDialog(false);
+            if (image == null)
+            {
+                Notification.Show("No image has been captured", 1000);
+                this.Close();
+                return;
+            }
+
+            // Window size
+            this.Width = image.Width + 50;
+            this.MinWidth = this.Width;
+            this.MaxWidth = this.Width;
+
+            BitmapSource writeBmp = GetImageSourceFromBitmap(image);
+            captureImage.Source = writeBmp;
+
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    Task<TesseractOCR.Page> tesseractPage = GetTesseractPageFromBitmap(image);
+
+                    ApplyTesseractPage(tesseractPage.Result);
+                }));
+            });
         }
+
+        private void CenterWindowOnScreen()
+        {
+            double screenWidth = System.Windows.SystemParameters.PrimaryScreenWidth;
+            double screenHeight = System.Windows.SystemParameters.PrimaryScreenHeight;
+            double windowWidth = this.Width;
+            double windowHeight = this.Height;
+            this.Left = (screenWidth / 2) - (windowWidth / 2);
+            this.Top = (screenHeight / 2) - (windowHeight / 2);
+        }
+
+        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                originalText.Text = "";
+                translatedText.Text = "";
+                originalTextCard.Visibility = Visibility.Collapsed;
+                if (!Setting.ShowImage)
+                    captureImageCard.Visibility = Visibility.Collapsed;
+
+                if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
+                {
+                    Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
+                    this.Close();
+                    return;
+                }
+
+                //// Screenshot   
+                Bitmap image = ScreenGrabber.CaptureDialog(false);
+                if (image == null)
+                {
+                    Notification.Show("No image has been captured", 1000);
+                    this.Close();
+                    return;
+                }
+
+                Task<TesseractOCR.Page> tesseractPage = GetTesseractPageFromBitmap(image);
+
+                BitmapSource writeBmp = GetImageSourceFromBitmap(image);
+
+                // Window size
+                captureImage.Source = writeBmp;
+                this.Width = writeBmp.Width + 50;
+                this.MinWidth = this.Width;
+                this.MaxWidth = this.Width;
+
+                ApplyTesseractPage(tesseractPage.Result);
+            }), DispatcherPriority.ContextIdle, null);
+        }
+
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
@@ -95,32 +165,8 @@ namespace ScreenLookup.src.windows
             }
         }
 
-        private async void StartCaptureAndTranslate()
+        private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
         {
-            if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
-            {
-                Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
-                this.Close();
-                return;
-            }
-
-            // Screenshot   
-            Bitmap image = ScreenGrabber.CaptureDialog(false);
-            if (image == null)
-            {
-                Notification.Show("No image has been captured", 1000);
-                this.Close();
-                return;
-            }
-
-            BitmapSource writeBmp = GetImageSourceFromBitmap(image);
-
-            // Window size
-            captureImage.Source = writeBmp;
-            this.Width = writeBmp.Width + 50;
-            this.MinWidth = this.Width;
-            this.MaxWidth = this.Width;
-
             // Image
             MemoryStream ms = new MemoryStream();
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
@@ -129,8 +175,12 @@ namespace ScreenLookup.src.windows
             // TesseractOCR
             var engine = new Engine(TesseractHelper.GetTessdataPath(), LanguageList.GetTesseractTagFromID(Setting.SourceLanguage), EngineMode.Default);
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
-            var page = engine.Process(img);
 
+            return engine.Process(img);
+        }
+
+        private async void ApplyTesseractPage(TesseractOCR.Page page)
+        {
             if (page.Text == "")
             {
                 originalWords.Visibility = Visibility.Collapsed;
@@ -163,11 +213,15 @@ namespace ScreenLookup.src.windows
                     items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
                 }
                 ocrWords.ItemsSource = items;
+                ocrWordsLoading.Visibility = Visibility.Collapsed;
 
                 // Translated text
                 var translator = LanguageList.GetTranslatorService();
                 var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
                 translatedText.Text = translateResult.Translation;
+                translatedTextLoading.Visibility = Visibility.Collapsed;
+
+                CenterWindowOnScreen();
             }
         }
 
@@ -263,13 +317,15 @@ namespace ScreenLookup.src.windows
 
             IsFlyOutOpen = true;
             definitionOriginal.Text = originalWord;
-            definitionTranslated.Text = "...";
+            definitionTranslated.Text = "";
+            definitionTranslatedLoading.Visibility = Visibility.Visible;
 
             StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
 
             var translator = LanguageList.GetTranslatorService();
             var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
             definitionTranslated.Text = translateResult.Translation;
+            definitionTranslatedLoading.Visibility = Visibility.Collapsed;
         }
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)

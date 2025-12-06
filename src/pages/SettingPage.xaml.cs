@@ -169,17 +169,18 @@ namespace ScreenLookup.src.pages
 
         private void DownloadTesseractButtonStateChange()
         {
-            var symbolIcon = downloadTesseract?.Icon as SymbolIcon;
-
-            symbolIcon.Filled = false;
+            downloadTesseract.Visibility = Visibility.Visible;
             if (isDownloading)
-                symbolIcon.Symbol = SymbolRegular.ClockArrowDownload24;
+            {
+                downloadingIcon.Visibility = Visibility.Visible;
+                downloadIcon.Visibility = Visibility.Collapsed;
+            }
             else if (Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
             {
-                symbolIcon.Symbol = SymbolRegular.ArrowDownload24;
-                downloadTesseract.Visibility = Visibility.Visible;
+                downloadingIcon.Visibility = Visibility.Collapsed;
+                downloadIcon.Visibility = Visibility.Visible;
             }
         }
 
