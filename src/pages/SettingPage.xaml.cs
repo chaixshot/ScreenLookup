@@ -139,6 +139,16 @@ namespace ScreenLookup.src.pages
             }
         }
 
+        public string FontFace
+        {
+            get { return Setting.FontFace; }
+            set
+            {
+                Setting.FontFace = value;
+                OnPropertyChanged();
+            }
+        }
+
         private void LoadSetting()
         {
             SourceLanguageAccuracy = Setting.RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
@@ -151,6 +161,7 @@ namespace ScreenLookup.src.pages
             ShowImage = Setting.RegSetting.GetValue("ShowImage") == null || Setting.RegSetting.GetValue("ShowImage").ToString() == "True";
             Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
             FontSizeS = Setting.RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("FontSizeS")) : 14;
+            FontFace = Setting.RegSetting.GetValue("FontFace") != null ? Setting.RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
         }
         private void LoadTesseractContent()
         {

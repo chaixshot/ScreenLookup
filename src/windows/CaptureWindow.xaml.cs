@@ -16,6 +16,7 @@ using TesseractOCR;
 using TesseractOCR.Enums;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
+using FontFamily = System.Windows.Media.FontFamily;
 
 namespace ScreenLookup.src.windows
 {
@@ -33,6 +34,7 @@ namespace ScreenLookup.src.windows
             public string Height { get; set; }
             public string Border { get; set; }
             public int FontSizeS { get; set; }
+            public FontFamily FontFace { get; set; }
         }
 
         public CaptureWindow()
@@ -92,23 +94,35 @@ namespace ScreenLookup.src.windows
 
         private void ApplySettings()
         {
+            int buttonWidth = Setting.FontSizeS + 10;
             originalText.Text = "";
             originalTextCard.Visibility = Visibility.Collapsed;
+
             translatedText.FontSize = Setting.FontSizeS;
+            translatedText.FontFamily = new FontFamily(Setting.FontFace);
+
             definitionOriginal.FontSize = Setting.FontSizeS;
+            definitionOriginal.FontFamily = new FontFamily(Setting.FontFace);
+
             definitionTranslated.FontSize = Setting.FontSizeS;
-            originalTTS.Width = Setting.FontSizeS + 10;
-            originalTTS.Height = Setting.FontSizeS + 10;
-            translatedTSS.Width = Setting.FontSizeS + 10;
-            translatedTSS.Height = Setting.FontSizeS + 10;
-            flayoutOriginalTSS.Width = Setting.FontSizeS + 10;
-            flayoutOriginalTSS.Height = Setting.FontSizeS + 10;
-            flayoutTranslatedTSS.Width = Setting.FontSizeS + 10;
-            flayoutTranslatedTSS.Height = Setting.FontSizeS + 10;
-            openBrowser.Width = Setting.FontSizeS + 10;
-            openBrowser.Height = Setting.FontSizeS + 10;
-            wordSave.Width = Setting.FontSizeS + 10;
-            wordSave.Height = Setting.FontSizeS + 10;
+            definitionTranslated.FontFamily = new FontFamily(Setting.FontFace);
+
+            originalTTS.Width = buttonWidth;
+            originalTTS.Height = buttonWidth;
+
+            translatedTSS.Width = buttonWidth;
+            translatedTSS.Height = buttonWidth;
+
+            flayoutOriginalTSS.Width = buttonWidth;
+            flayoutOriginalTSS.Height = buttonWidth;
+            flayoutTranslatedTSS.Width = buttonWidth;
+            flayoutTranslatedTSS.Height = buttonWidth;
+
+            openBrowser.Width = buttonWidth;
+            openBrowser.Height = buttonWidth;
+            wordSave.Width = buttonWidth;
+            wordSave.Height = buttonWidth;
+
             captureImageCard.Visibility = Setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
 
             translatedTextLoading.Visibility = Visibility.Visible;
@@ -185,7 +199,7 @@ namespace ScreenLookup.src.windows
                         {
                             if (!string.IsNullOrWhiteSpace(word.Text))
                             {
-                                items.Add(new WordItem() { Word = word.Text, Border = "1", FontSizeS = Setting.FontSizeS });
+                                items.Add(new WordItem() { Word = word.Text, Border = "1", FontSizeS = Setting.FontSizeS, FontFace = new FontFamily(Setting.FontFace) });
                             }
                         }
                         items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });

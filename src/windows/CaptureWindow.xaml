@@ -78,7 +78,8 @@
                                             <TextBlock
                                                 Margin="1.5,0,1.5,0"
                                                 Text="{Binding Word}"
-                                                FontSize="{Binding FontSizeS, Mode=OneWay}"/>
+                                                FontSize="{Binding FontSizeS, Mode=OneWay}"
+                                                FontFamily="{Binding FontFace}"/>
                                         </wpfui:Button.Content>
                                     </wpfui:Button>
                                 </DataTemplate>

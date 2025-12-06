@@ -149,13 +149,24 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Close when lost focus" Margin="6"/>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding CloseLostFocus}" />
+                    </Grid>
+                </Controls:Card>
+
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Font" Margin="6"/>
                         <ComboBox
                             ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
                             Grid.Column="1" 
                             Width="200"
                             IsEditable="True"
-                            Text="{Binding FontFace}" FontFamily="{Binding .}">
+                            Text="{Binding FontFace}" FontFamily="{Binding FontFace}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <Label FontFamily="{Binding .}" Content="{Binding Source}" />

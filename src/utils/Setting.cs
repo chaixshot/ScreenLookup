@@ -24,6 +24,7 @@ namespace ScreenLookup.src.utils
         public static bool showImage = false;
         public static bool topmost = false;
         public static int fontSizes = 14;
+        public static string fontFace = "Segoe UI";
 
         public static readonly string[] TranslationProviders = [
             "Google",
@@ -149,6 +150,17 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("FontSizeS", value.ToString());
+            }
+        }
+        public static string FontFace
+        {
+            get { return fontFace; }
+            set
+            {
+                fontFace = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("FontFace", value.ToString());
             }
         }
 
