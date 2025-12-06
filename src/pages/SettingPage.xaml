@@ -74,16 +74,11 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Translation Service" Margin="6"/>
-                        <ComboBox
+                        <Controls:TextBlock Text="Translation Provider" Margin="6"/>
+                        <ComboBox x:Name="translationProvider"
                             Width="200"
-                            Grid.Column="1" SelectedIndex="0"
+                            Grid.Column="1" SelectedIndex="{Binding TranslationProvider}"
                             >
-                            <ComboBoxItem Content="Google"/>
-                            <ComboBoxItem Content="Google New"/>
-                            <ComboBoxItem Content="Bing"/>
-                            <ComboBoxItem Content="Microsoft Azure"/>
-                            <ComboBoxItem Content="Yandex"/>
                         </ComboBox>
                     </Grid>
                 </Controls:Card>

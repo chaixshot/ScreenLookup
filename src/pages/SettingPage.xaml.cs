@@ -25,15 +25,9 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            SourceLanguageAccuracy = Setting.RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
-            SourceLanguage = Setting.RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguage")) : 29;
-            TargetLanguage = Setting.RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguage")) : 117;
-            StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
-            StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
-            MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
-            Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
-
+            LoadSetting();
             LoadTesseractContent();
+            LoadTranslationProvidersContent();
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -69,6 +63,16 @@ namespace ScreenLookup.src.pages
             set
             {
                 Setting.TargetLanguage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int TranslationProvider
+        {
+            get { return Setting.TranslationProvider; }
+            set
+            {
+                Setting.TranslationProvider = value;
                 OnPropertyChanged();
             }
         }
@@ -117,6 +121,17 @@ namespace ScreenLookup.src.pages
             }
         }
 
+        private void LoadSetting()
+        {
+            SourceLanguageAccuracy = Setting.RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
+            SourceLanguage = Setting.RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguage")) : 29;
+            TargetLanguage = Setting.RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguage")) : 117;
+            TranslationProvider = Setting.RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TranslationProvider")) : 1;
+            StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
+            StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
+            MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
+            Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
+        }
         private void LoadTesseractContent()
         {
             sourceLanguage.Items.Clear();
@@ -129,6 +144,16 @@ namespace ScreenLookup.src.pages
                 string text = $"{LanguageList.CultureDisplayNameFromTesseractTag(tesseractTag).PadRight(42)}\t{languageTesseract}";
                 sourceLanguage.Items.Add(text);
                 targetLanguage.Items.Add(text);
+            }
+        }
+
+        private void LoadTranslationProvidersContent()
+        {
+            translationProvider.Items.Clear();
+
+            foreach (string translationProvider in Setting.TranslationProviders)
+            {
+                this.translationProvider.Items.Add(translationProvider);
             }
         }
 

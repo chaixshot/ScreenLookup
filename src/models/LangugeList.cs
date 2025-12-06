@@ -1,4 +1,5 @@
-﻿using HunspellSharp;
+﻿using GTranslate.Translators;
+using HunspellSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -249,6 +250,23 @@ namespace ScreenLookup.src.models
         {
             string tesseractTag = GetTesseractTagFromID(langID);
             return CultureDisplayNameFromTesseractTag(tesseractTag);
+        }
+
+        public static dynamic GetTranslatorService()
+        {
+            switch (Setting.TranslationProvider)
+            {
+                case 1:
+                    return new GoogleTranslator2();
+                case 2:
+                    return new BingTranslator();
+                case 3:
+                    return new MicrosoftTranslator();
+                case 4:
+                    return new YandexTranslator();
+                default:
+                    return new GoogleTranslator();
+            }
         }
     }
 }

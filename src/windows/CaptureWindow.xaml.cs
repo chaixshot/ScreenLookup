@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -166,7 +167,7 @@ namespace ScreenLookup.src.windows
                 ocrWords.ItemsSource = items;
 
                 // Translated text
-                var translator = new GoogleTranslator2();
+                var translator = LanguageList.GetTranslatorService();
                 var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
                 translatedText.Text = translateResult.Translation;
             }
@@ -189,12 +190,12 @@ namespace ScreenLookup.src.windows
 
         private static async void PlayTTS(string Text, string lang, CancellationTokenSource token)
         {
-            GLanguage languageData = GLanguage.GetLanguage(lang);
-            var translator = new GoogleTranslator2();
+            var languageData = GLanguage.GetLanguage(lang);
+            var translator = LanguageList.GetTranslatorService();
 
             try
             {
-                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6391, false);
+                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6391);
 
                 Stream ms = new MemoryStream();
                 byte[] buffer = new byte[32768];
@@ -222,7 +223,7 @@ namespace ScreenLookup.src.windows
             }
             catch
             {
-                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech");
+                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.TranslationProviders[Setting.TranslationProvider]}");
             }
         }
 
@@ -268,7 +269,7 @@ namespace ScreenLookup.src.windows
 
             StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
 
-            var translator = new GoogleTranslator2();
+            var translator = LanguageList.GetTranslatorService();
             var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
             definitionTranslated.Text = translateResult.Translation;
         }
@@ -284,7 +285,7 @@ namespace ScreenLookup.src.windows
         }
 
         // Utility
-        void App_Deactivated(object sender, EventArgs e)
+        private void App_Deactivated(object sender, EventArgs e)
         {
             CTS.Cancel();
             this.Close();

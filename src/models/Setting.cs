@@ -17,11 +17,20 @@ namespace ScreenLookup.src.models
         public static int sourceLanguageAccuracy = 1;
         public static int sourceLanguage = 29;
         public static int targetLanguage = 117;
+        public static int translationProvider = 1;
         public static bool startupWithWindows = true;
         public static bool startInBackground = false;
         public static bool minimizeToTray = true;
         public static bool showImage = false;
         public static bool topmost = false;
+
+        public static readonly string[] TranslationProviders = [
+            "Google",
+            "Google New",
+            "Bing",
+            "Microsoft Azure",
+            "Yandex",
+        ];
 
         public static int SourceLanguageAccuracy
         {
@@ -56,6 +65,18 @@ namespace ScreenLookup.src.models
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("TargetLanguage", value.ToString());
+            }
+        }
+
+        public static int TranslationProvider
+        {
+            get { return translationProvider; }
+            set
+            {
+                translationProvider = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("TranslationProvider", value.ToString());
             }
         }
 
