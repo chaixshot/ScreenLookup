@@ -1,8 +1,10 @@
-﻿using System;
+﻿using HunspellSharp;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.models
 {
@@ -140,7 +142,7 @@ namespace ScreenLookup.src.models
             "yor.traineddata",
         ];
 
-        public static string GetTesseractTagFromName(string textName)
+        public static string GetTesseractTagFromLanguageTesseract(string textName)
         {
             string tesseractTag = textName.Split('.').First();
 
@@ -149,61 +151,104 @@ namespace ScreenLookup.src.models
 
         public static string GetTesseractTagFromID(int langID)
         {
-            string tesseractTag = GetTesseractTagFromName(LanguageList.LanguageTesseract[langID]);
+            string tesseractTag = GetTesseractTagFromLanguageTesseract(LanguageList.LanguageTesseract[langID]);
 
             return tesseractTag;
         }
 
-        public static string GetLanguageShortageFromID(int langID)
+        public static string GetLanguageISO6391FromID(int langID)
         {
             string tesseractTag = LanguageList.GetTesseractTagFromID(langID);
-            string shorted = tesseractTag.Substring(0, 2);
-
-            return shorted;
+            try
+            {
+                GLanguage languageData = GLanguage.GetLanguage(tesseractTag);
+                return languageData.ISO6391;
+            }
+            catch
+            {
+                return tesseractTag.Substring(0, 2);
+            }
         }
 
-        public static string CultureDisplayName(string tesseractTag)
+        public static string GetLanguageISO6393FromID(int langID)
+        {
+            string tesseractTag = LanguageList.GetTesseractTagFromID(langID);
+            try
+            {
+                GLanguage languageData = GLanguage.GetLanguage(tesseractTag);
+                return languageData.ISO6393;
+            }
+            catch
+            {
+                return tesseractTag.Substring(0, 3);
+            }
+        }
+
+        public static string CultureDisplayNameFromTesseractTag(string tesseractTag)
         {
             string tessLangTag = tesseractTag.Replace("_frak", "");
             tessLangTag = tessLangTag.Replace("_old", "");
             tessLangTag = tessLangTag.Replace("_latn", "");
             tessLangTag = tessLangTag.Replace("_vert", "");
 
-            CultureInfo cultureInfo = tessLangTag switch
+            try
             {
-                "chi_sim" => new CultureInfo("zh-Hans"),
-                "chi_tra" => new CultureInfo("zh-Hant"),
-                _ => new CultureInfo(tessLangTag)
-            };
- 
-            if (tesseractTag == "dan_frak")
-                return $"{cultureInfo.DisplayName} (Fraktur)";
+                GLanguage languageData = GLanguage.GetLanguage(tessLangTag);
+                return languageData.NativeName;
+            }
+            catch
+            {
+                CultureInfo cultureInfo = tessLangTag switch
+                {
+                    "chi_sim" => new CultureInfo("zh-Hans"),
+                    "chi_tra" => new CultureInfo("zh-Hant"),
+                    _ => new CultureInfo(tessLangTag)
+                };
+                string DisplayName = cultureInfo.DisplayName;
 
-            if (tesseractTag == "deu_frak")
-                return $"{cultureInfo.DisplayName} (Fraktur)";
+                if (tesseractTag == "dan_frak")
+                    DisplayName = $"{cultureInfo.DisplayName} (Fraktur)";
 
-            if (tesseractTag == "ita_old")
-                return $"{cultureInfo.DisplayName} (Old)";
+                if (tesseractTag == "deu_frak")
+                    DisplayName = $"{cultureInfo.DisplayName} (Fraktur)";
 
-            if (tesseractTag == "kat_old")
-                return $"{cultureInfo.DisplayName} (Old)";
+                if (tesseractTag == "ita_old")
+                    DisplayName = $"{cultureInfo.DisplayName} (Old)";
 
-            if (tesseractTag == "slk_frak")
-                return $"{cultureInfo.DisplayName} (Fraktur)";
+                if (tesseractTag == "kat_old")
+                    DisplayName = $"{cultureInfo.DisplayName} (Old)";
 
-            if (tesseractTag == "spa_old")
-                return $"{cultureInfo.DisplayName} (Old)";
+                if (tesseractTag == "slk_frak")
+                    DisplayName = $"{cultureInfo.DisplayName} (Fraktur)";
 
-            if (tesseractTag == "srp_latn")
-                return $"{cultureInfo.DisplayName} (Latin)";
+                if (tesseractTag == "spa_old")
+                    DisplayName = $"{cultureInfo.DisplayName} (Old)";
 
-            if (tesseractTag.Contains("vert"))
-                return $"{cultureInfo.DisplayName} Vertical";
+                if (tesseractTag == "srp_latn")
+                    DisplayName = $"{cultureInfo.DisplayName} (Latin)";
 
-            if (tesseractTag.Contains("script"))
-                return $"{cultureInfo.DisplayName} Script";
+                if (tesseractTag.Contains("vert"))
+                    DisplayName = $"{cultureInfo.DisplayName} Vertical";
 
-            return $"{cultureInfo.DisplayName}";
+                if (tesseractTag.Contains("script"))
+                    DisplayName = $"{cultureInfo.DisplayName} Script";
+
+                try
+                {
+                    GLanguage languageData = GLanguage.GetLanguage(DisplayName);
+                    return languageData.NativeName;
+                }
+                catch
+                {
+                    return DisplayName;
+                }
+            }
+        }
+
+        public static string CultureDisplayNameFromID(int langID)
+        {
+            string tesseractTag = GetTesseractTagFromID(langID);
+            return CultureDisplayNameFromTesseractTag(tesseractTag);
         }
     }
 }

@@ -141,7 +141,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Text="Show image" Margin="6"/>
-                        <CheckBox Grid.Column="1" IsChecked="{Binding ShowIimage}" />
+                        <CheckBox Grid.Column="1" IsChecked="{Binding ShowImage}" />
                     </Grid>
                 </Controls:Card>
 
@@ -157,7 +157,7 @@
                             Grid.Column="1" 
                             Width="200"
                             IsEditable="True"
-                            Text="{Binding FontFamily}">
+                            Text="{Binding FontFace}" FontFamily="{Binding .}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <Label FontFamily="{Binding .}" Content="{Binding Source}" />

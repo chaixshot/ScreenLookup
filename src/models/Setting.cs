@@ -20,6 +20,7 @@ namespace ScreenLookup.src.models
         public static bool startupWithWindows = true;
         public static bool startInBackground = false;
         public static bool minimizeToTray = true;
+        public static bool showImage = false;
         public static bool topmost = false;
 
         public static int SourceLanguageAccuracy
@@ -91,6 +92,18 @@ namespace ScreenLookup.src.models
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("MinimizeToTray", value.ToString());
+            }
+        }
+
+        public static bool ShowImage
+        {
+            get { return showImage; }
+            set
+            {
+                showImage = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("ShowImage", value.ToString());
             }
         }
 

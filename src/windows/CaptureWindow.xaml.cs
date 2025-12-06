@@ -1,5 +1,7 @@
-﻿using GTranslate.Translators;
+﻿using GTranslate;
+using GTranslate.Translators;
 using HotkeyUtility;
+using HunspellSharp;
 using NAudio.Wave;
 using ScreenGrab;
 using ScreenLookup.src.models;
@@ -28,11 +30,13 @@ using System.Windows.Shapes;
 using TesseractOCR;
 using TesseractOCR.Enums;
 using TesseractOCR.Layout;
+using Windows.Globalization;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Button = Wpf.Ui.Controls.Button;
+using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.windows
 {
@@ -61,12 +65,19 @@ namespace ScreenLookup.src.windows
                 if (e.Key == Key.Escape)
                     this.Close();
             };
+
             Loaded += (s, e) =>
             {
                 originalText.Text = "";
                 translatedText.Text = "";
+                originalTextCard.Visibility = Visibility.Collapsed;
 
                 StartCaptureAndTranslate();
+
+                if (!Setting.ShowImage)
+                {
+                    captureImageCard.Visibility = Visibility.Collapsed;
+                }
             };
         }
 
@@ -89,7 +100,7 @@ namespace ScreenLookup.src.windows
         {
             if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
-                Notification.Show($"Install {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(Setting.SourceLanguage))} in the setting", 1000);
+                Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
                 this.Close();
                 return;
             }
@@ -156,7 +167,7 @@ namespace ScreenLookup.src.windows
 
                 // Translated text
                 var translator = new GoogleTranslator2();
-                var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
+                var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
                 translatedText.Text = translateResult.Translation;
             }
         }
@@ -176,33 +187,42 @@ namespace ScreenLookup.src.windows
             finally { DeleteObject(handle); }
         }
 
-        private static async void PlayTTS(string Text, string Language, CancellationTokenSource token)
+        private static async void PlayTTS(string Text, string lang, CancellationTokenSource token)
         {
+            GLanguage languageData = GLanguage.GetLanguage(lang);
             var translator = new GoogleTranslator2();
-            Stream stream = await translator.TextToSpeechAsync(Text, Language, false);
 
-            Stream ms = new MemoryStream();
-            byte[] buffer = new byte[32768];
-            int read;
-            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+            try
             {
-                ms.Write(buffer, 0, read);
-            }
+                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6391, false);
 
-            ms.Position = 0;
-            using (WaveStream blockAlignedStream =
-                new BlockAlignReductionStream(
-                    WaveFormatConversionStream.CreatePcmStream(
-                        new Mp3FileReader(ms))))
-            {
-                WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback());
-                waveOut.Init(blockAlignedStream);
-                waveOut.Play();
-                while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
+                Stream ms = new MemoryStream();
+                byte[] buffer = new byte[32768];
+                int read;
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    await Task.Delay(100);
+                    ms.Write(buffer, 0, read);
                 }
-                waveOut.Dispose();
+
+                ms.Position = 0;
+                using (WaveStream blockAlignedStream =
+                    new BlockAlignReductionStream(
+                        WaveFormatConversionStream.CreatePcmStream(
+                            new Mp3FileReader(ms))))
+                {
+                    WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback());
+                    waveOut.Init(blockAlignedStream);
+                    waveOut.Play();
+                    while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
+                    {
+                        await Task.Delay(100);
+                    }
+                    waveOut.Dispose();
+                }
+            }
+            catch
+            {
+                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech");
             }
         }
 
@@ -216,12 +236,12 @@ namespace ScreenLookup.src.windows
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(originalText.Text, LanguageList.GetLanguageShortageFromID(Setting.SourceLanguage));
+            StartTTS(originalText.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(translatedText.Text, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
+            StartTTS(translatedText.Text, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
         }
 
         // Word
@@ -246,21 +266,21 @@ namespace ScreenLookup.src.windows
             definitionOriginal.Text = originalWord;
             definitionTranslated.Text = "...";
 
-            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageShortageFromID(Setting.SourceLanguage));
+            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
 
             var translator = new GoogleTranslator2();
-            var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
+            var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
             definitionTranslated.Text = translateResult.Translation;
         }
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageShortageFromID(Setting.SourceLanguage));
+            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionTranslated.Text, LanguageList.GetLanguageShortageFromID(Setting.TargetLanguage));
+            StartTTS(definitionTranslated.Text, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
         }
 
         // Utility

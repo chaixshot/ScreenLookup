@@ -8,7 +8,7 @@ namespace ScreenLookup.src.models
 {
     class Notification
     {
-        public static void Show(string text, int timeout)
+        public static void Show(string text = "Notification", int timeout = 1000)
         {
             NotifyIcon notifyIcon = new NotifyIcon();
             notifyIcon.Icon = new Icon("applicationIcon.ico");

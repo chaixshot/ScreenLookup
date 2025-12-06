@@ -9,31 +9,32 @@
     mc:Ignorable="d"
     Title="Capture"
         
-    ResizeMode="CanResize"
     ShowInTaskbar="False"
     Topmost="True"
     WindowStyle="None"
     SizeToContent="Height"
     WindowStartupLocation="CenterScreen"
     Deactivated="App_Deactivated"
+    MinHeight="0"
+    ResizeMode="NoResize"
     >
     <Grid Margin="10,5,10,5">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <wpfui:Card Grid.Row="0" Padding="0">
-            <wpfui:Image x:Name="captureImage" Stretch="None"/>
+        <wpfui:Card x:Name="captureImageCard" Grid.Row="0" Padding="0">
+            <wpfui:Image x:Name="captureImage" Stretch="None" Source="/applicationIcon.ico"/>
         </wpfui:Card>
 
-        <wpfui:Card Grid.Row="1" Margin="0,3,0,0" Visibility="Collapsed">
+        <wpfui:Card x:Name="originalTextCard" Grid.Row="1" Margin="0,3,0,0">
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
                 <wpfui:TextBlock x:Name="originalText" TextWrapping="Wrap" Text="originalText" Grid.Column="1" Margin="45,0,0,0"/>
             </wpfui:DynamicScrollViewer>
-        </wpfui:Card>
+        </wpfui:Card> 
 
         <wpfui:Card x:Name="originalWords" Grid.Row="2" Margin="0,3,0,0">
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">

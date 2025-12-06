@@ -122,11 +122,11 @@ namespace ScreenLookup.src.pages
             sourceLanguage.Items.Clear();
             targetLanguage.Items.Clear();
 
-            foreach (string textName in LanguageList.LanguageTesseract)
+            foreach (string languageTesseract in LanguageList.LanguageTesseract)
             {
-                string tesseractTag = LanguageList.GetTesseractTagFromName(textName);
+                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
 
-                string text = $"{LanguageList.CultureDisplayName(tesseractTag).PadRight(42)}\t{textName}";
+                string text = $"{LanguageList.CultureDisplayNameFromTesseractTag(tesseractTag).PadRight(42)}\t{languageTesseract}";
                 sourceLanguage.Items.Add(text);
                 targetLanguage.Items.Add(text);
             }
@@ -166,7 +166,7 @@ namespace ScreenLookup.src.pages
 
             isDownloading = true;
             DownloadTesseractButtonStateChange();
-            Notification.Show($"Downloading {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(langID))}", 500);
+            Notification.Show($"Downloading {LanguageList.CultureDisplayNameFromID(langID)}", 500);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath();
             string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
@@ -176,10 +176,9 @@ namespace ScreenLookup.src.pages
             await MoveFileToFolder(tempFilePath, tesseractFilePath);
 
             isDownloading = false;
-            DownloadTesseractButtonStateChange();
-            Notification.Show($"Download {LanguageList.CultureDisplayName(LanguageList.GetTesseractTagFromID(langID))} successfully", 500);
-
             Setting.SaveLanguageInstalled(accID, langID);
+            DownloadTesseractButtonStateChange();
+            Notification.Show($"Download {LanguageList.CultureDisplayNameFromID(langID)} successfully", 500);
         }
     }
 }
