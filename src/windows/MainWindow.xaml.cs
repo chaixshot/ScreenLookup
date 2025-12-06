@@ -1,9 +1,10 @@
 ﻿using HotkeyUtility;
 using Microsoft.Win32;
-using ScreenLookup.src.utils;
 using ScreenLookup.src.pages;
+using ScreenLookup.src.utils;
 using ScreenLookup.src.windows;
 using System.ComponentModel;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using Wpf.Ui.Appearance;
@@ -55,7 +56,11 @@ namespace ScreenLookup
         {
             if (Setting.MinimizeToTray)
                 e.Cancel = true;
-            HideToTray();
+            
+            var isShuttingDownProp = typeof(Application).GetProperty("IsShuttingDown", BindingFlags.Static | BindingFlags.NonPublic);
+            dynamic isShuttingDown = isShuttingDownProp.GetValue(Application.Current, null);
+            if (!isShuttingDown)
+                HideToTray();
 
             base.OnClosing(e);
         }
