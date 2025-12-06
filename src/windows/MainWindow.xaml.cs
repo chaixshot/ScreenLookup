@@ -17,6 +17,8 @@ namespace ScreenLookup
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
+        CaptureWindow captureWindow = new CaptureWindow();
+
         public MainWindow()
         {
             DataContext = this;
@@ -31,8 +33,7 @@ namespace ScreenLookup
                 // Added hotkey
                 Hotkey hotkey = new(Key.A, ModifierKeys.Shift | ModifierKeys.Control, (s, e) =>
                 {
-                    CaptureWindow CaptureWindow = new CaptureWindow();
-                    CaptureWindow.Show();
+                    captureWindow.StartCaptureScreen();
                 });
                 HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
                 _ = hotkeyManager.TryAddHotkey(hotkey);
@@ -53,7 +54,7 @@ namespace ScreenLookup
         {
             if (Setting.MinimizeToTray)
                 e.Cancel = true;
-                HideToTray();
+            HideToTray();
 
             base.OnClosing(e);
         }

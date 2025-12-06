@@ -136,7 +136,7 @@
                     <wpfui:TextBlock x:Name="definitionTranslated" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <xControls:LoadingSpiner x:Name="definitionTranslatedLoading" Width="20" Height="20"/>
                 </StackPanel>
-                <wpfui:Card Margin="0,10,0,0" Padding="5">
+                <wpfui:Card Margin="0,10,0,0" Padding="5" BorderThickness="0,1,0,0">
                     <StackPanel Orientation="Horizontal">
                         <wpfui:Button x:Name="openBrowser"
                             HorizontalContentAlignment="Center"

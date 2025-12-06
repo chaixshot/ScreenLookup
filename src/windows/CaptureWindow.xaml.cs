@@ -1,13 +1,5 @@
-﻿using GTranslate;
-using GTranslate.Translators;
-using HotkeyUtility;
-using HunspellSharp;
-using NAudio.Wave;
-using ScreenGrab;
+﻿using ScreenGrab;
 using ScreenLookup.src.utils;
-using ScreenLookup.src.pages;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -19,14 +11,11 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using TesseractOCR;
 using TesseractOCR.Enums;
-using TesseractOCR.Layout;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
-using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.windows
 {
@@ -50,54 +39,37 @@ namespace ScreenLookup.src.windows
         {
             DataContext = this;
             InitializeComponent();
+            ApplySettings();
 
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape)
-                    this.Close();
+                    this.Hide();
             };
+        }
 
-            Loaded += (s, e) =>
-            {
-                originalText.Text = "";
-                originalTextCard.Visibility = Visibility.Collapsed;
-                translatedText.FontSize = Setting.FontSizeS;
-                definitionOriginal.FontSize = Setting.FontSizeS;
-                definitionTranslated.FontSize = Setting.FontSizeS;
-                originalTTS.Width = Setting.FontSizeS + 10;
-                originalTTS.Height = Setting.FontSizeS + 10;
-                translatedTSS.Width = Setting.FontSizeS + 10;
-                translatedTSS.Height = Setting.FontSizeS + 10;
-                flayoutOriginalTSS.Width = Setting.FontSizeS + 10;
-                flayoutOriginalTSS.Height = Setting.FontSizeS + 10;
-                flayoutTranslatedTSS.Width = Setting.FontSizeS + 10;
-                flayoutTranslatedTSS.Height = Setting.FontSizeS + 10;
-                openBrowser.Width = Setting.FontSizeS + 10;
-                openBrowser.Height = Setting.FontSizeS + 10;
-                wordSave.Width = Setting.FontSizeS + 10;
-                wordSave.Height = Setting.FontSizeS + 10;
-                if (!Setting.ShowImage)
-                    captureImageCard.Visibility = Visibility.Collapsed;
-            };
-
+        public void StartCaptureScreen()
+        {
             if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
                 Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
-                this.Close();
+                this.Hide();
                 return;
             }
 
-            //// Screenshot   
+            // Screenshot   
             Bitmap image = ScreenGrabber.CaptureDialog(false);
             if (image == null)
             {
                 Notification.Show("No image has been captured", 1000);
-                this.Close();
+                this.Hide();
                 return;
             }
 
+            ApplySettings();
+
             // Window size
-            this.Width = image.Width + 50 + (Setting.FontSizeS * 10);
+            this.Width = image.Width + 50 + (Setting.FontSizeS * 5);
             this.MinWidth = this.Width;
             this.MaxWidth = this.Width;
 
@@ -114,6 +86,36 @@ namespace ScreenLookup.src.windows
                     ApplyTesseractPage(tesseractPage.Result);
                 }));
             });
+
+            this.Show();
+        }
+
+        private void ApplySettings()
+        {
+            originalText.Text = "";
+            originalTextCard.Visibility = Visibility.Collapsed;
+            translatedText.FontSize = Setting.FontSizeS;
+            definitionOriginal.FontSize = Setting.FontSizeS;
+            definitionTranslated.FontSize = Setting.FontSizeS;
+            originalTTS.Width = Setting.FontSizeS + 10;
+            originalTTS.Height = Setting.FontSizeS + 10;
+            translatedTSS.Width = Setting.FontSizeS + 10;
+            translatedTSS.Height = Setting.FontSizeS + 10;
+            flayoutOriginalTSS.Width = Setting.FontSizeS + 10;
+            flayoutOriginalTSS.Height = Setting.FontSizeS + 10;
+            flayoutTranslatedTSS.Width = Setting.FontSizeS + 10;
+            flayoutTranslatedTSS.Height = Setting.FontSizeS + 10;
+            openBrowser.Width = Setting.FontSizeS + 10;
+            openBrowser.Height = Setting.FontSizeS + 10;
+            wordSave.Width = Setting.FontSizeS + 10;
+            wordSave.Height = Setting.FontSizeS + 10;
+            captureImageCard.Visibility = Setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
+
+            translatedTextLoading.Visibility = Visibility.Visible;
+            ocrWordsLoading.Visibility = Visibility.Visible;
+
+            ocrWords.ItemsSource = null;
+            translatedText.Text = "";
         }
 
         private void CenterWindowOnScreen()
@@ -124,46 +126,6 @@ namespace ScreenLookup.src.windows
             double windowHeight = this.Height;
             this.Left = (screenWidth / 2) - (windowWidth / 2);
             this.Top = (screenHeight / 2) - (windowHeight / 2);
-        }
-
-        private void OnWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                originalText.Text = "";
-                translatedText.Text = "";
-                originalTextCard.Visibility = Visibility.Collapsed;
-                if (!Setting.ShowImage)
-                    captureImageCard.Visibility = Visibility.Collapsed;
-
-                if (!Setting.IsLanguageInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
-                {
-                    Notification.Show($"Install {LanguageList.CultureDisplayNameFromID(Setting.SourceLanguage)} in the setting", 1000);
-                    this.Close();
-                    return;
-                }
-
-                //// Screenshot   
-                Bitmap image = ScreenGrabber.CaptureDialog(false);
-                if (image == null)
-                {
-                    Notification.Show("No image has been captured", 1000);
-                    this.Close();
-                    return;
-                }
-
-                Task<TesseractOCR.Page> tesseractPage = GetTesseractPageFromBitmap(image);
-
-                BitmapSource writeBmp = GetImageSourceFromBitmap(image);
-
-                // Window size
-                captureImage.Source = writeBmp;
-                this.Width = writeBmp.Width + 50;
-                this.MinWidth = this.Width;
-                this.MaxWidth = this.Width;
-
-                ApplyTesseractPage(tesseractPage.Result);
-            }), DispatcherPriority.ContextIdle, null);
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -204,48 +166,44 @@ namespace ScreenLookup.src.windows
 
         private async void ApplyTesseractPage(TesseractOCR.Page page)
         {
-            if (page.Text == "")
-            {
-                originalWords.Visibility = Visibility.Collapsed;
-                translatedCard.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                // Original text
-                originalText.Text = page.Text;
+            var cardVisibility = string.IsNullOrWhiteSpace(page.Text) ? Visibility.Collapsed : Visibility.Visible;
+            originalWords.Visibility = cardVisibility;
+            translatedCard.Visibility = cardVisibility;
 
-                // Original words
-                List<WordItem> items = [];
-                foreach (var block in page.Layout)
+            // Original text
+            originalText.Text = page.Text;
+
+            // Original words
+            List<WordItem> items = [];
+            foreach (var block in page.Layout)
+            {
+                foreach (var paragraph in block.Paragraphs)
                 {
-                    foreach (var paragraph in block.Paragraphs)
+                    foreach (var textLine in paragraph.TextLines)
                     {
-                        foreach (var textLine in paragraph.TextLines)
+                        foreach (var word in textLine.Words)
                         {
-                            foreach (var word in textLine.Words)
+                            if (!string.IsNullOrWhiteSpace(word.Text))
                             {
-                                if (!string.IsNullOrWhiteSpace(word.Text))
-                                {
-                                    items.Add(new WordItem() { Word = word.Text, Border = "1", FontSizeS = Setting.FontSizeS });
-                                }
+                                items.Add(new WordItem() { Word = word.Text, Border = "1", FontSizeS = Setting.FontSizeS });
                             }
-                            items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
                         }
-                        items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
+                        items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
                     }
                     items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
                 }
-                ocrWords.ItemsSource = items;
-                ocrWordsLoading.Visibility = Visibility.Collapsed;
-
-                // Translated text
-                var translator = LanguageList.GetTranslatorService();
-                var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
-                translatedText.Text = translateResult.Translation;
-                translatedTextLoading.Visibility = Visibility.Collapsed;
-
-                CenterWindowOnScreen();
+                items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
             }
+            ocrWords.ItemsSource = items;
+            ocrWordsLoading.Visibility = Visibility.Collapsed;
+
+            // Translated text
+            var translator = LanguageList.GetTranslatorService();
+            var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
+            translatedText.Text = translateResult.Translation;
+            translatedTextLoading.Visibility = Visibility.Collapsed;
+
+            CenterWindowOnScreen();
         }
 
         private static BitmapSource GetImageSourceFromBitmap(Bitmap bmp)
@@ -320,7 +278,7 @@ namespace ScreenLookup.src.windows
         // Utility
         private void App_Deactivated(object sender, EventArgs e)
         {
-            this.Close();
+            this.Hide();
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
