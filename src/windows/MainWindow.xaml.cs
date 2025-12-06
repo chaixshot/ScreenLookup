@@ -21,6 +21,7 @@ namespace ScreenLookup
         {
             DataContext = this;
             InitializeComponent();
+            WindowStateRestore(this, "Main");
 
             Loaded += (s, e) =>
             {
@@ -44,7 +45,6 @@ namespace ScreenLookup
                 if (Setting.StartInBackground)
                     HideToTray();
 
-                WindowStateRestore(this, "Main");
                 ToggleTopmost(Setting.Topmost);
             };
         }
