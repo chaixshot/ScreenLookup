@@ -4,14 +4,11 @@ using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using ScreenLookup.src.windows;
 using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-
+using FormWindowState = System.Windows.Forms.FormWindowState;
 
 namespace ScreenLookup
 {
@@ -48,6 +45,7 @@ namespace ScreenLookup
                     HideToTray();
 
                 WindowStateRestore(this, "Main");
+                ToggleTopmost(Setting.Topmost);
             };
         }
 
@@ -65,6 +63,7 @@ namespace ScreenLookup
             if (Setting.MinimizeToTray)
             {
                 this.Hide();
+                this.WindowState = (WindowState)FormWindowState.Minimized;
                 Notification.Show("ScreenLookup started in the background", 500);
             }
         }
@@ -73,6 +72,16 @@ namespace ScreenLookup
         {
             this.Show();
             this.WindowState = (WindowState)FormWindowState.Normal;
+        }
+
+        public void ToggleTopmost(bool enabled)
+        {
+            Setting.Topmost = enabled;
+
+            var button = TopmostButton as Button;
+            var symbolIcon = button?.Icon as SymbolIcon;
+            symbolIcon.Filled = enabled;
+            this.Topmost = enabled;
         }
 
         // ----------------- Window Persistence State -----------------
@@ -141,6 +150,11 @@ namespace ScreenLookup
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             App.Current.Shutdown();
+        }
+
+        private void TopmostButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleTopmost(!Setting.Topmost);
         }
     }
 }

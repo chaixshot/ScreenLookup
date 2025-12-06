@@ -16,9 +16,10 @@ namespace ScreenLookup.src.models
 
         public static int sourceLanguage;
         public static int targetLanguage;
-        public static bool startupWithWindows;
-        public static bool startInBackground;
-        public static bool minimizeToTray;
+        public static bool startupWithWindows = true;
+        public static bool startInBackground = true;
+        public static bool minimizeToTray = true;
+        public static bool topmost = false;
 
         public static int SourceLanguage
         {
@@ -77,6 +78,18 @@ namespace ScreenLookup.src.models
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("MinimizeToTray", value.ToString());
+            }
+        }
+
+        public static bool Topmost
+        {
+            get { return topmost; }
+            set
+            {
+                topmost = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("Topmost", value.ToString());
             }
         }
 

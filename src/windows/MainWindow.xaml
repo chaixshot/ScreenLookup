@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml/tray"
+    xmlns:tray="http://schemas.lepo.co/wpfui/2022/xaml/tray"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     mc:Ignorable="d"
     Title="MainWindow"
@@ -46,8 +46,21 @@
                 Height="27"
                 Icon="{StaticResource AppIcon}">
                 <wpfui:TitleBar.Header>
-                    <wpfui:TextBlock Padding="0,0,0,0" VerticalAlignment="Center" FontSize="12">ScreenLookup</wpfui:TextBlock>
+                    <wpfui:TextBlock Padding="0" VerticalAlignment="Center" FontSize="12">ScreenLookup</wpfui:TextBlock>
                 </wpfui:TitleBar.Header>
+                <wpfui:TitleBar.TrailingContent>
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <wpfui:Button
+                            x:Name="TopmostButton"
+                            Margin="0,0,5,0"
+                            Appearance="Transparent"
+                            Click="TopmostButton_Click"
+                            Icon="{wpfui:SymbolIcon Pin16,
+                            Filled=True}"
+                            ToolTip="Always on Top" BorderThickness="0"
+                            />
+                    </StackPanel>
+                </wpfui:TitleBar.TrailingContent>
             </wpfui:TitleBar>
 
             <wpfui:NavigationView
@@ -85,11 +98,11 @@
         MinHeight="167"
         Visibility="Collapsed" />
 
-        <ui:NotifyIcon
+        <tray:NotifyIcon
             x:Name="NotifyIcon"
             LeftClick="NotifyIcon_LeftClick"
             TooltipText="Text Grab" Icon="/src/windows/applicationIcon.ico">
-            <ui:NotifyIcon.Menu>
+            <tray:NotifyIcon.Menu>
                 <ContextMenu>
                     <MenuItem
                         Click="SettingsMenuItem_Click"
@@ -115,7 +128,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                 </ContextMenu>
-            </ui:NotifyIcon.Menu>
-        </ui:NotifyIcon>
+            </tray:NotifyIcon.Menu>
+        </tray:NotifyIcon>
     </Grid>
 </wpfui:FluentWindow>
