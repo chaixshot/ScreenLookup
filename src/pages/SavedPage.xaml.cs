@@ -1,21 +1,7 @@
-﻿using GTranslate.Translators;
-using ScreenLookup.src.models;
+﻿using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using TesseractOCR.Renderers;
-using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 
@@ -26,7 +12,7 @@ namespace ScreenLookup.src.pages
     /// </summary>
     public partial class SavedPage : Page
     {
-        private CancellationTokenSource CTS = new CancellationTokenSource();
+        private CancellationTokenSource CTS = new();
 
         private int currentPage = 1;
         private int searchPage = 1;
@@ -132,25 +118,13 @@ namespace ScreenLookup.src.pages
                 try
                 {
                     await SavedWord.ExportToCSV(saveFileDialog.FileName);
-                    Snackbar_Show("Saved Success", $"File saved to: {saveFileDialog.FileName}");
+                    SnackbarHost.Show("Saved Success", $"File saved to: {saveFileDialog.FileName}");
                 }
                 catch (Exception ex)
                 {
-                    Snackbar_Show("Save Failed", $"File saved faild:{ex.Message}");
+                    SnackbarHost.Show("Save Failed", $"File saved faild:{ex.Message}");
                 }
             }
-        }
-        private void Snackbar_Show(string title, string message, bool isError = false)
-        {
-            var snackbar = new Snackbar(SnackbarHost)
-            {
-                Title = title,
-                Content = message,
-                Appearance = isError ? ControlAppearance.Danger : ControlAppearance.Light,
-                Timeout = TimeSpan.FromSeconds(2)
-            };
-
-            snackbar.Show();
         }
 
         private void HistorySearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)

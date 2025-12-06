@@ -106,10 +106,14 @@
                         </wpfui:NavigationViewItem.Icon>
                     </wpfui:NavigationViewItem>
                 </wpfui:NavigationView.MenuItems>
+
+                <wpfui:NavigationView.ContentOverlay>
+                    <Grid>
+                        <wpfui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
+                    </Grid>
+                </wpfui:NavigationView.ContentOverlay>
             </wpfui:NavigationView>
         </Grid>
-
-        <wpfui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
 
         <ContentPresenter
         x:Name="DialogHostContainer"

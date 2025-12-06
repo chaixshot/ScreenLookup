@@ -153,7 +153,7 @@
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Width="*" Header="Original">
                                 <DataGridTemplateColumn.CellTemplate>
-                                     <DataTemplate>
+                                    <DataTemplate>
                                         <wpfui:Button Content="{Binding Original}" Tag="{Binding SourceLanguage}" Click="Button_Word" MinWidth="200" HorizontalContentAlignment="Stretch" Margin="3"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -166,7 +166,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            
+
                             <DataGridTemplateColumn Width="0.2*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -182,7 +182,6 @@
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <wpfui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
                 </Grid>
             </StackPanel>
         </Controls:DynamicScrollViewer>
