@@ -118,11 +118,11 @@ namespace ScreenLookup.src.pages
                 try
                 {
                     await SavedWord.ExportToCSV(saveFileDialog.FileName);
-                    SnackbarHost.Show("Saved Success", $"File saved to: {saveFileDialog.FileName}");
+                    SnackbarHost.Show("Saved Success", $"File saved to: {saveFileDialog.FileName}", "success");
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Save Failed", $"File saved faild:{ex.Message}");
+                    SnackbarHost.Show("Save Failed", $"File saved faild:{ex.Message}", "error");
                 }
             }
         }

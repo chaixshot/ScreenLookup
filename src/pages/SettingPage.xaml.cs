@@ -63,7 +63,8 @@ namespace ScreenLookup.src.pages
                 else
                 {
                     if (value)
-                        Notification.Show($"You have to download Hunspell {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}");
+                        SnackbarHost.Show($"You have to download Hunspell {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}", "", "error");
+
                     Setting.HunSpell = false;
                 }
 
@@ -248,7 +249,7 @@ namespace ScreenLookup.src.pages
 
             isTessractloading = true;
             DownloadTesseractButtonStateChange();
-            Notification.Show($"Downloading {LanguageList.GetDisplayNameFromID(langID, true)}", 500);
+            SnackbarHost.Show($"Downloading {LanguageList.GetDisplayNameFromID(langID, true)}", "", "info");
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath();
             string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
@@ -260,7 +261,7 @@ namespace ScreenLookup.src.pages
             isTessractloading = false;
             Setting.SaveTesseractInstalled(accID, langID);
             DownloadTesseractButtonStateChange();
-            Notification.Show($"Download {LanguageList.GetDisplayNameFromID(langID, true)} successfully", 500);
+            SnackbarHost.Show($"Download {LanguageList.GetDisplayNameFromID(langID, true)} successfully", "", "success");
         }
 
         private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
@@ -270,7 +271,7 @@ namespace ScreenLookup.src.pages
 
             if (!HunspellHelper.FileNames.ContainsKey(DisplayName))
             {
-                Notification.Show($"{LanguageList.GetDisplayNameFromID(langID, true)} dosen't support Hunspell");
+                SnackbarHost.Show($"{LanguageList.GetDisplayNameFromID(langID, true)} dosen't support Hunspell", "", "error");
                 return;
             }
 
@@ -278,7 +279,8 @@ namespace ScreenLookup.src.pages
 
             isHunspellloading = true;
             DownloadHunspellButtonStateChange();
-            Notification.Show($"Downloading Hunspell {LanguageList.GetDisplayNameFromID(langID, true)}", 500);
+            SnackbarHost.Show($"Downloading Hunspell {LanguageList.GetDisplayNameFromID(langID, true)}", "", "info");
+
 
             //aff
             string tempPath = Path.GetTempPath();
@@ -314,7 +316,7 @@ namespace ScreenLookup.src.pages
             isHunspellloading = false;
             Setting.SaveHunspellInstalled(langID);
             DownloadHunspellButtonStateChange();
-            Notification.Show($"Download Hunspell {LanguageList.GetDisplayNameFromID(langID, true)} successfully", 500);
+            SnackbarHost.Show($"Download Hunspell {LanguageList.GetDisplayNameFromID(langID, true)} successfully", "", "success");
         }
 
         private async void ResetButton(object sender, RoutedEventArgs e)
