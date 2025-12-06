@@ -1,16 +1,9 @@
-﻿using GTranslate;
-using Microsoft.Win32;
-using ScreenLookup.src.utils;
-using System;
+﻿using ScreenLookup.src.utils;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using Wpf.Ui.Controls;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScreenLookup.src.pages
 {
@@ -25,7 +18,6 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            LoadSetting();
             LoadTesseractContent();
             LoadTranslationProvidersContent();
         }
@@ -149,20 +141,6 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void LoadSetting()
-        {
-            SourceLanguageAccuracy = Setting.RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
-            SourceLanguage = Setting.RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("SourceLanguage")) : 29;
-            TargetLanguage = Setting.RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TargetLanguage")) : 117;
-            TranslationProvider = Setting.RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("TranslationProvider")) : 1;
-            StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
-            StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
-            MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
-            ShowImage = Setting.RegSetting.GetValue("ShowImage") == null || Setting.RegSetting.GetValue("ShowImage").ToString() == "True";
-            Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
-            FontSizeS = Setting.RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(Setting.RegSetting.GetValue("FontSizeS")) : 14;
-            FontFace = Setting.RegSetting.GetValue("FontFace") != null ? Setting.RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
-        }
         private void LoadTesseractContent()
         {
             sourceLanguage.Items.Clear();
