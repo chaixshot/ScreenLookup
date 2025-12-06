@@ -111,6 +111,15 @@ namespace ScreenLookup.src.pages
                 OnPropertyChanged();
             }
         }
+        public bool ShowImage
+        {
+            get { return Setting.ShowImage; }
+            set
+            {
+                Setting.ShowImage = value;
+                OnPropertyChanged();
+            }
+        }
         public bool Topmost
         {
             get { return Setting.Topmost; }
@@ -130,6 +139,7 @@ namespace ScreenLookup.src.pages
             StartupWithWindows = Setting.RegSetting.GetValue("StartupWithWindows") == null || Setting.RegSetting.GetValue("StartupWithWindows").ToString() == "True";
             StartInBackground = Setting.RegSetting.GetValue("StartInBackground") != null && Setting.RegSetting.GetValue("StartInBackground").ToString() == "True";
             MinimizeToTray = Setting.RegSetting.GetValue("MinimizeToTray") == null || Setting.RegSetting.GetValue("MinimizeToTray").ToString() == "True";
+            ShowImage = Setting.RegSetting.GetValue("ShowImage") == null || Setting.RegSetting.GetValue("ShowImage").ToString() == "True";
             Topmost = Setting.RegSetting.GetValue("Topmost") != null && Setting.RegSetting.GetValue("Topmost").ToString() == "True";
         }
         private void LoadTesseractContent()

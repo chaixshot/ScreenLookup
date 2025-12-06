@@ -73,12 +73,10 @@ namespace ScreenLookup.src.windows
                 translatedText.Text = "";
                 originalTextCard.Visibility = Visibility.Collapsed;
 
-                StartCaptureAndTranslate();
 
                 if (!Setting.ShowImage)
-                {
                     captureImageCard.Visibility = Visibility.Collapsed;
-                }
+                StartCaptureAndTranslate();
             };
         }
 
