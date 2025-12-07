@@ -83,7 +83,7 @@ namespace ScreenLookup
             {
                 try
                 {
-                    Notification.Show("ScreenLookup started in the background");
+                    Notification.Show("ScreenLookup running in the background");
                 }
                 catch (Exception)
                 {

@@ -310,7 +310,8 @@ namespace ScreenLookup.src.windows
         // Utility
         private void App_Deactivated(object sender, EventArgs e)
         {
-            this.Hide();
+            if (Setting.CloseLostFocus)
+                this.Hide();
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)

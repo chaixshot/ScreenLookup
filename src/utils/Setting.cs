@@ -21,6 +21,11 @@ namespace ScreenLookup.src.utils
         public static bool hunSpell = RegSetting.GetValue("hunSpell") != null && RegSetting.GetValue("hunSpell").ToString() == "True";
         public static int targetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : 117;
         public static int translationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : 1;
+        public static ShortcutKeySet shortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : new ShortcutKeySet()
+        {
+            Modifiers = { ModifierKeys.Alt },
+            NonModifierKey = Key.Z,
+        };
         public static bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") == null || RegSetting.GetValue("StartupWithWindows").ToString() == "True";
         public static bool startInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
         public static bool minimizeToTray = RegSetting.GetValue("MinimizeToTray") == null || RegSetting.GetValue("MinimizeToTray").ToString() == "True";
@@ -28,11 +33,6 @@ namespace ScreenLookup.src.utils
         public static bool topmost = RegSetting.GetValue("Topmost") != null && RegSetting.GetValue("Topmost").ToString() == "True";
         public static int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
         public static string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
-        public static ShortcutKeySet shortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : new ShortcutKeySet()
-        {
-            Modifiers = { ModifierKeys.Alt },
-            NonModifierKey = Key.Z,
-        };
 
         public static readonly string[] TranslationProviders = [
             "Google",
@@ -153,6 +153,17 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("ShowImage", value.ToString());
+            }
+        }
+        public static bool CloseLostFocus
+        {
+            get { return closeLostFocus; }
+            set
+            {
+                closeLostFocus = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("CloseLostFocus", value.ToString());
             }
         }
 

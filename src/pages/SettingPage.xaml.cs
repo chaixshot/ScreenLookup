@@ -138,6 +138,16 @@ namespace ScreenLookup.src.pages
                 OnPropertyChanged();
             }
         }
+
+        public bool CloseLostFocus
+        {
+            get { return Setting.CloseLostFocus; }
+            set
+            {
+                Setting.CloseLostFocus = value;
+                OnPropertyChanged();
+            }
+        }
         public bool Topmost
         {
             get { return Setting.Topmost; }
