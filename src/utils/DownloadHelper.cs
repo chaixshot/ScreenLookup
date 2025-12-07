@@ -4,6 +4,8 @@ using System.Net.Http;
 
 class DownloadHelper
 {
+    private readonly HttpClient _client;
+
     public static async Task MoveFileToFolder(string sourcePath, string destinationPath)
     {
         System.IO.Directory.CreateDirectory(destinationPath);
@@ -16,6 +18,38 @@ class DownloadHelper
             oldFile.Delete();
         }
         file.MoveTo(filePath);
+    }
+
+    public DownloadHelper()
+    {
+        _client = new HttpClient();
+        // It's a good practice to set a user-agent when making requests
+        _client.DefaultRequestHeaders.Add("User-Agent", "ScreenLookup tesseract language downloader");
+    }
+
+    public async Task<bool> DownloadFileAsync(string fileUrl, string localDestination)
+    {
+        try
+        {
+            // Send a GET request to the specified URL
+            HttpResponseMessage response = await _client.GetAsync(fileUrl);
+            response.EnsureSuccessStatusCode();
+
+            // Read the response content
+            byte[] fileContents = await response.Content.ReadAsByteArrayAsync();
+
+            // Write the content to a file on the local file system
+            await File.WriteAllBytesAsync(localDestination, fileContents);
+            Console.WriteLine("File downloaded successfully.");
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+
+            return false;
+        }
     }
 }
 
@@ -90,72 +124,4 @@ internal class HunspellHelper
         {"Ukrainian", "uk_UA/uk_UA"},
         {"Vietnamese", "vi/vi_VN"},
     };
-}
-
-public class HunspellDownloader
-{
-    private readonly HttpClient _client;
-    public HunspellDownloader()
-    {
-        _client = new HttpClient();
-        // It's a good practice to set a user-agent when making requests
-        _client.DefaultRequestHeaders.Add("User-Agent", "ScreenLookup hunspell language downloader");
-    }
-
-    public async Task DownloadFileAsync(string filenameToDownload, string localDestination)
-    {
-        string fileUrl = $"https://translator.gres.biz/resources/dictionaries/{filenameToDownload}";
-        try
-        {
-            // Send a GET request to the specified URL
-            HttpResponseMessage response = await _client.GetAsync(fileUrl);
-            response.EnsureSuccessStatusCode();
-
-            // Read the response content
-            byte[] fileContents = await response.Content.ReadAsByteArrayAsync();
-
-            // Write the content to a file on the local file system
-            await File.WriteAllBytesAsync(localDestination, fileContents);
-            Console.WriteLine("File downloaded successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
-    }
-}
-
-public class TesseractDownloader
-{
-    private readonly HttpClient _client;
-    public TesseractDownloader()
-    {
-        _client = new HttpClient();
-        // It's a good practice to set a user-agent when making requests
-        _client.DefaultRequestHeaders.Add("User-Agent", "ScreenLookup tesseract language downloader");
-    }
-
-    public async Task DownloadFileAsync(string filenameToDownload, string localDestination)
-    {
-        int accID = Setting.SourceLanguageAccuracy;
-        string fileUrl = $"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{filenameToDownload}";
-
-        try
-        {
-            // Send a GET request to the specified URL
-            HttpResponseMessage response = await _client.GetAsync(fileUrl);
-            response.EnsureSuccessStatusCode();
-
-            // Read the response content
-            byte[] fileContents = await response.Content.ReadAsByteArrayAsync();
-
-            // Write the content to a file on the local file system
-            await File.WriteAllBytesAsync(localDestination, fileContents);
-            Console.WriteLine("File downloaded successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
-    }
 }

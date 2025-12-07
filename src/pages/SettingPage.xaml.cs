@@ -263,16 +263,23 @@ namespace ScreenLookup.src.pages
             SnackbarHost.Show("Source Language", $"Downloading {Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 1000);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath();
-            string tempFilePath = Path.Combine(Path.GetTempPath(), pickedLanguageFile);
+            string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
+            string filePath = Path.Combine(tempPath, pickedLanguageFile);
 
-            TesseractDownloader fileDownloader = new();
-            await fileDownloader.DownloadFileAsync(pickedLanguageFile, tempFilePath);
-            await DownloadHelper.MoveFileToFolder(tempFilePath, tesseractFilePath);
+            DownloadHelper fileDownloader = new();
+            bool isDownloaded = await fileDownloader.DownloadFileAsync($"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{pickedLanguageFile}", filePath);
+
+            if (isDownloaded)
+            {
+                await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
+                Setting.SaveTesseractInstalled(accID, langID);
+                SnackbarHost.Show("Source Language", $"\"{Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
+            }
+            else
+                SnackbarHost.Show("Source Language", $"Unable to download \"{Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", "error");
 
             isLoadingTesseract = false;
-            Setting.SaveTesseractInstalled(accID, langID);
             ButtonDownloadTesseracChanged();
-            SnackbarHost.Show("Source Language", $"\"{Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
         }
 
         private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
@@ -295,16 +302,29 @@ namespace ScreenLookup.src.pages
             {
                 string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
                 string nameTag = fileName.Split('/')[1];
-                string zipPath = $"{tempPath}{nameTag}.{extension}.zip";
+                //string zipPath = $"{tempPath}{nameTag}.{extension}.zip";
+                string zipPath = Path.Combine(tempPath, $"{nameTag}.{extension}.zip");
 
-                HunspellDownloader fileDownloader = new();
-                await fileDownloader.DownloadFileAsync($"{fileName}.{extension}.zip", zipPath);
+                DownloadHelper fileDownloader = new();
+                bool isDownloaded = await fileDownloader.DownloadFileAsync($"https://translator.gres.biz/resources/dictionaries/{fileName}.{extension}.zip", zipPath);
 
-                System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
-                FileInfo zipFile = new(zipPath);
-                zipFile.Delete();
+                if (isDownloaded)
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
+                    FileInfo zipFile = new(zipPath);
+                    zipFile.Delete();
 
-                await DownloadHelper.MoveFileToFolder(Path.Combine(tempPath, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
+                    await DownloadHelper.MoveFileToFolder(Path.Combine(tempPath, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
+                }
+                else
+                {
+                    SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", "error");
+
+                    isLoadingHunspell = false;
+                    ButtonDownloadHunspellChanged();
+                    return;
+                }
+
             }
 
             isLoadingHunspell = false;
