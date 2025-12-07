@@ -1,8 +1,5 @@
 ﻿using NAudio.Wave;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.utils
@@ -13,7 +10,7 @@ namespace ScreenLookup.src.utils
         public static async void PlayTTS(string Text, string lang, CancellationTokenSource token)
         {
             var languageData = GLanguage.GetLanguage(lang);
-            var translator = LanguageList.GetTranslatorService();
+            var translator = LanguageList.GetTranslatorService(Setting.TTSProvider);
 
             try
             {
@@ -45,7 +42,7 @@ namespace ScreenLookup.src.utils
             }
             catch
             {
-                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.TranslationProviders[Setting.TranslationProvider]}");
+                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.ProviderServices[Setting.TranslationProvider]}");
             }
         }
     }

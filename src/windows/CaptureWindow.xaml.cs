@@ -231,7 +231,7 @@ namespace ScreenLookup.src.windows
             // Translated text
             if (!string.IsNullOrWhiteSpace(page.Text))
             {
-                var translator = LanguageList.GetTranslatorService();
+                var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
                 var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
                 translatedText.Text = translateResult.Translation;
                 translatedTextLoading.Visibility = Visibility.Collapsed;
@@ -293,7 +293,7 @@ namespace ScreenLookup.src.windows
 
             StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
 
-            var translator = LanguageList.GetTranslatorService();
+            var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
             var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
             definitionTranslated.Text = translateResult.Translation;
             definitionTranslatedLoading.Visibility = Visibility.Collapsed;

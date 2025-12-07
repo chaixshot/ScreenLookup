@@ -20,7 +20,7 @@ namespace ScreenLookup.src.pages
             InitializeComponent();
 
             LoadTesseractContent();
-            LoadTranslationProvidersContent();
+            LoadProvidersContent();
 
             ButtonDownloadTesseracChanged();
             ButtonDownloadHunspellChanged();
@@ -93,6 +93,16 @@ namespace ScreenLookup.src.pages
             set
             {
                 Setting.TranslationProvider = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int TTSProvider
+        {
+            get { return Setting.TTSProvider; }
+            set
+            {
+                Setting.TTSProvider = value;
                 OnPropertyChanged();
             }
         }
@@ -204,13 +214,15 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void LoadTranslationProvidersContent()
+        private void LoadProvidersContent()
         {
             translationProvider.Items.Clear();
+            ttsProvider.Items.Clear();
 
-            foreach (string translationProvider in Setting.TranslationProviders)
+            foreach (string provider in Setting.ProviderServices)
             {
-                this.translationProvider.Items.Add(translationProvider);
+                this.translationProvider.Items.Add(provider);
+                this.ttsProvider.Items.Add(provider);
             }
         }
 

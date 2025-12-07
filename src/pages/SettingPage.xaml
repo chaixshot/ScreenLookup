@@ -103,6 +103,21 @@
                         </ComboBox>
                     </Grid>
                 </Controls:Card>
+                
+                <Controls:Card Margin="0,0,0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock Text="Text-To-Speech Provider" Margin="6"/>
+                        <ComboBox x:Name="ttsProvider"
+                            Width="200"
+                            Grid.Column="1" SelectedIndex="{Binding TTSProvider}"
+                            >
+                        </ComboBox>
+                    </Grid>
+                </Controls:Card>
 
                 <Controls:Card Margin="0,0,0,4" Padding="14,14,14,14">
                     <Grid>
