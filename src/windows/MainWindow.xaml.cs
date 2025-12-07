@@ -81,9 +81,15 @@ namespace ScreenLookup
         {
             if (Setting.MinimizeToTray)
             {
-                this.Hide();
+                try
+                {
+                    Notification.Show("ScreenLookup started in the background");
+                }
+                catch (Exception)
+                {
+                }
                 this.WindowState = (WindowState)FormWindowState.Minimized;
-                Notification.Show("ScreenLookup started in the background");
+                this.Hide();
             }
         }
 
