@@ -132,6 +132,8 @@ namespace ScreenLookup.src.windows
 
             ocrWords.ItemsSource = null;
             translatedText.Text = "";
+
+            this.Topmost = Setting.Topmost;
         }
 
         private void CenterWindowOnScreen()
