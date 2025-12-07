@@ -7,17 +7,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>applicationIcon.ico</ApplicationIcon>
+    <ApplicationIcon>src\images\applicationIcon.ico</ApplicationIcon>
     <SupportedOSPlatformVersion>10.0.22621.0</SupportedOSPlatformVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="src\windows\applicationIcon.ico" />
-    <None Remove="src\windows\icon.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="applicationIcon.ico" />
+    <Content Include="src\images\WinSym.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\images\applicationIcon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -26,8 +27,8 @@
     <PackageReference Include="HotkeyUtility" Version="2.1.0" />
     <PackageReference Include="HunspellSharp" Version="1.0.3" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
     <PackageReference Include="ScreenGrab" Version="1.0.11" />
     <PackageReference Include="TesseractOCR" Version="5.5.1" />
     <PackageReference Include="WPF-UI" Version="4.1.0" />
@@ -35,16 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="src\windows\applicationIcon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="applicationIcon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="src\applicationIcon.ico">
+    <None Update="src\images\applicationIcon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -28,7 +28,7 @@
         </Grid.RowDefinitions>
 
         <wpfui:Card x:Name="captureImageCard" Grid.Row="0" Padding="0">
-            <wpfui:Image x:Name="captureImage" Stretch="None" Source="/applicationIcon.ico"/>
+            <wpfui:Image x:Name="captureImage" Stretch="None" Source="/src/images/applicationIcon.ico"/>
         </wpfui:Card>
 
         <wpfui:Card x:Name="originalTextCard" Grid.Row="1" Margin="0,3,0,0">
