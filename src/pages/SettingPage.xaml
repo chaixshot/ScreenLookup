@@ -36,14 +36,11 @@
                                     <Controls:SymbolIcon x:Name="tesseractLoadIcon" Symbol="ArrowDownload24" Filled="True"/>
                                 </StackPanel >
                             </wpfui:Button>
-                            <ComboBox
+                            <ComboBox x:Name="sourceLanguageAccuracy"
                                 Width="110"
                                 Grid.Column="1"
                                 SelectedIndex="{Binding SourceLanguageAccuracy}"
                                 >
-                                <ComboBoxItem Content="Fast"/>
-                                <ComboBoxItem Content="Normal"/>
-                                <ComboBoxItem Content="Accurate"/>
                             </ComboBox>
                             <ComboBox x:Name="sourceLanguage"
                                     Width="200"

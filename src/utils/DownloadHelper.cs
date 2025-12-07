@@ -1,10 +1,43 @@
-﻿using System.IO;
+﻿using ScreenLookup.src.utils;
+using System.IO;
 using System.Net.Http;
 
-class HunspellHelper
+class DownloadHelper
 {
-    private static string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-    public static string FilePath = $"{appData}\\ScreenLookup\\hunspell";
+    public static async Task MoveFileToFolder(string sourcePath, string destinationPath)
+    {
+        System.IO.Directory.CreateDirectory(destinationPath);
+        FileInfo file = new(sourcePath);
+        string filePath = $@"{destinationPath}\{file.Name}";
+
+        if (File.Exists(filePath))
+        {
+            FileInfo oldFile = new(filePath);
+            oldFile.Delete();
+        }
+        file.MoveTo(filePath);
+    }
+}
+
+internal class TesseractHelper
+{
+    private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
+    public static string GetTessdataPath()
+    {
+        int accID = Setting.SourceLanguageAccuracy;
+
+        if (accID == 0)
+            return Path.Combine(appData, "ScreenLookup", "tessdata_fast");
+        if (accID == 1)
+            return Path.Combine(appData, "ScreenLookup", "tessdata");
+        return Path.Combine(appData, "ScreenLookup", "tessdata_best");
+    }
+}
+
+internal class HunspellHelper
+{
+    private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
+    public static string FilePath = Path.Combine(appData, "ScreenLookup", "hunspell");
 
     public static Dictionary<string, string> FileNames = new Dictionary<string, string> {
         {"Afrikaans", "af_ZA/af_ZA"},
@@ -59,20 +92,54 @@ class HunspellHelper
     };
 }
 
-public class HunspellFileDownloader
+public class HunspellDownloader
 {
     private readonly HttpClient _client;
-
-    public HunspellFileDownloader()
+    public HunspellDownloader()
     {
         _client = new HttpClient();
         // It's a good practice to set a user-agent when making requests
-        _client.DefaultRequestHeaders.Add("User-Agent", "Text Grab settings language downloader");
+        _client.DefaultRequestHeaders.Add("User-Agent", "ScreenLookup hunspell language downloader");
     }
 
     public async Task DownloadFileAsync(string filenameToDownload, string localDestination)
     {
         string fileUrl = $"https://translator.gres.biz/resources/dictionaries/{filenameToDownload}";
+        try
+        {
+            // Send a GET request to the specified URL
+            HttpResponseMessage response = await _client.GetAsync(fileUrl);
+            response.EnsureSuccessStatusCode();
+
+            // Read the response content
+            byte[] fileContents = await response.Content.ReadAsByteArrayAsync();
+
+            // Write the content to a file on the local file system
+            await File.WriteAllBytesAsync(localDestination, fileContents);
+            Console.WriteLine("File downloaded successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+}
+
+public class TesseractDownloader
+{
+    private readonly HttpClient _client;
+    public TesseractDownloader()
+    {
+        _client = new HttpClient();
+        // It's a good practice to set a user-agent when making requests
+        _client.DefaultRequestHeaders.Add("User-Agent", "ScreenLookup tesseract language downloader");
+    }
+
+    public async Task DownloadFileAsync(string filenameToDownload, string localDestination)
+    {
+        int accID = Setting.SourceLanguageAccuracy;
+        string fileUrl = $"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{filenameToDownload}";
+
         try
         {
             // Send a GET request to the specified URL

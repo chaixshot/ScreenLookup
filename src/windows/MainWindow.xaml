@@ -123,7 +123,7 @@
         <tray:NotifyIcon
             x:Name="NotifyIcon"
             LeftClick="NotifyIcon_LeftClick"
-            TooltipText="Text Grab" Icon="/src/windows/applicationIcon.ico">
+            TooltipText="ScreenLookup" Icon="/src/windows/applicationIcon.ico">
             <tray:NotifyIcon.Menu>
                 <ContextMenu>
                     <MenuItem

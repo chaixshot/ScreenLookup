@@ -32,6 +32,12 @@ namespace ScreenLookup.src.utils
             "Yandex",
         ];
 
+        public static readonly string[] SourceAccuracys = [
+            "Fast",
+            "Normal",
+            "Accurate",
+        ];
+
         public static int SourceLanguageAccuracy
         {
             get { return sourceLanguageAccuracy; }
