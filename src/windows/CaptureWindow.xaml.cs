@@ -328,7 +328,6 @@ namespace ScreenLookup.src.windows
                     Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
                     break;
             }
-
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -340,6 +339,12 @@ namespace ScreenLookup.src.windows
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(definitionTranslated.Text))
+            {
+                SnackbarHost.Show("Error", "Translation is not yet complete", "error");
+                return;
+            }
+
             string word = definitionOriginal.Text;
             bool isExist = SavedWord.IsExist(word).Result;
 
