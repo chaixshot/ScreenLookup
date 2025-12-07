@@ -13,14 +13,14 @@ namespace ScreenLookup.src.utils
 
         public static int sourceLanguageAccuracy = RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
         public static int sourceLanguage = RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguage")) : 29;
-        public static bool hunSpell = RegSetting.GetValue("hunSpell") != null ? RegSetting.GetValue("hunSpell").ToString() == "True" : false;
+        public static bool hunSpell = RegSetting.GetValue("hunSpell") != null && RegSetting.GetValue("hunSpell").ToString() == "True";
         public static int targetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : 117;
         public static int translationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : 1;
-        public static bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") != null ? RegSetting.GetValue("StartupWithWindows").ToString() == "True" : true;
-        public static bool startInBackground = RegSetting.GetValue("StartInBackground") != null ? RegSetting.GetValue("StartInBackground").ToString() == "True" : false;
-        public static bool minimizeToTray = RegSetting.GetValue("MinimizeToTray") != null ? RegSetting.GetValue("MinimizeToTray").ToString() == "True" : true;
-        public static bool showImage = RegSetting.GetValue("ShowImage") != null ? RegSetting.GetValue("ShowImage").ToString() == "True" : false;
-        public static bool topmost = RegSetting.GetValue("Topmost") != null ? RegSetting.GetValue("Topmost").ToString() == "True" : false;
+        public static bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") == null || RegSetting.GetValue("StartupWithWindows").ToString() == "True";
+        public static bool startInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
+        public static bool minimizeToTray = RegSetting.GetValue("MinimizeToTray") == null || RegSetting.GetValue("MinimizeToTray").ToString() == "True";
+        public static bool showImage = RegSetting.GetValue("ShowImage") != null && RegSetting.GetValue("ShowImage").ToString() == "True";
+        public static bool topmost = RegSetting.GetValue("Topmost") != null && RegSetting.GetValue("Topmost").ToString() == "True";
         public static int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
         public static string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
 

@@ -64,7 +64,7 @@ namespace ScreenLookup.src.pages
                 else
                 {
                     if (value)
-                        SnackbarHost.Show("Hunspell", $"You have to download Hunspell {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}", "error");
+                        SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}\"", "error");
 
                     Setting.HunSpell = false;
                 }
