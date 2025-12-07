@@ -176,7 +176,7 @@
                                             Appearance="Transparent"
                                             Icon="{wpfui:SymbolIcon Dismiss24, Filled=False}"
                                             MouseOverBackground="#07000000"
-                                            ToolTip="Refresh" Tag="{Binding Original}" Click="Delete_click" />
+                                            ToolTip="Refresh" Tag="{Binding Id}" Click="Delete_click" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

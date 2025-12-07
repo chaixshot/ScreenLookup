@@ -46,8 +46,8 @@ namespace ScreenLookup.src.pages
 
         public async Task LoadSavedWord()
         {
-            var data = await SavedWord.LoadSavedWordAsync(currentPage, maxRowPerPage, SearchText);
-            List<SaveWordEntry> history = data.Item1;
+            var data = await SavedWord.LoadAsync(currentPage, maxRowPerPage, SearchText);
+            List<SavedWordEntry> history = data.Item1;
 
             maxPage = (data.Item2 > 0) ? data.Item2 : 1;
 
@@ -166,7 +166,7 @@ namespace ScreenLookup.src.pages
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            bool isYes = await DialogBox.Show($"Do you want to saved word \"{button.Tag.ToString()}\"?", "This operation cannot be undone!", 0);
+            bool isYes = await DialogBox.Show($"Do you want to delete word \"{button.Tag.ToString()}\"?", "This operation cannot be undone!", 0);
 
             if (isYes)
             {

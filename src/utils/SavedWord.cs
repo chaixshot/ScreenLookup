@@ -1,12 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using CsvHelper;
+using Microsoft.Data.Sqlite;
 using ScreenLookup.src.models;
-using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using CsvHelper;
 
 namespace ScreenLookup.src.utils
 {
@@ -83,14 +80,14 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static async Task Remove(string originalWord, CancellationToken token = default)
+        public static async Task Remove(string Id, CancellationToken token = default)
         {
             string insertQuery = @"
-                 DELETE FROM savedword WHERE Original = @Original";
+                 DELETE FROM savedword WHERE Id = @Id";
 
             using (var command = new SqliteCommand(insertQuery, GetConnection()))
             {
-                command.Parameters.AddWithValue("@Original", originalWord);
+                command.Parameters.AddWithValue("@Id", Id);
                 await command.ExecuteNonQueryAsync(token);
             }
         }
@@ -119,10 +116,10 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static async Task<(List<SaveWordEntry>, int)> LoadSavedWordAsync(
+        public static async Task<(List<SavedWordEntry>, int)> LoadAsync(
             int page, int maxRow, string searchText, CancellationToken token = default)
         {
-            var history = new List<SaveWordEntry>();
+            var history = new List<SavedWordEntry>();
             int maxPage = 1;
             using (var command = new SqliteCommand(@$"SELECT COUNT() AS maxPage
                 FROM savedword
@@ -133,7 +130,7 @@ namespace ScreenLookup.src.utils
             }
 
             using (var command = new SqliteCommand(@$"
-                SELECT Original, Translated, SourceLanguage, TargetLanguage
+                SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
                 FROM savedword
                 WHERE Original LIKE '%{searchText}%' OR Translated LIKE '%{searchText}%'
                 LIMIT " + maxRow + " OFFSET " + (page * maxRow - maxRow),
@@ -142,8 +139,9 @@ namespace ScreenLookup.src.utils
             {
                 while (await reader.ReadAsync(token))
                 {
-                    history.Add(new SaveWordEntry
+                    history.Add(new SavedWordEntry
                     {
+                        Id = reader.GetString(reader.GetOrdinal("Id")),
                         Original = reader.GetString(reader.GetOrdinal("Original")),
                         Translated = reader.GetString(reader.GetOrdinal("Translated")),
                         SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
@@ -156,10 +154,10 @@ namespace ScreenLookup.src.utils
 
         public static async Task ExportToCSV(string filePath, CancellationToken token = default)
         {
-            var history = new List<SaveWordEntry>();
+            var history = new List<SavedWordEntry>();
 
             string selectQuery = @"
-                SELECT Original, Translated, SourceLanguage, TargetLanguage
+                SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
                 FROM savedword";
 
             using (var command = new SqliteCommand(selectQuery, GetConnection()))
@@ -167,8 +165,9 @@ namespace ScreenLookup.src.utils
             {
                 while (await reader.ReadAsync(token))
                 {
-                    history.Add(new SaveWordEntry
+                    history.Add(new SavedWordEntry
                     {
+                        Id = reader.GetString(reader.GetOrdinal("Id")),
                         Original = reader.GetString(reader.GetOrdinal("Original")),
                         Translated = reader.GetString(reader.GetOrdinal("Translated")),
                         SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),

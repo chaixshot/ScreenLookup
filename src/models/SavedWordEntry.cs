@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ScreenLookup.src.models
+﻿namespace ScreenLookup.src.models
 {
-    public class SaveWordEntry
+    public class SavedWordEntry
     {
+        public required string Id { get; set; }
         public required string Original { get; set; }
         public required string Translated { get; set; }
         public required string SourceLanguage { get; set; }
