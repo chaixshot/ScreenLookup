@@ -1,9 +1,14 @@
 ﻿using Microsoft.Win32;
+using ScreenLookup.src.models;
+using System.Text.Json;
+using System.Windows.Input;
 
 namespace ScreenLookup.src.utils
 {
     internal class Setting
     {
+        public static MainWindow? mainWindow = (App.Current.MainWindow as MainWindow);
+
         public static RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
         public static readonly RegistryKey RegSetting = ScreenLookupReg.CreateSubKey("Settings");
         public static readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
@@ -23,6 +28,11 @@ namespace ScreenLookup.src.utils
         public static bool topmost = RegSetting.GetValue("Topmost") != null && RegSetting.GetValue("Topmost").ToString() == "True";
         public static int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
         public static string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
+        public static ShortcutKeySet shortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : new ShortcutKeySet()
+        {
+            Modifiers = { ModifierKeys.Alt },
+            NonModifierKey = Key.Z,
+        };
 
         public static readonly string[] TranslationProviders = [
             "Google",
@@ -177,6 +187,19 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("FontFace", value.ToString());
+            }
+        }
+        public static ShortcutKeySet ShortcutKey
+        {
+            get { return shortcutKey; }
+            set
+            {
+                shortcutKey = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("ShortcutKey", JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }));
+
+                mainWindow.SetupHoykey();
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using HotkeyUtility;
 using Microsoft.Win32;
+using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
 using ScreenLookup.src.windows;
@@ -18,6 +19,8 @@ namespace ScreenLookup
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
+        private CaptureWindow captureWindow;
+        private Hotkey hotkey;
 
         public MainWindow()
         {
@@ -25,25 +28,12 @@ namespace ScreenLookup
             InitializeComponent();
             WindowStateRestore(this, "Main");
 
-            CaptureWindow captureWindow = new CaptureWindow();
+            captureWindow = new CaptureWindow();
 
             Loaded += (s, e) =>
             {
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
                 RootNavigation.Navigate(typeof(SettingPage));
-
-                // Added hotkey
-                Hotkey hotkey = new(Key.A, ModifierKeys.Shift | ModifierKeys.Control, (s, e) =>
-                {
-                    captureWindow.StartCaptureScreen();
-                });
-                HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
-                _ = hotkeyManager.TryAddHotkey(hotkey);
-
-                // Now, pressing Shift + Control + A is no longer registered and Hotkey_Pressed
-                // will no longer be triggered by that hotkey.
-                // Instead, Hotkey_Pressed will now be triggered by pressing Alt + B.
-                _ = hotkeyManager.TryReplaceHotkey(Key.A, ModifierKeys.Shift | ModifierKeys.Control, Key.Z, ModifierKeys.Alt);
 
                 if (Setting.StartInBackground)
                     HideToTray();
@@ -63,6 +53,28 @@ namespace ScreenLookup
                 HideToTray();
 
             base.OnClosing(e);
+        }
+
+        public void SetupHoykey()
+        {
+            HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
+            ShortcutKeySet shortcutKey = Setting.ShortcutKey;
+            ModifierKeys modifierKey = ModifierKeys.None;
+
+            foreach (ModifierKeys key in shortcutKey.Modifiers)
+            {
+                modifierKey |= key;
+            }
+
+            if (hotkey != null)
+                hotkeyManager.TryRemoveHotkey(hotkey);
+
+            hotkey = new(shortcutKey.NonModifierKey, modifierKey, (s, e) =>
+            {
+                captureWindow.StartCaptureScreen();
+            });
+
+            hotkeyManager.TryAddHotkey(hotkey);
         }
 
         private void HideToTray()

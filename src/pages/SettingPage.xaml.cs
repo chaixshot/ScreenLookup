@@ -24,6 +24,8 @@ namespace ScreenLookup.src.pages
 
             ButtonDownloadTesseracChanged();
             ButtonDownloadHunspellChanged();
+
+            captureShortcut.KeySet = Setting.ShortcutKey;
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -293,6 +295,11 @@ namespace ScreenLookup.src.pages
             Setting.SaveHunspellInstalled(langID);
             ButtonDownloadHunspellChanged();
             SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
+        }
+
+        private void ShortcutControl_KeySetChanged(object sender, EventArgs e)
+        {
+            Setting.ShortcutKey = captureShortcut.KeySet;
         }
 
         private async void ResetButton(object sender, RoutedEventArgs e)

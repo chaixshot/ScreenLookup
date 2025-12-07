@@ -104,14 +104,17 @@
                     </Grid>
                 </Controls:Card>
 
-                <Controls:Card Margin="0,0,0,4">
+                <Controls:Card Margin="0,0,0,4" Padding="14,14,14,14">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Capture Shortcut" Margin="6"/>
-                        <Controls:TextBox Grid.Column="1" Text="Alt+Z" />
+                        <Controls:TextBlock Text="Capture Shortcut" Margin="6" VerticalAlignment="Center"/>
+                        <xControls:ShortcutControl
+                            x:Name="captureShortcut"
+                            Grid.Column="1"
+                            KeySetChanged="ShortcutControl_KeySetChanged"/>
                     </Grid>
                 </Controls:Card>
 
