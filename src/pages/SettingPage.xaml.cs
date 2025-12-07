@@ -25,6 +25,8 @@ namespace ScreenLookup.src.pages
             ButtonDownloadTesseracChanged();
             ButtonDownloadHunspellChanged();
 
+            ApplyStartupWithWindows();
+
             captureShortcut.KeySet = Setting.ShortcutKey;
         }
 
@@ -102,11 +104,7 @@ namespace ScreenLookup.src.pages
             {
                 Setting.StartupWithWindows = value;
 
-                if (value)
-                    Setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
-                else
-                    Setting.RegAutorun.DeleteValue("ScreenLookup", false);
-
+                ApplyStartupWithWindows();
                 OnPropertyChanged();
             }
         }
@@ -175,6 +173,14 @@ namespace ScreenLookup.src.pages
                 Setting.FontFace = value;
                 OnPropertyChanged();
             }
+        }
+
+        private void ApplyStartupWithWindows()
+        {
+            if (Setting.StartupWithWindows)
+                Setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
+            else
+                Setting.RegAutorun.DeleteValue("ScreenLookup", false);
         }
 
         private void LoadTesseractContent()
