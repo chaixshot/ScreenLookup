@@ -71,7 +71,7 @@ namespace ScreenLookup
             {
                 this.Hide();
                 this.WindowState = (WindowState)FormWindowState.Minimized;
-                Notification.Show("ScreenLookup started in the background", 500);
+                Notification.Show("ScreenLookup started in the background");
             }
         }
 

@@ -55,7 +55,7 @@ namespace ScreenLookup.src.windows
         {
             if (!Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
-                Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)} in the setting", 1000);
+                Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)} in the setting");
                 this.Hide();
                 return;
             }
@@ -64,7 +64,7 @@ namespace ScreenLookup.src.windows
             Bitmap image = ScreenGrabber.CaptureDialog(false);
             if (image == null)
             {
-                Notification.Show("No image has been captured", 1000);
+                Notification.Show("No image has been captured");
                 this.Hide();
                 return;
             }
