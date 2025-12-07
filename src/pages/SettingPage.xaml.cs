@@ -269,49 +269,32 @@ namespace ScreenLookup.src.pages
             int langID = Setting.SourceLanguage;
             string DisplayName = LanguageList.GetDisplayNameFromID(langID, false);
 
-            if (!HunspellHelper.FileNames.ContainsKey(DisplayName))
+            if (!HunspellHelper.FileNames.TryGetValue(DisplayName, out string? fileName))
             {
                 SnackbarHost.Show($"{LanguageList.GetDisplayNameFromID(langID, true)} dosen't support Hunspell", "", "error");
                 return;
             }
 
-            var fileName = HunspellHelper.FileNames[DisplayName];
-
             isHunspellloading = true;
             DownloadHunspellButtonStateChange();
             SnackbarHost.Show($"Downloading Hunspell {LanguageList.GetDisplayNameFromID(langID, true)}", "", "info");
 
+            // Download files
+            foreach (string extension in new string[] { "aff", "dic" })
+            {
+                string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
+                string nameTag = fileName.Split('/')[1];
+                string zipPath = $"{tempPath}{nameTag}.{extension}.zip";
 
-            //aff
-            string tempPath = Path.GetTempPath();
-            string nameTag = fileName.Split('.')[1];
-            string zipName = fileName.Replace(".", $"\\") + ".aff.zip";
-            string zipPath = tempPath + nameTag + ".aff.zip"; ;
-            string unzipName = nameTag + ".aff";
-            string unzipPath = tempPath + unzipName;
+                HunspellFileDownloader fileDownloader = new();
+                await fileDownloader.DownloadFileAsync($"{fileName}.{extension}.zip", zipPath);
 
-            HunspellFileDownloader fileDownloader = new();
-            await fileDownloader.DownloadFileAsync(zipName, zipPath);
+                System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
+                FileInfo zipFile = new(zipPath);
+                zipFile.Delete();
 
-            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
-            FileInfo zipFile = new(zipPath);
-            zipFile.Delete();
-            await MoveFileToFolder(unzipPath, HunspellHelper.FilePath);
-
-            //dic
-            tempPath = Path.GetTempPath();
-            nameTag = fileName.Split('.')[1];
-            zipName = fileName.Replace(".", $"\\") + ".dic.zip";
-            zipPath = tempPath + nameTag + ".dic.zip"; ;
-            unzipName = nameTag + ".dic";
-            unzipPath = tempPath + unzipName;
-
-            await fileDownloader.DownloadFileAsync(zipName, zipPath);
-
-            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
-            zipFile = new(zipPath);
-            zipFile.Delete();
-            await MoveFileToFolder(unzipPath, HunspellHelper.FilePath);
+                await MoveFileToFolder(Path.Combine(tempPath, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
+            }
 
             isHunspellloading = false;
             Setting.SaveHunspellInstalled(langID);
