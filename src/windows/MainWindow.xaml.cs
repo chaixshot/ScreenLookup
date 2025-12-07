@@ -46,6 +46,8 @@ namespace ScreenLookup
         {
             if (Setting.MinimizeToTray)
                 e.Cancel = true;
+            else
+                captureWindow.Close();
 
             var isShuttingDownProp = typeof(Application).GetProperty("IsShuttingDown", BindingFlags.Static | BindingFlags.NonPublic);
             dynamic isShuttingDown = isShuttingDownProp.GetValue(Application.Current, null);
