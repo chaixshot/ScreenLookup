@@ -6,11 +6,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest></ApplicationManifest>
     <ApplicationIcon>src\images\applicationIcon.ico</ApplicationIcon>
     <SupportedOSPlatformVersion>10.0.22621.0</SupportedOSPlatformVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageIcon>applicationIcon.ico</PackageIcon>
+    <Title>ScreenLookup</Title>
+    <Authors>H@mer</Authors>
+    <Copyright>Copyright (c) 2025 H@mer and other contributors</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
