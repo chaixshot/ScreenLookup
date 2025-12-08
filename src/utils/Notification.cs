@@ -5,6 +5,7 @@ namespace ScreenLookup.src.utils
 {
     public class Notification
     {
+        // https://github.com/TheJoeFin/Text-Grab/blob/a9860b5604c65837260f07a84ac67c0bb9769884/Text-Grab/Utilities/NotificationUtilities.cs
         public static void Show(string copiedText = "Notification")
         {
             byte[] plainTextBytes = Encoding.UTF8.GetBytes(copiedText);
@@ -23,7 +24,7 @@ namespace ScreenLookup.src.utils
             // build the toast XML
             ToastContentBuilder toast = new ToastContentBuilder()
                 .AddArgument("text", encodedString)
-                .AddText("Text Grab")
+                .AddText("ScreenLookup")
                 .AddText(toastBody);
 
             int toastSizeInBytes = Encoding.UTF8.GetByteCount(toast.Content.GetContent());
