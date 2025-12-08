@@ -1,5 +1,6 @@
 ﻿using HunspellSharp;
 using ScreenGrab;
+using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -28,15 +29,6 @@ namespace ScreenLookup.src.windows
 
         public bool isFlyOutOpen = false;
 
-        private class WordItem
-        {
-            public string Word { get; set; }
-            public string Width { get; set; }
-            public string Height { get; set; }
-            public string Border { get; set; }
-            public int FontSizeS { get; set; }
-            public FontFamily FontFace { get; set; }
-        }
 
         public CaptureWindow()
         {
@@ -192,7 +184,7 @@ namespace ScreenLookup.src.windows
             originalText.Text = page.Text;
 
             // Original words
-            List<WordItem> items = [];
+            List<CaptureWordsEntrySimplify> items = [];
             foreach (var block in page.Layout)
             {
                 foreach (var paragraph in block.Paragraphs)
@@ -215,17 +207,16 @@ namespace ScreenLookup.src.windows
                                             text = suggestions[0];
                                     }
                                 }
-
-                                items.Add(new WordItem() { Word = text, Border = "1", FontSizeS = Setting.FontSizeS, FontFace = new FontFamily(Setting.FontFace) });
+                                items.Add(new CaptureWordsEntrySimplify() { Word = text, Stop = 0 });
                             }
                         }
-                        items.Add(new WordItem() { Word = "", Width = this.Width.ToString(), Height = "0" });
+                        items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 1 });
                     }
-                    items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
+                    items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 2 });
                 }
-                items.Add(new WordItem() { Word = "", Width = this.Width.ToString() });
+                items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 3 });
             }
-            ocrWords.ItemsSource = items;
+            ocrWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(items);
             ocrWordsLoading.Visibility = Visibility.Collapsed;
 
             // Translated text

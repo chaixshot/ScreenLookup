@@ -45,7 +45,7 @@ namespace ScreenLookup.src.utils
                 plainTextBytes = new byte[maxTextBytes];
                 int bytesUsed = 0;
 
-                // Encoder.Convert() won't fail when the byte array is smaller than the size needed to hold the source string,
+                // Encoder.ConvertCaptureWordsEntry() won't fail when the byte array is smaller than the size needed to hold the source string,
                 // it will just convert as many characters as possible.
                 Encoding.UTF8.GetEncoder().Convert(copiedText.AsSpan(), plainTextBytes.AsSpan(), true, out _, out bytesUsed, out _);
 
