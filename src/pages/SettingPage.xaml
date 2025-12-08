@@ -1,23 +1,29 @@
-﻿<Page 
+﻿<Page
     x:Class="ScreenLookup.src.pages.SettingPage"
-    xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
-    xmlns:xControls="clr-namespace:ScreenLookup.src.controls"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
-    mc:Ignorable="d" 
+    xmlns:xControls="clr-namespace:ScreenLookup.src.controls"
     Title="Setting"
-    >
+    mc:Ignorable="d">
 
     <Grid Margin="20,12,40,40">
         <Controls:DynamicScrollViewer>
             <StackPanel Grid.Column="0" Orientation="Vertical">
-                <TextBlock Text="Settings" FontSize="25" FontWeight="SemiBold" Margin="32,0,0,10" />
+                <TextBlock
+                    Margin="32,0,0,10"
+                    FontSize="25"
+                    FontWeight="SemiBold"
+                    Text="Settings" />
 
-                <TextBlock Text="General" FontWeight="SemiBold" Margin="5,0,0,5" />
+                <TextBlock
+                    Margin="5,0,0,5"
+                    FontWeight="SemiBold"
+                    Text="General" />
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
@@ -25,29 +31,32 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Source Language" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Source Language" />
 
-                        <StackPanel Orientation="Horizontal" Grid.Column="1">
-                            <wpfui:Button x:Name="downloadTesseract"
-                                Click="DownloadTesseractButton_Click"
-                                 Margin="0,0,5,0">
-                                <StackPanel >
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <wpfui:Button
+                                x:Name="downloadTesseract"
+                                Margin="0,0,5,0"
+                                Click="DownloadTesseractButton_Click">
+                                <StackPanel>
                                     <xControls:LoadingSpiner x:Name="tesseractLoadingIcon" Width="12" />
-                                    <Controls:SymbolIcon x:Name="tesseractLoadIcon" Symbol="ArrowDownload24" Filled="True"/>
-                                </StackPanel >
+                                    <Controls:SymbolIcon
+                                        x:Name="tesseractLoadIcon"
+                                        Filled="True"
+                                        Symbol="ArrowDownload24" />
+                                </StackPanel>
                             </wpfui:Button>
-                            <ComboBox x:Name="sourceLanguageAccuracy"
-                                Width="110"
+                            <ComboBox
+                                x:Name="sourceLanguageAccuracy"
                                 Grid.Column="1"
-                                SelectedIndex="{Binding SourceLanguageAccuracy}"
-                                >
-                            </ComboBox>
-                            <ComboBox x:Name="sourceLanguage"
-                                    Width="200"
-                                    Grid.Column="1"
-                                    SelectedIndex="{Binding SourceLanguage}" Margin="5,0,0,0"
-                                    >
-                            </ComboBox>
+                                Width="110"
+                                SelectedIndex="{Binding SourceLanguageAccuracy}" />
+                            <ComboBox
+                                x:Name="sourceLanguage"
+                                Grid.Column="1"
+                                Width="200"
+                                Margin="5,0,0,0"
+                                SelectedIndex="{Binding SourceLanguage}" />
                         </StackPanel>
                     </Grid>
                 </Controls:Card>
@@ -55,18 +64,22 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Source Language Correction (Hunspell)" Margin="6"/>
-                        <StackPanel Orientation="Horizontal" Grid.Column="1">
-                            <wpfui:Button x:Name="downloadHunspell" 
-                                Click="DownloadHunspellButton_Click"
-                                Margin="0,0,5,0">
-                                <StackPanel >
+                        <Controls:TextBlock Margin="6" Text="Source Language Correction (Hunspell)" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <wpfui:Button
+                                x:Name="downloadHunspell"
+                                Margin="0,0,5,0"
+                                Click="DownloadHunspellButton_Click">
+                                <StackPanel>
                                     <xControls:LoadingSpiner x:Name="hunspellLoadingIcon" Width="12" />
-                                    <Controls:SymbolIcon x:Name="hunspellLoadIcon" Symbol="ArrowDownload24" Filled="True"/>
-                                </StackPanel >
+                                    <Controls:SymbolIcon
+                                        x:Name="hunspellLoadIcon"
+                                        Filled="True"
+                                        Symbol="ArrowDownload24" />
+                                </StackPanel>
                             </wpfui:Button>
                             <CheckBox IsChecked="{Binding HunSpell}" />
                         </StackPanel>
@@ -76,70 +89,72 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Target Language" Margin="6"/>
-                        <ComboBox x:Name="targetLanguage"
+                        <Controls:TextBlock Margin="6" Text="Target Language" />
+                        <ComboBox
+                            x:Name="targetLanguage"
+                            Grid.Column="1"
                             Width="200"
-                            Grid.Column="1" 
-                            SelectedIndex="{Binding TargetLanguage}"
-                            >
-                        </ComboBox>
+                            SelectedIndex="{Binding TargetLanguage}" />
                     </Grid>
                 </Controls:Card>
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Translation Provider" Margin="6"/>
-                        <ComboBox x:Name="translationProvider"
+                        <Controls:TextBlock Margin="6" Text="Translation Provider" />
+                        <ComboBox
+                            x:Name="translationProvider"
+                            Grid.Column="1"
                             Width="200"
-                            Grid.Column="1" SelectedIndex="{Binding TranslationProvider}"
-                            >
-                        </ComboBox>
+                            SelectedIndex="{Binding TranslationProvider}" />
                     </Grid>
                 </Controls:Card>
-                
+
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Text-To-Speech Provider" Margin="6"/>
-                        <ComboBox x:Name="ttsProvider"
+                        <Controls:TextBlock Margin="6" Text="Text-To-Speech Provider" />
+                        <ComboBox
+                            x:Name="ttsProvider"
+                            Grid.Column="1"
                             Width="200"
-                            Grid.Column="1" SelectedIndex="{Binding TTSProvider}"
-                            >
-                        </ComboBox>
+                            SelectedIndex="{Binding TTSProvider}" />
                     </Grid>
                 </Controls:Card>
 
                 <Controls:Card Margin="0,0,0,4" Padding="14,14,14,14">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Capture Shortcut" Margin="6" VerticalAlignment="Center"/>
+                        <Controls:TextBlock
+                            Margin="6"
+                            VerticalAlignment="Center"
+                            Text="Capture Shortcut" />
                         <xControls:ShortcutControl
                             x:Name="captureShortcut"
                             Grid.Column="1"
-                            KeySetChanged="ShortcutControl_KeySetChanged"/>
+                            KeySetChanged="ShortcutControl_KeySetChanged" />
                     </Grid>
                 </Controls:Card>
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Startup with windows" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Startup with windows" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
                     </Grid>
                 </Controls:Card>
@@ -147,10 +162,10 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Start in background" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Start in background" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
                     </Grid>
                 </Controls:Card>
@@ -158,23 +173,26 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Minimize to tray" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Minimize to tray" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" />
                     </Grid>
                 </Controls:Card>
 
-                <TextBlock Text="Appearance" FontWeight="SemiBold" Margin="5,0,0,5" />
+                <TextBlock
+                    Margin="5,0,0,5"
+                    FontWeight="SemiBold"
+                    Text="Appearance" />
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Show image" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Show image" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding ShowImage}" />
                     </Grid>
                 </Controls:Card>
@@ -182,10 +200,10 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Close when lost focus" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Close when lost focus" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding CloseLostFocus}" />
                     </Grid>
                 </Controls:Card>
@@ -193,19 +211,20 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Font" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Font" />
                         <ComboBox
-                            ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
-                            Grid.Column="1" 
+                            Grid.Column="1"
                             Width="200"
+                            FontFamily="{Binding FontFace}"
                             IsEditable="True"
-                            Text="{Binding FontFace}" FontFamily="{Binding FontFace}">
+                            ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
+                            Text="{Binding FontFace}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Label FontFamily="{Binding .}" Content="{Binding Source}" />
+                                    <Label Content="{Binding Source}" FontFamily="{Binding .}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
@@ -215,27 +234,32 @@
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Text="Font size" Margin="6"/>
+                        <Controls:TextBlock Margin="6" Text="Font size" />
                         <Controls:NumberBox
                             Grid.Column="1"
+                            Width="200"
                             Maximum="100"
                             Minimum="10"
-                            Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}"
-                            Width="200"/>
+                            Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
                 </Controls:Card>
 
-                <TextBlock Text="Reset" FontWeight="SemiBold" Margin="5,0,0,5" />
+                <TextBlock
+                    Margin="5,0,0,5"
+                    FontWeight="SemiBold"
+                    Text="Reset" />
 
                 <Controls:Card Margin="0,0,0,4">
                     <wpfui:Button
                         Margin="5,0,0,0"
                         HorizontalAlignment="Left"
-                        Icon="{wpfui:SymbolIcon ArrowCounterclockwise24, Filled=False}"
-                        ToolTip="Reset" Click="ResetButton" />
+                        Click="ResetButton"
+                        Icon="{wpfui:SymbolIcon ArrowCounterclockwise24,
+                                                Filled=False}"
+                        ToolTip="Reset" />
                 </Controls:Card>
 
             </StackPanel>

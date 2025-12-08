@@ -1,9 +1,10 @@
-﻿<Application x:Class="ScreenLookup.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:ScreenLookup"
-             StartupUri="src/windows/MainWindow.xaml"
-             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+﻿<Application
+    x:Class="ScreenLookup.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:ScreenLookup"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    StartupUri="src/windows/MainWindow.xaml">
 
     <Application.Resources>
         <ResourceDictionary>
