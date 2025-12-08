@@ -272,7 +272,7 @@ namespace ScreenLookup.src.pages
 
             isLoadingTesseract = true;
             ButtonDownloadTesseracChanged();
-            SnackbarHost.Show("Source Language", $"Downloading {Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 1000);
+            SnackbarHost.Show("Source Language", $"Downloading {Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath();
             string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
@@ -307,7 +307,7 @@ namespace ScreenLookup.src.pages
 
             isLoadingHunspell = true;
             ButtonDownloadHunspellChanged();
-            SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 1000);
+            SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999);
 
             // Download files
             foreach (string extension in new string[] { "aff", "dic" })
