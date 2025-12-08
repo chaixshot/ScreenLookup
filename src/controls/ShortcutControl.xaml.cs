@@ -54,6 +54,9 @@ public partial class ShortcutControl : UserControl
 
             KeyLetterTextBlock.Text = _keySet.NonModifierKey.ToString();
             KeySetChanged?.Invoke(this, EventArgs.Empty);
+
+            isRecording = false;
+            RecordingToggleButton.IsChecked = isRecording;
         }
     }
 
