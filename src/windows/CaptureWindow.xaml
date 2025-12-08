@@ -51,64 +51,72 @@
             </Controls:DynamicScrollViewer>
         </Controls:Card>
 
+
         <Controls:Card
             x:Name="originalWords"
             Grid.Row="2"
             Margin="0,3,0,0">
-            <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Controls:Button
-                        x:Name="originalTTS"
-                        Width="20"
-                        Height="20"
-                        Padding="0"
-                        VerticalAlignment="Top"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        Click="Button_OriginalTTS"
-                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Controls:Button
+                    x:Name="originalTTS"
+                    Width="20"
+                    Height="20"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Button_OriginalTTS"
+                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                            Filled=False}" />
+                <Controls:DynamicScrollViewer
+                    Grid.Column="1"
+                    IsScrollingVertically="True"
+                    VerticalScrollBarVisibility="Visible">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    <xControls:LoadingSpiner
-                        x:Name="ocrWordsLoading"
-                        Grid.Column="1"
-                        Width="20"
-                        Height="20"
-                        Margin="5,0,0,0" />
+                        <xControls:LoadingSpiner
+                            x:Name="ocrWordsLoading"
+                            Width="20"
+                            Height="20"
+                            Margin="5,0,0,0" />
 
-                    <StackPanel Grid.Column="2" Margin="5,0,0,0">
-                        <ItemsControl Name="ocrWords">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
+                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                            <ItemsControl Name="ocrWords">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
 
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Controls:Button
-                                        Width="{Binding Width}"
-                                        Height="{Binding Height}"
-                                        Margin="0"
-                                        Padding="1.5,0,1.5,0"
-                                        HorizontalAlignment="Left"
-                                        BorderThickness="{Binding Border}"
-                                        Click="Button_Word"
-                                        Content="{Binding Word}"
-                                        FontFamily="{Binding FontFace}"
-                                        FontSize="{Binding FontSizeS, Mode=OneWay}"
-                                        Tag="{Binding SourceLanguage}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Grid>
-            </Controls:DynamicScrollViewer>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Controls:Button
+                                            Width="{Binding Width}"
+                                            Height="{Binding Height}"
+                                            Margin="0"
+                                            Padding="1.5,0,1.5,0"
+                                            HorizontalAlignment="Left"
+                                            BorderThickness="{Binding Border}"
+                                            Click="Button_Word"
+                                            Content="{Binding Word}"
+                                            FontFamily="{Binding FontFace}"
+                                            FontSize="{Binding FontSizeS, Mode=OneWay}"
+                                            Tag="{Binding SourceLanguage}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Grid>
+                </Controls:DynamicScrollViewer>
+            </Grid>
         </Controls:Card>
 
         <Controls:SnackbarPresenter x:Name="snackbarHost" Grid.Row="2" />
@@ -117,30 +125,40 @@
             x:Name="translatedCard"
             Grid.Row="3"
             Margin="0,3,0,0">
-            <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
-                <StackPanel Orientation="Horizontal">
-                    <Controls:Button
-                        x:Name="translatedTSS"
-                        Width="20"
-                        Height="20"
-                        Padding="0"
-                        VerticalAlignment="Top"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        Click="Button_TranslatedTTS"
-                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}" />
-                    <Controls:TextBlock
-                        x:Name="translatedText"
-                        Grid.Column="1"
-                        Margin="5,0,0,0"
-                        TextWrapping="Wrap" />
-                    <xControls:LoadingSpiner
-                        x:Name="translatedTextLoading"
-                        Width="20"
-                        Height="20" />
-                </StackPanel>
-            </Controls:DynamicScrollViewer>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Controls:Button
+                    x:Name="translatedTSS"
+                    Width="20"
+                    Height="20"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Button_TranslatedTTS"
+                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                            Filled=False}" />
+                <Controls:DynamicScrollViewer
+                    Grid.Column="1"
+                    IsScrollingVertically="True"
+                    VerticalScrollBarVisibility="Visible">
+                    <StackPanel Orientation="Horizontal">
+
+                        <Controls:TextBlock
+                            x:Name="translatedText"
+                            Grid.Column="1"
+                            Margin="5,0,0,0"
+                            TextWrapping="Wrap" />
+                        <xControls:LoadingSpiner
+                            x:Name="translatedTextLoading"
+                            Width="20"
+                            Height="20" />
+                    </StackPanel>
+                </Controls:DynamicScrollViewer>
+            </Grid>
         </Controls:Card>
 
         <Controls:Flyout
