@@ -5,11 +5,13 @@ namespace ScreenLookup.src.models
     public class CaptureWordsEntry
     {
         public required string Word { get; set; }
-        public string Width { get; set; }
-        public string Height { get; set; }
-        public string Border { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double Border { get; set; }
         public int FontSizeS { get; set; }
         public FontFamily FontFace { get; set; }
+        public int SourceLanguage { get; set; }
+        public int TargetLanguage { get; set; }
     }
 
     public class CaptureWordsEntrySimplify
