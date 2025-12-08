@@ -109,7 +109,7 @@
 
                 <wpfui:NavigationView.ContentOverlay>
                     <Grid>
-                        <wpfui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="0" />
+                        <wpfui:SnackbarPresenter x:Name="snackbarHost"/>
                     </Grid>
                 </wpfui:NavigationView.ContentOverlay>
             </wpfui:NavigationView>

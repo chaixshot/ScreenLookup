@@ -5,9 +5,10 @@ namespace ScreenLookup.src.utils
     internal class SnackbarHost
     {
         public static Snackbar? snackbar;
-        public static SnackbarPresenter? presenter = (App.Current.MainWindow as MainWindow)?.SnackbarHost;
+        public static MainWindow? mainWindow = App.Current.MainWindow as MainWindow;
+        public static SnackbarPresenter? snackbarMain = mainWindow?.snackbarHost;
 
-        public static void Show(string title, string message, string type, int timeout = 5)
+        public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, string windows = "main")
         {
             ControlAppearance appearance;
             SymbolIcon icon;
@@ -33,13 +34,17 @@ namespace ScreenLookup.src.utils
                 icon = new SymbolIcon(SymbolRegular.Info24);
             }
 
-            snackbar ??= new Snackbar(presenter);
+            if (windows == "main")
+                snackbar ??= new Snackbar(snackbarMain);
+            else
+                snackbar ??= new Snackbar((mainWindow?.GetCaptureWindow().snackbarHost));
 
             snackbar.SetCurrentValue(Snackbar.TitleProperty, title);
             snackbar.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
             snackbar.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
             snackbar.SetCurrentValue(Snackbar.IconProperty, icon);
             snackbar.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+            snackbar.Width = width;
 
             snackbar.Show(true);
         }

@@ -19,7 +19,7 @@ namespace ScreenLookup
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
-        private CaptureWindow captureWindow;
+        public static CaptureWindow captureWindow;
         private Hotkey hotkey;
 
         public MainWindow()
@@ -28,7 +28,7 @@ namespace ScreenLookup
             InitializeComponent();
             WindowStateRestore(this, "Main");
 
-            captureWindow = new CaptureWindow();
+            captureWindow = GetCaptureWindow();
 
             Loaded += (s, e) =>
             {
@@ -55,6 +55,14 @@ namespace ScreenLookup
                 HideToTray();
 
             base.OnClosing(e);
+        }
+
+        public CaptureWindow GetCaptureWindow()
+        {
+            if (captureWindow != null)
+                return captureWindow;
+            captureWindow = new CaptureWindow();
+            return captureWindow;
         }
 
         public void SetupHoykey()
