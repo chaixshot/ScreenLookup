@@ -114,42 +114,53 @@ namespace ScreenLookup.src.utils
             int page, int maxRow, string searchText, CancellationToken token = default)
         {
             var history = new List<HistoryLoggerPageEntry>();
-            int maxPage = 1;
-            using (var command = new SqliteCommand(@$"SELECT COUNT() AS maxPage
+            int totalCount = 0;
+            using (var command = new SqliteCommand(@"
+                SELECT COUNT(*) 
                 FROM history
-                WHERE Original LIKE '%{searchText}%' OR Translated LIKE '%{searchText}%'",
-                GetConnection()))
+                WHERE Original LIKE @search OR Translated LIKE @search", GetConnection()))
             {
-                maxPage = Convert.ToInt32(await command.ExecuteScalarAsync(token)) / maxRow;
+                command.Parameters.AddWithValue("@search", $"%{searchText}%");
+                totalCount = Convert.ToInt32(await command.ExecuteScalarAsync(token));
             }
 
-            using (var command = new SqliteCommand(@$"
+            int maxPage = Math.Max(1, (int)Math.Ceiling(totalCount / (double)maxRow));
+            int offset = Math.Max(0, (page - 1) * maxRow);
+
+            using (var command = new SqliteCommand(@"
                 SELECT Id, Original, OriginalWords, Translated, SourceLanguage, TargetLanguage
                 FROM history
-                WHERE Original LIKE '%{searchText}%' OR Translated LIKE '%{searchText}%'
-                LIMIT " + maxRow + " OFFSET " + (page * maxRow - maxRow),
-                GetConnection()))
-            using (var reader = await command.ExecuteReaderAsync(token))
-            {
-                while (await reader.ReadAsync(token))
-                {
-                    string originalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
-                    string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
-                    string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
-                    List<CaptureWordsEntrySimplify> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsEntrySimplify>>(originalWords);
-                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage));
+                WHERE Original LIKE @search OR Translated LIKE @search
+                ORDER BY Id DESC
+                LIMIT @maxRow OFFSET @offset", GetConnection()))
 
-                    history.Add(new HistoryLoggerPageEntry
+            {
+                command.Parameters.AddWithValue("@search", $"%{searchText}%");
+                command.Parameters.AddWithValue("@maxRow", maxRow);
+                command.Parameters.AddWithValue("@offset", offset);
+
+                using (var reader = await command.ExecuteReaderAsync(token))
+                {
+                    while (await reader.ReadAsync(token))
                     {
-                        Id = reader.GetString(reader.GetOrdinal("Id")),
-                        Original = reader.GetString(reader.GetOrdinal("Original")),
-                        OriginalWords = captureWords,
-                        Translated = reader.GetString(reader.GetOrdinal("Translated")),
-                        SourceLanguage = sourceLanguage,
-                        TargetLanguage = targetLanguage,
-                        FontSizeS = Setting.FontSizeS,
-                        FontFace = new FontFamily(Setting.FontFace),
-                    });
+                        string originalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
+                        string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
+                        string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
+                        List<CaptureWordsEntrySimplify> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsEntrySimplify>>(originalWords);
+                        List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage));
+
+                        history.Add(new HistoryLoggerPageEntry
+                        {
+                            Id = reader.GetString(reader.GetOrdinal("Id")),
+                            Original = reader.GetString(reader.GetOrdinal("Original")),
+                            OriginalWords = captureWords,
+                            Translated = reader.GetString(reader.GetOrdinal("Translated")),
+                            SourceLanguage = sourceLanguage,
+                            TargetLanguage = targetLanguage,
+                            FontSizeS = Setting.FontSizeS,
+                            FontFace = new FontFamily(Setting.FontFace),
+                        });
+                    }
                 }
             }
             return (history, maxPage);
@@ -161,17 +172,23 @@ namespace ScreenLookup.src.utils
 
             string selectQuery = @"
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
-                FROM history";
+                FROM history
+                ORDER BY Id DESC";
 
             using (var command = new SqliteCommand(selectQuery, GetConnection()))
             using (var reader = await command.ExecuteReaderAsync(token))
             {
                 while (await reader.ReadAsync(token))
                 {
+                    int sourceLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
+                    int targetLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
+
                     history.Add(new HistoryLoggerExportEntry
                     {
                         Original = reader.GetString(reader.GetOrdinal("Original")),
                         Translated = reader.GetString(reader.GetOrdinal("Translated")),
+                        SourceLanguage = LanguageList.GetDisplayNameFromID(sourceLanguage, false),
+                        TargetLanguage = LanguageList.GetDisplayNameFromID(targetLanguage, false),
                     });
                 }
             }
