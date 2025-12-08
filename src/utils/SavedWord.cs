@@ -24,17 +24,15 @@ namespace ScreenLookup.src.utils
         {
             GetConnection();
 
-            using (var command = new SqliteCommand(@"
+            using var command = new SqliteCommand(@"
                 CREATE TABLE IF NOT EXISTS savedword (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     Original TEXT,
                     Translated TEXT,
                     SourceLanguage TEXT,
                     TargetLanguage TEXT
-                );", GetConnection()))
-            {
-                command.ExecuteNonQuery();
-            }
+                );", GetConnection());
+            command.ExecuteNonQuery();
         }
 
         private static SqliteConnection GetConnection()
@@ -70,35 +68,39 @@ namespace ScreenLookup.src.utils
                 INSERT INTO savedword (Original, Translated, SourceLanguage, TargetLanguage)
                 VALUES (@Original, @Translated, @SourceLanguage, @TargetLanguage)";
 
-            using (var command = new SqliteCommand(insertQuery, GetConnection()))
-            {
-                command.Parameters.AddWithValue("@Original", originalWord);
-                command.Parameters.AddWithValue("@Translated", translatedWord);
-                command.Parameters.AddWithValue("@SourceLanguage", sourceLanguage);
-                command.Parameters.AddWithValue("@TargetLanguage", sargetLanguage);
-                await command.ExecuteNonQueryAsync(token);
-            }
+            using var command = new SqliteCommand(insertQuery, GetConnection());
+            command.Parameters.AddWithValue("@Original", originalWord);
+            command.Parameters.AddWithValue("@Translated", translatedWord);
+            command.Parameters.AddWithValue("@SourceLanguage", sourceLanguage);
+            command.Parameters.AddWithValue("@TargetLanguage", sargetLanguage);
+            await command.ExecuteNonQueryAsync(token);
         }
 
         public static async Task Remove(string Id, CancellationToken token = default)
         {
             string insertQuery = @"
-                 DELETE FROM savedword WHERE Id = @Id";
+                 DELETE FROM savedword WHERE Id = @Id or Original = @Id";
 
-            using (var command = new SqliteCommand(insertQuery, GetConnection()))
-            {
-                command.Parameters.AddWithValue("@Id", Id);
-                await command.ExecuteNonQueryAsync(token);
-            }
+            using var command = new SqliteCommand(insertQuery, GetConnection());
+            command.Parameters.AddWithValue("@Id", Id);
+            await command.ExecuteNonQueryAsync(token);
+        }
+
+        public static async Task ToggleSaved(string original, string translated, int sourceLanguage, int targetLanguage)
+        {
+            bool isExist = SavedWord.IsExist(original).Result;
+
+            if (isExist)
+                await SavedWord.Remove(original);
+            else
+                await SavedWord.Add(original, translated, sourceLanguage, targetLanguage);
         }
 
         public static async Task Clear(CancellationToken token = default)
         {
             string selectQuery = "DELETE FROM savedword; DELETE FROM sqlite_sequence WHERE NAME='savedword'";
-            using (var command = new SqliteCommand(selectQuery, GetConnection()))
-            {
-                await command.ExecuteNonQueryAsync(token);
-            }
+            using var command = new SqliteCommand(selectQuery, GetConnection());
+            await command.ExecuteNonQueryAsync(token);
         }
 
         public static async Task<bool> IsExist(string originalWord, CancellationToken token = default)
@@ -106,14 +108,10 @@ namespace ScreenLookup.src.utils
             string selectQuery = @"
                  SELECT 1 FROM savedword WHERE Original = @Original LIMIT 1";
 
-            using (var command = new SqliteCommand(selectQuery, GetConnection()))
-            {
-                command.Parameters.AddWithValue("@Original", originalWord);
-                using (var reader = await command.ExecuteReaderAsync(token))
-                {
-                    return await reader.ReadAsync(token);
-                }
-            }
+            using var command = new SqliteCommand(selectQuery, GetConnection());
+            command.Parameters.AddWithValue("@Original", originalWord);
+            using var reader = await command.ExecuteReaderAsync(token);
+            return await reader.ReadAsync(token);
         }
 
         public static async Task<(List<SavedWordEntry>, int)> LoadAsync(

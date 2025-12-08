@@ -309,10 +309,7 @@ namespace ScreenLookup.src.windows
 
             string word = definitionOriginal.Text;
 
-            if (isExist)
-                await SavedWord.Remove(word);
-            else
-                await SavedWord.Add(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
+            SavedWord.ToggleSaved(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
             SavedWordButtonStateChange(word);
         }
 
