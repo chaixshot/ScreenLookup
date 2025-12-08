@@ -138,6 +138,16 @@ namespace ScreenLookup.src.utils
             "yor.traineddata",
         ];
 
+        public static string ClearTesseractTag(string tesseractTag)
+        {
+            tesseractTag = tesseractTag.Replace("_frak", "");
+            tesseractTag = tesseractTag.Replace("_old", "");
+            tesseractTag = tesseractTag.Replace("_latn", "");
+            tesseractTag = tesseractTag.Replace("_vert", "");
+
+            return tesseractTag;
+        }
+
         public static string GetTesseractTagFromLanguageTesseract(string textName)
         {
             string tesseractTag = textName.Split('.').First();
@@ -154,10 +164,16 @@ namespace ScreenLookup.src.utils
 
         public static string GetLanguageISO6391FromID(int langID)
         {
-            string tesseractTag = LanguageList.GetTesseractTagFromID(langID);
+            string tesseractTag = ClearTesseractTag(LanguageList.GetTesseractTagFromID(langID));
+
             try
             {
-                GLanguage languageData = GLanguage.GetLanguage(tesseractTag);
+                GLanguage languageData = tesseractTag switch
+                {
+                    "chi_sim" => GLanguage.GetLanguage("zh-Hans"),
+                    "chi_tra" => GLanguage.GetLanguage("zh-Hant"),
+                    _ => GLanguage.GetLanguage(tesseractTag)
+                };
                 return languageData.ISO6391;
             }
             catch
@@ -168,10 +184,16 @@ namespace ScreenLookup.src.utils
 
         public static string GetLanguageISO6393FromID(int langID)
         {
-            string tesseractTag = LanguageList.GetTesseractTagFromID(langID);
+            string tesseractTag = ClearTesseractTag(LanguageList.GetTesseractTagFromID(langID));
+
             try
             {
-                GLanguage languageData = GLanguage.GetLanguage(tesseractTag);
+                GLanguage languageData = tesseractTag switch
+                {
+                    "chi_sim" => GLanguage.GetLanguage("zh-Hans"),
+                    "chi_tra" => GLanguage.GetLanguage("zh-Hant"),
+                    _ => GLanguage.GetLanguage(tesseractTag)
+                };
                 return languageData.ISO6393;
             }
             catch
@@ -182,10 +204,7 @@ namespace ScreenLookup.src.utils
 
         public static string GetDisplayNameFromTesseractTag(string tesseractTag, bool isNative)
         {
-            string tessLangTag = tesseractTag.Replace("_frak", "");
-            tessLangTag = tessLangTag.Replace("_old", "");
-            tessLangTag = tessLangTag.Replace("_latn", "");
-            tessLangTag = tessLangTag.Replace("_vert", "");
+            string tessLangTag = ClearTesseractTag(tesseractTag);
 
             try
             {
