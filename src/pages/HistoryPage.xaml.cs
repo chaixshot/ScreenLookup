@@ -15,8 +15,6 @@ namespace ScreenLookup.src.pages
     /// </summary>
     public partial class HistoryPage : Page
     {
-        private CancellationTokenSource CTS = new();
-
         private int currentPage = 1;
         private int searchPage = 1;
         private int maxPage = 1;
@@ -31,17 +29,10 @@ namespace ScreenLookup.src.pages
 
             Unloaded += (s, e) =>
             {
-                CTS.Cancel();
+                TextToSpeech.StopTTS();
             };
 
             maxRow.SelectionChanged += maxRow_SelectionChanged;
-        }
-
-        private void StartTTS(string Text, int langID)
-        {
-            CTS.Cancel();
-            CTS = new CancellationTokenSource();
-            TextToSpeech.PlayTTS(Text, langID, CTS);
         }
 
         public void LoadHistoryLogger()
@@ -207,7 +198,7 @@ namespace ScreenLookup.src.pages
             definitionTranslated.Tag = targetLanguage;
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
-            StartTTS(word, sourceLanguage);
+            TextToSpeech.StartTTS(word, sourceLanguage);
             SavedWordButtonStateChange(word);
 
             var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
@@ -218,12 +209,12 @@ namespace ScreenLookup.src.pages
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
+            TextToSpeech.StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
@@ -264,7 +255,7 @@ namespace ScreenLookup.src.pages
         private void Button_ParagraphTTS(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            StartTTS(button.ToolTip.ToString(), Int32.Parse(button.Tag.ToString()));
+            TextToSpeech.StartTTS(button.ToolTip.ToString(), Int32.Parse(button.Tag.ToString()));
         }
 
         private void Button_ParagraphCopy(object sender, RoutedEventArgs e)

@@ -22,8 +22,6 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
-        private CancellationTokenSource CTS = new CancellationTokenSource();
-
         public CaptureWindow()
         {
             InitializeComponent();
@@ -39,7 +37,7 @@ namespace ScreenLookup.src.windows
         private void HideWindow()
         {
             this.Hide();
-            CTS.Cancel();
+            TextToSpeech.StopTTS();
         }
 
         public void StartCaptureScreen()
@@ -138,13 +136,6 @@ namespace ScreenLookup.src.windows
             this.Top = (screenHeight / 2) - (windowHeight / 2);
         }
 
-        private void StartTTS(string Text, int langID)
-        {
-            CTS.Cancel();
-            CTS = new CancellationTokenSource();
-            TextToSpeech.PlayTTS(Text, langID, CTS);
-        }
-
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
         {
             // Image
@@ -241,12 +232,12 @@ namespace ScreenLookup.src.windows
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(originalText.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(originalText.Text, Setting.SourceLanguage);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(translatedText.Text, Setting.TargetLanguage);
+            TextToSpeech.StartTTS(translatedText.Text, Setting.TargetLanguage);
         }
 
         // Word
@@ -272,7 +263,7 @@ namespace ScreenLookup.src.windows
             definitionTranslated.Text = "";
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
-            StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
             SavedWordButtonStateChange(word);
 
             var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
@@ -283,12 +274,12 @@ namespace ScreenLookup.src.windows
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
+            TextToSpeech.StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)

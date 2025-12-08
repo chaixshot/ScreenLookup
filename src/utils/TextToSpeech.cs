@@ -6,7 +6,8 @@ namespace ScreenLookup.src.utils
 {
     class TextToSpeech
     {
-        private CancellationTokenSource CTS = new CancellationTokenSource();
+        public static CancellationTokenSource CTS = new CancellationTokenSource();
+
         public static async void PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
             var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6393FromID(langID));
@@ -25,25 +26,35 @@ namespace ScreenLookup.src.utils
                 }
 
                 ms.Position = 0;
-                using (WaveStream blockAlignedStream =
+                using WaveStream blockAlignedStream =
                     new BlockAlignReductionStream(
                         WaveFormatConversionStream.CreatePcmStream(
-                            new Mp3FileReader(ms))))
+                            new Mp3FileReader(ms)));
+                WaveOut waveOut = new(WaveCallbackInfo.FunctionCallback());
+                waveOut.Init(blockAlignedStream);
+                waveOut.Play();
+                while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
                 {
-                    WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback());
-                    waveOut.Init(blockAlignedStream);
-                    waveOut.Play();
-                    while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
-                    {
-                        await Task.Delay(100);
-                    }
-                    waveOut.Dispose();
+                    await Task.Delay(100);
                 }
+                waveOut.Dispose();
             }
             catch
             {
                 Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.ProviderServices[Setting.TranslationProvider]}");
             }
+        }
+
+        public static void StartTTS(string Text, int langID)
+        {
+            StopTTS();
+            CTS = new CancellationTokenSource();
+            TextToSpeech.PlayTTS(Text, langID, CTS);
+        }
+
+        public static void StopTTS()
+        {
+            CTS.Cancel();
         }
     }
 }
