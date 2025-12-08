@@ -17,24 +17,21 @@ namespace ScreenLookup.src.pages
         private int currentPage = 1;
         private int searchPage = 1;
         private int maxPage = 1;
-        private int maxRowPerPage = 50;
+        private int maxRowPerPage = 30;
 
         public string SearchText { get; set; } = string.Empty;
 
         public SavedPage()
         {
             InitializeComponent();
+            LoadSavedWord();
 
-            Loaded += async (s, e) =>
-            {
-                await LoadSavedWord();
-            };
             Unloaded += (s, e) =>
             {
-                HistoryDataGrid.ItemsSource = null;
+                CTS.Cancel();
             };
 
-            HistoryMaxRow.SelectionChanged += maxRow_SelectionChanged;
+            maxRow.SelectionChanged += maxRow_SelectionChanged;
         }
 
         private void StartTTS(string Text, string Language)
@@ -44,17 +41,21 @@ namespace ScreenLookup.src.pages
             TextToSpeech.PlayTTS(Text, Language, CTS);
         }
 
-        public async Task LoadSavedWord()
+        public void LoadSavedWord()
         {
-            var data = await SavedWord.LoadAsync(currentPage, maxRowPerPage, SearchText);
-            List<SavedWordEntry> history = data.Item1;
-
-            maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-
-            await Dispatcher.InvokeAsync(() =>
+            ThreadPool.QueueUserWorkItem(_ =>
             {
-                HistoryDataGrid.ItemsSource = history;
-                PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
+                //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    var data = await SavedWord.LoadAsync(currentPage, maxRowPerPage, SearchText);
+                    List<SavedWordEntry> saved = data.Item1;
+
+                    maxPage = (data.Item2 > 0) ? data.Item2 : 1;
+
+                    SavedDataGrid.ItemsSource = saved;
+                    PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
+                }));
             });
         }
 
@@ -127,7 +128,7 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void HistorySearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
             string searchText = (sender as AutoSuggestBox)?.Text ?? "";
 
@@ -149,7 +150,7 @@ namespace ScreenLookup.src.pages
             LoadSavedWord();
         }
 
-        private async void HistorySearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             // Press X to clear search box
             if (args.Reason == AutoSuggestionBoxTextChangeReason.ProgrammaticChange)
@@ -158,7 +159,7 @@ namespace ScreenLookup.src.pages
                 {
                     SearchText = string.Empty;
                     currentPage = searchPage;
-                    await LoadSavedWord();
+                    LoadSavedWord();
                 }
             }
         }
@@ -175,11 +176,19 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void Button_Word(object sender, RoutedEventArgs e)
+        private void Button_TTSWord(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
 
-            StartTTS(button.Content.ToString(), LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Tag.ToString())));
+            StartTTS(button.ToolTip.ToString(), LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Tag.ToString())));
+        }
+
+        private void Button_WordCopy(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+
+            Clipboard.SetText(button.ToolTip.ToString());
+            SnackbarHost.Show(title: "Copied", timeout: 1, width: 150);
         }
     }
 }
