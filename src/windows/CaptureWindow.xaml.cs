@@ -32,8 +32,14 @@ namespace ScreenLookup.src.windows
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape)
-                    this.Hide();
+                    HideWindow();
             };
+        }
+
+        private void HideWindow()
+        {
+            this.Hide();
+            CTS.Cancel();
         }
 
         public void StartCaptureScreen()
@@ -41,7 +47,7 @@ namespace ScreenLookup.src.windows
             if (!Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
                 Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)} in the setting");
-                this.Hide();
+                HideWindow();
                 return;
             }
 
@@ -50,7 +56,7 @@ namespace ScreenLookup.src.windows
             if (image == null)
             {
                 Notification.Show("No image has been captured");
-                this.Hide();
+                HideWindow();
                 return;
             }
 
@@ -324,7 +330,7 @@ namespace ScreenLookup.src.windows
         private void App_Deactivated(object sender, EventArgs e)
         {
             if (Setting.CloseLostFocus)
-                this.Hide();
+                HideWindow();
         }
     }
 }
