@@ -1,32 +1,31 @@
-﻿<wpfui:FluentWindow 
-    xmlns:Controls="clr-namespace:Wpf.Ui.Tray.Controls;assembly=Wpf.Ui.Tray"
+﻿<wpfui:FluentWindow
     x:Class="ScreenLookup.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Controls="clr-namespace:Wpf.Ui.Tray.Controls;assembly=Wpf.Ui.Tray"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tray="http://schemas.lepo.co/wpfui/2022/xaml/tray"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
-    mc:Ignorable="d"
     Title="MainWindow"
-    Height="450"
     Width="800"
-    StateChanged="WindowStateChanged"
+    Height="450"
     MinWidth="800"
     MinHeight="600"
     Background="Transparent"
     ExtendsContentIntoTitleBar="True"
+    LocationChanged="MainWindow_BoundsChanged"
+    SizeChanged="MainWindow_BoundsChanged"
+    StateChanged="WindowStateChanged"
     WindowBackdropType="Mica"
     WindowStartupLocation="Manual"
     WindowStyle="None"
-    LocationChanged="MainWindow_BoundsChanged"
-    SizeChanged="MainWindow_BoundsChanged"
-    >
+    mc:Ignorable="d">
 
     <Window.Resources>
         <wpfui:ImageIcon x:Key="AppIcon" Source="/src/images/applicationIcon.ico" />
-        
+
         <Style x:Key="NavMenuContent" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -46,7 +45,11 @@
                 Height="27"
                 Icon="{StaticResource AppIcon}">
                 <wpfui:TitleBar.Header>
-                    <wpfui:TextBlock Padding="0" VerticalAlignment="Center" FontSize="12">ScreenLookup</wpfui:TextBlock>
+                    <wpfui:TextBlock
+                        Padding="0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Text="ScreenLookup" />
                 </wpfui:TitleBar.Header>
                 <wpfui:TitleBar.TrailingContent>
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
@@ -54,11 +57,11 @@
                             x:Name="TopmostButton"
                             Margin="0,0,5,0"
                             Appearance="Transparent"
+                            BorderThickness="0"
                             Click="TopmostButton_Click"
                             Icon="{wpfui:SymbolIcon Pin16,
-                            Filled=True}"
-                            ToolTip="Always on Top" BorderThickness="0"
-                            />
+                                                    Filled=True}"
+                            ToolTip="Always on Top" />
                     </StackPanel>
                 </wpfui:TitleBar.TrailingContent>
             </wpfui:TitleBar>
@@ -109,42 +112,40 @@
 
                 <wpfui:NavigationView.ContentOverlay>
                     <Grid>
-                        <wpfui:SnackbarPresenter x:Name="snackbarHost"/>
+                        <wpfui:SnackbarPresenter x:Name="snackbarHost" />
                     </Grid>
                 </wpfui:NavigationView.ContentOverlay>
             </wpfui:NavigationView>
         </Grid>
 
         <ContentPresenter
-        x:Name="DialogHostContainer"
-        MinHeight="167"
-        Visibility="Collapsed" />
+            x:Name="DialogHostContainer"
+            MinHeight="167"
+            Visibility="Collapsed" />
 
         <tray:NotifyIcon
             x:Name="NotifyIcon"
+            Icon="/src/images/applicationIcon.ico"
             LeftClick="NotifyIcon_LeftClick"
-            TooltipText="ScreenLookup" Icon="/src/images/applicationIcon.ico">
+            TooltipText="ScreenLookup">
             <tray:NotifyIcon.Menu>
                 <ContextMenu>
-                    <MenuItem
-                        Click="SettingsMenuItem_Click"
-                        Header="Settings">
+                    <MenuItem Click="SettingsMenuItem_Click" Header="Settings">
                         <MenuItem.Icon>
                             <wpfui:SymbolIcon Symbol="Settings24" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
+                        x:Name="trayCapture"
                         Click="CaptureWindowItem_Click"
-                        Header="Capture             Alt+Z">
+                        Header="Capture">
                         <MenuItem.Icon>
                             <wpfui:SymbolIcon Symbol="Screenshot20" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
-                    <MenuItem
-                        Click="Exit_Click"
-                        Header="Close">
+
+                    <MenuItem Click="Exit_Click" Header="Close">
                         <MenuItem.Icon>
                             <wpfui:SymbolIcon Symbol="Dismiss24" />
                         </MenuItem.Icon>

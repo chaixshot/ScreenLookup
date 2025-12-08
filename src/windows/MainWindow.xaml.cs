@@ -70,11 +70,13 @@ namespace ScreenLookup
             HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
             ShortcutKeySet shortcutKey = Setting.ShortcutKey;
             ModifierKeys modifierKey = ModifierKeys.None;
-
+            trayCapture.Header = "Capture".PadRight(20);
             foreach (ModifierKeys key in shortcutKey.Modifiers)
             {
                 modifierKey |= key;
+                trayCapture.Header += $"{key}+";
             }
+            trayCapture.Header += shortcutKey.NonModifierKey.ToString();
 
             if (hotkey != null)
                 hotkeyManager.TryRemoveHotkey(hotkey);
