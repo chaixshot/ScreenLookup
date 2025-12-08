@@ -207,8 +207,15 @@ namespace ScreenLookup.src.windows
                 translatedTextLoading.Visibility = Visibility.Collapsed;
             }
 
+            AddToHistory(originalText.Text, items, translatedText.Text);
             CenterWindowOnScreen();
         }
+
+        private async void AddToHistory(string original, List<CaptureWordsEntrySimplify> originalWords, string translated)
+        {
+            await HistoryLogger.Add(original, originalWords, translated, Setting.SourceLanguage, Setting.TargetLanguage);
+        }
+
 
         private static BitmapSource GetImageSourceFromBitmap(Bitmap bmp)
         {
