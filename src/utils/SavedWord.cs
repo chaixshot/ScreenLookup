@@ -118,33 +118,44 @@ namespace ScreenLookup.src.utils
             int page, int maxRow, string searchText, CancellationToken token = default)
         {
             var history = new List<SavedWordEntry>();
-            int maxPage = 1;
-            using (var command = new SqliteCommand(@$"SELECT COUNT() AS maxPage
+            int totalCount = 0;
+            using (var command = new SqliteCommand(@"
+                SELECT COUNT(*) 
                 FROM savedword
-                WHERE Original LIKE '%{searchText}%' OR Translated LIKE '%{searchText}%'",
-                GetConnection()))
+                WHERE Original LIKE @search OR Translated LIKE @search", GetConnection()))
             {
-                maxPage = Convert.ToInt32(await command.ExecuteScalarAsync(token)) / maxRow;
+                command.Parameters.AddWithValue("@search", $"%{searchText}%");
+                totalCount = Convert.ToInt32(await command.ExecuteScalarAsync(token));
             }
 
-            using (var command = new SqliteCommand(@$"
+            int maxPage = Math.Max(1, (int)Math.Ceiling(totalCount / (double)maxRow));
+            int offset = Math.Max(0, (page - 1) * maxRow);
+
+            using (var command = new SqliteCommand(@"
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
                 FROM savedword
-                WHERE Original LIKE '%{searchText}%' OR Translated LIKE '%{searchText}%'
-                LIMIT " + maxRow + " OFFSET " + (page * maxRow - maxRow),
-                GetConnection()))
-            using (var reader = await command.ExecuteReaderAsync(token))
+                WHERE Original LIKE @search OR Translated LIKE @search
+                ORDER BY Id DESC
+                LIMIT @maxRow OFFSET @offset", GetConnection()))
+
             {
-                while (await reader.ReadAsync(token))
+                command.Parameters.AddWithValue("@search", $"%{searchText}%");
+                command.Parameters.AddWithValue("@maxRow", maxRow);
+                command.Parameters.AddWithValue("@offset", offset);
+
+                using (var reader = await command.ExecuteReaderAsync(token))
                 {
-                    history.Add(new SavedWordEntry
+                    while (await reader.ReadAsync(token))
                     {
-                        Id = reader.GetString(reader.GetOrdinal("Id")),
-                        Original = reader.GetString(reader.GetOrdinal("Original")),
-                        Translated = reader.GetString(reader.GetOrdinal("Translated")),
-                        SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
-                        TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
-                    });
+                        history.Add(new SavedWordEntry
+                        {
+                            Id = reader.GetString(reader.GetOrdinal("Id")),
+                            Original = reader.GetString(reader.GetOrdinal("Original")),
+                            Translated = reader.GetString(reader.GetOrdinal("Translated")),
+                            SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
+                            TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
+                        });
+                    }
                 }
             }
             return (history, maxPage);
@@ -163,13 +174,16 @@ namespace ScreenLookup.src.utils
             {
                 while (await reader.ReadAsync(token))
                 {
+                    int sourceLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
+                    int targetLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
+
                     history.Add(new SavedWordEntry
                     {
                         Id = reader.GetString(reader.GetOrdinal("Id")),
                         Original = reader.GetString(reader.GetOrdinal("Original")),
                         Translated = reader.GetString(reader.GetOrdinal("Translated")),
-                        SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
-                        TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
+                        SourceLanguage = LanguageList.GetDisplayNameFromID(sourceLanguage, false),
+                        TargetLanguage = LanguageList.GetDisplayNameFromID(targetLanguage, false),
                     });
                 }
             }
