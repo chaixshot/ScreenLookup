@@ -104,7 +104,7 @@ namespace ScreenLookup.src.pages
             {
                 Filter = "CSV (*.csv)|*.csv|All file (*.*)|*.*",
                 DefaultExt = ".csv",
-                FileName = $"exported_{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.csv",
+                FileName = $"exported_history_{DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss")}.csv",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
