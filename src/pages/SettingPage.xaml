@@ -131,23 +131,6 @@
                     </Grid>
                 </Controls:Card>
 
-                <Controls:Card Margin="0,0,0,4" Padding="14,14,14,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock
-                            Margin="6"
-                            VerticalAlignment="Center"
-                            Text="Lookup Shortcut" />
-                        <xControls:ShortcutControl
-                            x:Name="captureShortcut"
-                            Grid.Column="1"
-                            KeySetChanged="ShortcutControl_KeySetChanged" />
-                    </Grid>
-                </Controls:Card>
-
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -185,6 +168,23 @@
                     Margin="5,0,0,5"
                     FontWeight="SemiBold"
                     Text="Lookup" />
+
+                <Controls:Card Margin="0,0,0,4" Padding="14,14,14,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextBlock
+                            Margin="6"
+                            VerticalAlignment="Center"
+                            Text="Lookup Shortcut" />
+                        <xControls:ShortcutControl
+                            x:Name="captureShortcut"
+                            Grid.Column="1"
+                            KeySetChanged="ShortcutControl_KeySetChanged" />
+                    </Grid>
+                </Controls:Card>
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
