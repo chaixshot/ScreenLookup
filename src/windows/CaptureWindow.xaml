@@ -1,160 +1,233 @@
-﻿<wpfui:FluentWindow x:Name="captureWindow" 
+﻿<Controls:FluentWindow
     x:Class="ScreenLookup.src.windows.CaptureWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ScreenLookup.src.windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:xControls="clr-namespace:ScreenLookup.src.controls"
-    mc:Ignorable="d"
+    x:Name="captureWindow"
     Title="Capture"
-        
-    ShowInTaskbar="False"
-    Topmost="True"
-    WindowStyle="None"
-    SizeToContent="Height"
-    WindowStartupLocation="CenterScreen"
-    Deactivated="App_Deactivated"
     MinHeight="0"
+    Deactivated="App_Deactivated"
     ResizeMode="NoResize"
-    >
+    ShowInTaskbar="False"
+    SizeToContent="Height"
+    Topmost="True"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    mc:Ignorable="d">
     <Grid Margin="10,5,10,5">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <wpfui:Card x:Name="captureImageCard" Grid.Row="0" Padding="0">
-            <wpfui:Image x:Name="captureImage" Stretch="None" Source="/src/images/applicationIcon.ico"/>
-        </wpfui:Card>
+        <Controls:Card
+            x:Name="captureImageCard"
+            Grid.Row="0"
+            Padding="0">
+            <Controls:Image
+                x:Name="captureImage"
+                Source="/src/images/applicationIcon.ico"
+                Stretch="None" />
+        </Controls:Card>
 
-        <wpfui:Card x:Name="originalTextCard" Grid.Row="1" Margin="0,3,0,0">
-            <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
-                <wpfui:TextBlock x:Name="originalText" TextWrapping="Wrap" Text="originalText" Grid.Column="1" Margin="45,0,0,0"/>
-            </wpfui:DynamicScrollViewer>
-        </wpfui:Card>
+        <Controls:Card
+            x:Name="originalTextCard"
+            Grid.Row="1"
+            Margin="0,3,0,0">
+            <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
+                <Controls:TextBlock
+                    x:Name="originalText"
+                    Grid.Column="1"
+                    Margin="45,0,0,0"
+                    Text="originalText"
+                    TextWrapping="Wrap" />
+            </Controls:DynamicScrollViewer>
+        </Controls:Card>
 
-        <wpfui:Card x:Name="originalWords" Grid.Row="2" Margin="0,3,0,0">
-            <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
-                <Grid >
+        <Controls:Card
+            x:Name="originalWords"
+            Grid.Row="2"
+            Margin="0,3,0,0">
+            <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
+                <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <wpfui:Button x:Name="originalTTS"
+                    <Controls:Button
+                        x:Name="originalTTS"
+                        Width="20"
+                        Height="20"
+                        Padding="0"
+                        VerticalAlignment="Top"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_OriginalTTS"
-                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
-                        VerticalAlignment="Top"
-                        Width="20" Height="20" Padding="0"/>
-                    
-                    <xControls:LoadingSpiner x:Name="ocrWordsLoading" Width="20" Height="20" Grid.Column="1" Margin="5,0,0,0"/>
+                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                Filled=False}" />
+
+                    <xControls:LoadingSpiner
+                        x:Name="ocrWordsLoading"
+                        Grid.Column="1"
+                        Width="20"
+                        Height="20"
+                        Margin="5,0,0,0" />
 
                     <StackPanel Grid.Column="2" Margin="5,0,0,0">
                         <ItemsControl Name="ocrWords">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
+                                    <WrapPanel Orientation="Horizontal" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
 
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <wpfui:Button
-                                        BorderThickness="{Binding Border}"
-                                        HorizontalAlignment="Left"
-                                        Click="Button_Word"
+                                    <Controls:Button
+                                        Width="{Binding Width}"
+                                        Height="{Binding Height}"
                                         Margin="0"
                                         Padding="1.5,0,1.5,0"
-                                        Width="{Binding Width}" 
-                                        Height="{Binding Height}"
-                                        Tag="{Binding SourceLanguage}"
+                                        HorizontalAlignment="Left"
+                                        BorderThickness="{Binding Border}"
+                                        Click="Button_Word"
                                         Content="{Binding Word}"
+                                        FontFamily="{Binding FontFace}"
                                         FontSize="{Binding FontSizeS, Mode=OneWay}"
-                                        FontFamily="{Binding FontFace}">
-                                    </wpfui:Button>
+                                        Tag="{Binding SourceLanguage}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
                 </Grid>
-            </wpfui:DynamicScrollViewer>
-        </wpfui:Card>
+            </Controls:DynamicScrollViewer>
+        </Controls:Card>
 
-        <wpfui:SnackbarPresenter x:Name="snackbarHost" Grid.Row="2"/>
+        <Controls:SnackbarPresenter x:Name="snackbarHost" Grid.Row="2" />
 
-        <wpfui:Card x:Name="translatedCard" Grid.Row="3" Margin="0,3,0,0">
-            <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible" >
+        <Controls:Card
+            x:Name="translatedCard"
+            Grid.Row="3"
+            Margin="0,3,0,0">
+            <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
                 <StackPanel Orientation="Horizontal">
-                    <wpfui:Button x:Name="translatedTSS"
+                    <Controls:Button
+                        x:Name="translatedTSS"
+                        Width="20"
+                        Height="20"
+                        Padding="0"
+                        VerticalAlignment="Top"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_TranslatedTTS"
-                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
-                        VerticalAlignment="Top" Width="20" Height="20" Padding="0"/>
-                    <wpfui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Grid.Column="1" Margin="5,0,0,0" />
-                    <xControls:LoadingSpiner x:Name="translatedTextLoading" Width="20" Height="20"/>
+                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                Filled=False}" />
+                    <Controls:TextBlock
+                        x:Name="translatedText"
+                        Grid.Column="1"
+                        Margin="5,0,0,0"
+                        TextWrapping="Wrap" />
+                    <xControls:LoadingSpiner
+                        x:Name="translatedTextLoading"
+                        Width="20"
+                        Height="20" />
                 </StackPanel>
-            </wpfui:DynamicScrollViewer>
-        </wpfui:Card>
+            </Controls:DynamicScrollViewer>
+        </Controls:Card>
 
-        <wpfui:Flyout
+        <Controls:Flyout
             x:Name="flayOut"
             Padding="0"
             Placement="Top">
-            <wpfui:Flyout.RenderTransform>
-                <MatrixTransform x:Name="mt"/>
-            </wpfui:Flyout.RenderTransform>
+            <Controls:Flyout.RenderTransform>
+                <MatrixTransform x:Name="mt" />
+            </Controls:Flyout.RenderTransform>
             <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="5">
-                    <wpfui:Button x:Name="flayoutOriginalTSS"
+                <StackPanel Margin="5" Orientation="Horizontal">
+                    <Controls:Button
+                        x:Name="flayoutOriginalTSS"
+                        Width="20"
+                        Height="20"
+                        Padding="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordOriginalTTS"
-                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
-                        VerticalAlignment="Center"
+                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                Filled=False}" />
+                    <Controls:TextBlock
+                        x:Name="definitionOriginal"
+                        Margin="5,0,0,0"
                         HorizontalAlignment="Center"
-                        Width="20" Height="20" Padding="0"/>
-                    <wpfui:TextBlock x:Name="definitionOriginal" Text="definitionOriginal" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        VerticalAlignment="Center"
+                        Text="definitionOriginal" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="5">
-                    <wpfui:Button x:Name="flayoutTranslatedTSS"
+                <StackPanel Margin="5" Orientation="Horizontal">
+                    <Controls:Button
+                        x:Name="flayoutTranslatedTSS"
+                        Width="20"
+                        Height="20"
+                        Padding="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordTranslatedTTS"
-                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
-                        VerticalAlignment="Center"
+                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                Filled=False}" />
+                    <Controls:TextBlock
+                        x:Name="definitionTranslated"
+                        Margin="5,0,0,0"
                         HorizontalAlignment="Center"
-                        Width="20" Height="20" Padding="0"/>
-                    <wpfui:TextBlock x:Name="definitionTranslated" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <xControls:LoadingSpiner x:Name="definitionTranslatedLoading" Width="20" Height="20"/>
+                        VerticalAlignment="Center" />
+                    <xControls:LoadingSpiner
+                        x:Name="definitionTranslatedLoading"
+                        Width="20"
+                        Height="20" />
                 </StackPanel>
-                <wpfui:Card Margin="0,10,0,0" Padding="5" BorderThickness="0,1,0,0">
+                <Controls:Card
+                    Margin="0,10,0,0"
+                    Padding="5"
+                    BorderThickness="0,1,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <wpfui:Button x:Name="openBrowser"
+                        <Controls:Button
+                            x:Name="openBrowser"
+                            Width="20"
+                            Height="20"
+                            Padding="0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
                             Click="Button_OpenBrowser"
-                            Icon="{wpfui:SymbolIcon Globe24, Filled=False}"
-                            VerticalAlignment="Center"
+                            Icon="{wpfui:SymbolIcon Symbol=Globe24,
+                                                    Filled=False}" />
+                        <Controls:Button
+                            x:Name="wordSave"
+                            Width="20"
+                            Height="20"
+                            Margin="5,0,0,0"
+                            Padding="0"
                             HorizontalAlignment="Center"
-                            Width="20" Height="20" Padding="0"/>
-                        <wpfui:Button x:Name="wordSave"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Icon="{wpfui:SymbolIcon Star24, Filled=False}"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Width="20" Height="20" Padding="0" Margin="5,0,0,0" Click="Button_WordSave"/>
+                            Click="Button_WordSave"
+                            Icon="{wpfui:SymbolIcon Symbol=Star24,
+                                                    Filled=False}" />
                     </StackPanel>
-                </wpfui:Card>
+                </Controls:Card>
             </StackPanel>
-        </wpfui:Flyout>
-        
+        </Controls:Flyout>
+
     </Grid>
-</wpfui:FluentWindow>
+</Controls:FluentWindow>

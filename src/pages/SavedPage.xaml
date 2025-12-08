@@ -1,20 +1,23 @@
-﻿<Page 
+﻿<Page
     x:Class="ScreenLookup.src.pages.SavedPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    xmlns:local="clr-namespace:ScreenLookup.src.pages"
-    xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
-    mc:Ignorable="d" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ScreenLookup.src.pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="Saved"
-    >
+    mc:Ignorable="d">
 
     <Grid Margin="20,12,40,40">
         <Controls:DynamicScrollViewer>
             <StackPanel Grid.Column="0" Orientation="Vertical">
-                <TextBlock Text="Saved" FontSize="25" FontWeight="SemiBold" Margin="32,0,0,10" />
+                <TextBlock
+                    Margin="32,0,0,10"
+                    FontSize="25"
+                    FontWeight="SemiBold"
+                    Text="Saved" />
 
                 <Grid Margin="15" VerticalAlignment="Top">
                     <Grid.RowDefinitions>
@@ -33,26 +36,28 @@
                             Margin="0,0,3,0"
                             HorizontalAlignment="Left"
                             Orientation="Horizontal">
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="PageDown"
                                 Appearance="Transparent"
                                 Click="PageDown_click"
-                                Icon="{wpfui:SymbolIcon Symbol=chevronLeft12, Filled=False}"
+                                Icon="{wpfui:SymbolIcon Symbol=chevronLeft12,
+                                                        Filled=False}"
                                 MouseOverBackground="#07000000"
                                 ToolTip="Previous " />
 
-                            <wpfui:TextBlock
+                            <Controls:TextBlock
                                 x:Name="PageNumber"
                                 Margin="10,0,10,0"
                                 VerticalAlignment="Center"
                                 FontSize="15"
                                 Text="1/1" />
 
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="PageUp"
                                 Appearance="Transparent"
                                 Click="PageUp_click"
-                                Icon="{wpfui:SymbolIcon Symbol=chevronRight12, Filled=False}"
+                                Icon="{wpfui:SymbolIcon Symbol=chevronRight12,
+                                                        Filled=False}"
                                 MouseOverBackground="#07000000"
                                 ToolTip="Next Page" />
 
@@ -69,7 +74,7 @@
                                 <ComboBoxItem Content="100/page" Tag="100" />
                             </ComboBox>
 
-                            <wpfui:AutoSuggestBox
+                            <Controls:AutoSuggestBox
                                 x:Name="HistorySearchBox"
                                 MinWidth="200"
                                 MaxWidth="200"
@@ -86,38 +91,44 @@
                             Margin="3,0,3,0"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal">
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="Export"
                                 Margin="0,0,0,0"
                                 HorizontalAlignment="Right"
                                 Appearance="Transparent"
                                 Click="Export_click"
-                                Icon="{wpfui:SymbolIcon Symbol=ArrowDown12, Filled=False}"
+                                Icon="{wpfui:SymbolIcon Symbol=ArrowDown12,
+                                                        Filled=False}"
                                 MouseOverBackground="#07000000"
                                 ToolTip="Export" />
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="Delete"
                                 Margin="5,0,0,0"
                                 HorizontalAlignment="Right"
                                 Appearance="Transparent"
                                 Click="Clear_click"
-                                Icon="{wpfui:SymbolIcon Symbol=Delete12, Filled=False}"
+                                Icon="{wpfui:SymbolIcon Symbol=Delete12,
+                                                        Filled=False}"
                                 MouseOverBackground="#07000000"
                                 ToolTip="Delete All" />
 
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="Refresh"
                                 Margin="5,0,0,0"
                                 HorizontalAlignment="Right"
                                 Appearance="Transparent"
                                 Click="Refresh_click"
-                                Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise12, Filled=False}"
+                                Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise12,
+                                                        Filled=False}"
                                 MouseOverBackground="#07000000"
                                 ToolTip="Refresh" />
                         </StackPanel>
                     </Grid>
 
-                    <wpfui:Card Grid.Row="1" Margin="0,10,0,0" Padding="0,0,0,0">
+                    <Controls:Card
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Padding="0,0,0,0">
                         <DataGrid
                             x:Name="SavedDataGrid"
                             Margin="0,5,20,0"
@@ -152,26 +163,33 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <wpfui:Button
+                                                <Controls:Button
+                                                    Width="20"
+                                                    Height="20"
+                                                    Padding="0"
+                                                    VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     Click="Button_TTSWord"
-                                                    Icon="{wpfui:SymbolIcon Symbol=Speaker216, Filled=False}"
-                                                    VerticalAlignment="Top"
-                                                    Width="20" Height="20" Padding="0"
-                                                    ToolTip="{Binding Original}"
+                                                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                                            Filled=False}"
                                                     Tag="{Binding SourceLanguage}"
-                                                    />
-                                                <wpfui:Button
+                                                    ToolTip="{Binding Original}" />
+                                                <Controls:Button
+                                                    Grid.Column="0"
+                                                    Width="20"
+                                                    Height="20"
+                                                    Margin="5,0,0,0"
+                                                    Padding="0"
+                                                    VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     Click="Button_WordCopy"
-                                                    Icon="{wpfui:SymbolIcon Symbol=Copy24, Filled=False}"
-                                                    VerticalAlignment="Top"
-                                                    Width="20" Height="20" Padding="0"
+                                                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                                                            Filled=False}"
                                                     Tag="{Binding SourceLanguage}"
-                                                    ToolTip="{Binding Original}" Grid.Column="0" Margin="5,0,0,0"/>
-                                                <wpfui:TextBlock Text="{Binding Original}" Margin="15,0,0,0"/>
+                                                    ToolTip="{Binding Original}" />
+                                                <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Original}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
@@ -181,26 +199,33 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <wpfui:Button
+                                                <Controls:Button
+                                                    Width="20"
+                                                    Height="20"
+                                                    Padding="0"
+                                                    VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     Click="Button_TTSWord"
-                                                    Icon="{wpfui:SymbolIcon Symbol=Speaker216, Filled=False}"
-                                                    VerticalAlignment="Top"
-                                                    Width="20" Height="20" Padding="0"
-                                                    ToolTip="{Binding Translated}"
+                                                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                                            Filled=False}"
                                                     Tag="{Binding TargetLanguage}"
-                                                    />
-                                                <wpfui:Button
+                                                    ToolTip="{Binding Translated}" />
+                                                <Controls:Button
+                                                    Grid.Column="0"
+                                                    Width="20"
+                                                    Height="20"
+                                                    Margin="5,0,0,0"
+                                                    Padding="0"
+                                                    VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     Click="Button_WordCopy"
-                                                    Icon="{wpfui:SymbolIcon Symbol=Copy24, Filled=False}"
-                                                    VerticalAlignment="Top"
-                                                    Width="20" Height="20" Padding="0"
+                                                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                                                            Filled=False}"
                                                     Tag="{Binding TargetLanguage}"
-                                                    ToolTip="{Binding Translated}" Grid.Column="0" Margin="5,0,0,0"/>
-                                                <wpfui:TextBlock Text="{Binding Translated}" Margin="15,0,0,0"/>
+                                                    ToolTip="{Binding Translated}" />
+                                                <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Translated}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
@@ -209,19 +234,22 @@
                                 <DataGridTemplateColumn Width="0.2*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <wpfui:Button
+                                            <Controls:Button
                                                 Margin="5,0,0,0"
                                                 HorizontalAlignment="Right"
                                                 Appearance="Transparent"
-                                                Icon="{wpfui:SymbolIcon Symbol=Dismiss24, Filled=False}"
+                                                Click="Delete_click"
+                                                Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
+                                                                        Filled=False}"
                                                 MouseOverBackground="#07000000"
-                                                ToolTip="Delete" Tag="{Binding Id}" Click="Delete_click" />
+                                                Tag="{Binding Id}"
+                                                ToolTip="Delete" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
-                    </wpfui:Card>
+                    </Controls:Card>
                 </Grid>
             </StackPanel>
         </Controls:DynamicScrollViewer>

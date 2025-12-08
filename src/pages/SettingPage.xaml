@@ -34,7 +34,7 @@
                         <Controls:TextBlock Margin="6" Text="Source Language" />
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="downloadTesseract"
                                 Margin="0,0,5,0"
                                 Click="DownloadTesseractButton_Click">
@@ -45,7 +45,7 @@
                                         Filled="True"
                                         Symbol="ArrowDownload24" />
                                 </StackPanel>
-                            </wpfui:Button>
+                            </Controls:Button>
                             <ComboBox
                                 x:Name="sourceLanguageAccuracy"
                                 Grid.Column="1"
@@ -69,7 +69,7 @@
                         </Grid.ColumnDefinitions>
                         <Controls:TextBlock Margin="6" Text="Source Language Correction (Hunspell)" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <wpfui:Button
+                            <Controls:Button
                                 x:Name="downloadHunspell"
                                 Margin="0,0,5,0"
                                 Click="DownloadHunspellButton_Click">
@@ -80,7 +80,7 @@
                                         Filled="True"
                                         Symbol="ArrowDownload24" />
                                 </StackPanel>
-                            </wpfui:Button>
+                            </Controls:Button>
                             <CheckBox IsChecked="{Binding HunSpell}" />
                         </StackPanel>
                     </Grid>
@@ -140,7 +140,7 @@
                         <Controls:TextBlock
                             Margin="6"
                             VerticalAlignment="Center"
-                            Text="Capture Shortcut" />
+                            Text="Lookup Shortcut" />
                         <xControls:ShortcutControl
                             x:Name="captureShortcut"
                             Grid.Column="1"
@@ -154,7 +154,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Startup with windows" />
+                        <Controls:TextBlock Margin="6" Text="Startup With Windows" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
                     </Grid>
                 </Controls:Card>
@@ -165,7 +165,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Start in background" />
+                        <Controls:TextBlock Margin="6" Text="Start In Background" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
                     </Grid>
                 </Controls:Card>
@@ -176,7 +176,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Minimize to tray" />
+                        <Controls:TextBlock Margin="6" Text="Minimize To Tray" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" />
                     </Grid>
                 </Controls:Card>
@@ -184,7 +184,7 @@
                 <TextBlock
                     Margin="5,0,0,5"
                     FontWeight="SemiBold"
-                    Text="Appearance" />
+                    Text="Lookup" />
 
                 <Controls:Card Margin="0,0,0,4">
                     <Grid>
@@ -192,7 +192,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Show image" />
+                        <Controls:TextBlock Margin="6" Text="Show Capture Image" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding ShowImage}" />
                     </Grid>
                 </Controls:Card>
@@ -203,7 +203,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Close when lost focus" />
+                        <Controls:TextBlock Margin="6" Text="Close When Lost Focus" />
                         <CheckBox Grid.Column="1" IsChecked="{Binding CloseLostFocus}" />
                     </Grid>
                 </Controls:Card>
@@ -237,7 +237,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Font size" />
+                        <Controls:TextBlock Margin="6" Text="Font Size" />
                         <Controls:NumberBox
                             Grid.Column="1"
                             Width="200"
@@ -253,11 +253,11 @@
                     Text="Reset" />
 
                 <Controls:Card Margin="0,0,0,4">
-                    <wpfui:Button
+                    <Controls:Button
                         Margin="5,0,0,0"
                         HorizontalAlignment="Left"
                         Click="ResetButton"
-                        Icon="{wpfui:SymbolIcon ArrowCounterclockwise24,
+                        Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
                                                 Filled=False}"
                         ToolTip="Reset" />
                 </Controls:Card>
