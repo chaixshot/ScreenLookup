@@ -138,11 +138,11 @@ namespace ScreenLookup.src.windows
             this.Top = (screenHeight / 2) - (windowHeight / 2);
         }
 
-        private void StartTTS(string Text, string Language)
+        private void StartTTS(string Text, int langID)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            TextToSpeech.PlayTTS(Text, Language, CTS);
+            TextToSpeech.PlayTTS(Text, langID, CTS);
         }
 
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
@@ -241,12 +241,12 @@ namespace ScreenLookup.src.windows
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(originalText.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
+            StartTTS(originalText.Text, Setting.SourceLanguage);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(translatedText.Text, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
+            StartTTS(translatedText.Text, Setting.TargetLanguage);
         }
 
         // Word
@@ -272,7 +272,7 @@ namespace ScreenLookup.src.windows
             definitionTranslated.Text = "";
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
-            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
+            StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
             SavedWordButtonStateChange(word);
 
             var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
@@ -283,12 +283,12 @@ namespace ScreenLookup.src.windows
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
+            StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionTranslated.Text, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
+            StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)

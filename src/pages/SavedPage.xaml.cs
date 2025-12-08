@@ -34,11 +34,11 @@ namespace ScreenLookup.src.pages
             maxRow.SelectionChanged += maxRow_SelectionChanged;
         }
 
-        private void StartTTS(string Text, string Language)
+        private void StartTTS(string Text, int langID)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            TextToSpeech.PlayTTS(Text, Language, CTS);
+            TextToSpeech.PlayTTS(Text, langID, CTS);
         }
 
         public void LoadSavedWord()
@@ -180,7 +180,7 @@ namespace ScreenLookup.src.pages
         {
             var button = sender as Button;
 
-            StartTTS(button.ToolTip.ToString(), LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Tag.ToString())));
+            StartTTS(button.ToolTip.ToString(), Int32.Parse(button.Tag.ToString()));
         }
 
         private void Button_WordCopy(object sender, RoutedEventArgs e)

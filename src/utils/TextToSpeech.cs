@@ -7,14 +7,14 @@ namespace ScreenLookup.src.utils
     class TextToSpeech
     {
         private CancellationTokenSource CTS = new CancellationTokenSource();
-        public static async void PlayTTS(string Text, string lang, CancellationTokenSource token)
+        public static async void PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
-            var languageData = GLanguage.GetLanguage(lang);
+            var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6393FromID(langID));
             var translator = LanguageList.GetTranslatorService(Setting.TTSProvider);
 
             try
             {
-                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6391);
+                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6393);
 
                 Stream ms = new MemoryStream();
                 byte[] buffer = new byte[32768];

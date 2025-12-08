@@ -37,11 +37,11 @@ namespace ScreenLookup.src.pages
             maxRow.SelectionChanged += maxRow_SelectionChanged;
         }
 
-        private void StartTTS(string Text, string Language)
+        private void StartTTS(string Text, int langID)
         {
             CTS.Cancel();
             CTS = new CancellationTokenSource();
-            TextToSpeech.PlayTTS(Text, Language, CTS);
+            TextToSpeech.PlayTTS(Text, langID, CTS);
         }
 
         public void LoadHistoryLogger()
@@ -207,7 +207,7 @@ namespace ScreenLookup.src.pages
             definitionTranslated.Tag = targetLanguage;
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
-            StartTTS(word, LanguageList.GetLanguageISO6391FromID(sourceLanguage));
+            StartTTS(word, sourceLanguage);
             SavedWordButtonStateChange(word);
 
             var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
@@ -218,12 +218,12 @@ namespace ScreenLookup.src.pages
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
+            StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            StartTTS(definitionTranslated.Text, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
+            StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
@@ -264,7 +264,7 @@ namespace ScreenLookup.src.pages
         private void Button_ParagraphTTS(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            StartTTS(button.ToolTip.ToString(), LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Tag.ToString())));
+            StartTTS(button.ToolTip.ToString(), Int32.Parse(button.Tag.ToString()));
         }
 
         private void Button_ParagraphCopy(object sender, RoutedEventArgs e)
