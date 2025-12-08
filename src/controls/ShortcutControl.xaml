@@ -33,7 +33,7 @@
         <StackPanel HorizontalAlignment="Left" Orientation="Vertical">
             <StackPanel
                 x:Name="ButtonsPanel"
-                Margin="0,8,0,0"
+                Margin="0"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal">
                 <ui:Button
