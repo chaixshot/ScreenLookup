@@ -110,11 +110,13 @@ namespace ScreenLookup.src.pages
                 try
                 {
                     await SavedWord.ExportToCSV(saveFileDialog.FileName);
-                    SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", "success");
+
+                    AppUtilities.OpenExplorer(saveFileDialog.FileName);
+                    SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", "success", width: 800);
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", "error");
+                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", "error", width: 800);
                 }
             }
         }
