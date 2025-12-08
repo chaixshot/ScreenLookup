@@ -49,7 +49,7 @@
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_OriginalTTS"
-                        Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
                         VerticalAlignment="Top"
                         Width="20" Height="20" Padding="0"/>
                     
@@ -72,15 +72,11 @@
                                         Margin="0"
                                         Padding="1.5,0,1.5,0"
                                         Width="{Binding Width}" 
-                                        Height="{Binding Height}" Tag="{Binding Word}"
-                                        >
-                                        <wpfui:Button.Content>
-                                            <TextBlock
-                                                Margin="1.5,0,1.5,0"
-                                                Text="{Binding Word}"
-                                                FontSize="{Binding FontSizeS, Mode=OneWay}"
-                                                FontFamily="{Binding FontFace}"/>
-                                        </wpfui:Button.Content>
+                                        Height="{Binding Height}"
+                                        Tag="{Binding SourceLanguage}"
+                                        Content="{Binding Word}"
+                                        FontSize="{Binding FontSizeS, Mode=OneWay}"
+                                        FontFamily="{Binding FontFace}">
                                     </wpfui:Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -90,6 +86,8 @@
             </wpfui:DynamicScrollViewer>
         </wpfui:Card>
 
+        <wpfui:SnackbarPresenter x:Name="snackbarHost" Grid.Row="2"/>
+
         <wpfui:Card x:Name="translatedCard" Grid.Row="3" Margin="0,3,0,0">
             <wpfui:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible" >
                 <StackPanel Orientation="Horizontal">
@@ -97,7 +95,7 @@
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_TranslatedTTS"
-                        Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
                         VerticalAlignment="Top" Width="20" Height="20" Padding="0"/>
                     <wpfui:TextBlock x:Name="translatedText" TextWrapping="Wrap" Grid.Column="1" Margin="5,0,0,0" />
                     <xControls:LoadingSpiner x:Name="translatedTextLoading" Width="20" Height="20"/>
@@ -108,7 +106,6 @@
         <wpfui:Flyout
             x:Name="flayOut"
             Padding="0"
-            IsOpen="{Binding IsFlyOutOpen, Mode=OneWay}"
             Placement="Top">
             <wpfui:Flyout.RenderTransform>
                 <MatrixTransform x:Name="mt"/>
@@ -119,7 +116,7 @@
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordOriginalTTS"
-                        Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Width="20" Height="20" Padding="0"/>
@@ -130,7 +127,7 @@
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Click="Button_WordTranslatedTTS"
-                        Icon="{wpfui:SymbolIcon Speaker220, Filled=True}"
+                        Icon="{wpfui:SymbolIcon Speaker216, Filled=False}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Width="20" Height="20" Padding="0"/>
@@ -158,6 +155,6 @@
                 </wpfui:Card>
             </StackPanel>
         </wpfui:Flyout>
-
+        
     </Grid>
 </wpfui:FluentWindow>

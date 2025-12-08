@@ -2,11 +2,9 @@
 using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -22,17 +20,12 @@ using FontFamily = System.Windows.Media.FontFamily;
 
 namespace ScreenLookup.src.windows
 {
-    public partial class CaptureWindow : FluentWindow, INotifyPropertyChanged
+    public partial class CaptureWindow : FluentWindow
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
         private CancellationTokenSource CTS = new CancellationTokenSource();
-
-        public bool isFlyOutOpen = false;
-
 
         public CaptureWindow()
         {
-            DataContext = this;
             InitializeComponent();
             ApplySettings();
 
@@ -84,6 +77,7 @@ namespace ScreenLookup.src.windows
 
             CenterWindowOnScreen();
             this.Show();
+            this.Activate();
         }
 
         private void ApplySettings()
@@ -136,21 +130,6 @@ namespace ScreenLookup.src.windows
             double windowHeight = this.Height;
             this.Left = (screenWidth / 2) - (windowWidth / 2);
             this.Top = (screenHeight / 2) - (windowHeight / 2);
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public bool IsFlyOutOpen
-        {
-            get { return isFlyOutOpen; }
-            set
-            {
-                isFlyOutOpen = value;
-                OnPropertyChanged();
-            }
         }
 
         private void StartTTS(string Text, string Language)
@@ -260,9 +239,10 @@ namespace ScreenLookup.src.windows
         // Word
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            IsFlyOutOpen = false;
+            flayOut.IsOpen = false;
 
             Button? button = sender as Button;
+            string word = button.Content.ToString();
 
             // Change flyout position follow cursor
             var MousePos_Point = Mouse.GetPosition(originalWords);
@@ -271,21 +251,19 @@ namespace ScreenLookup.src.windows
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            string originalWord = button.Tag.ToString();
-            if (string.IsNullOrWhiteSpace(originalWord))
+            if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            IsFlyOutOpen = true;
-            definitionOriginal.Text = originalWord;
+            flayOut.IsOpen = true;
+            definitionOriginal.Text = word;
             definitionTranslated.Text = "";
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
-            SavedWordButtonStateChange(originalWord);
-
             StartTTS(definitionOriginal.Text, LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage));
+            SavedWordButtonStateChange(word);
 
             var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
-            var translateResult = await translator.TranslateAsync(originalWord, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
+            var translateResult = await translator.TranslateAsync(word, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
             definitionTranslated.Text = translateResult.Translation;
             definitionTranslatedLoading.Visibility = Visibility.Collapsed;
         }
@@ -298,13 +276,6 @@ namespace ScreenLookup.src.windows
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
             StartTTS(definitionTranslated.Text, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
-        }
-
-        // Utility
-        private void App_Deactivated(object sender, EventArgs e)
-        {
-            if (Setting.CloseLostFocus)
-                this.Hide();
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
@@ -332,18 +303,24 @@ namespace ScreenLookup.src.windows
         {
             if (string.IsNullOrWhiteSpace(definitionTranslated.Text))
             {
-                SnackbarHost.Show("Error", "Translation is not yet complete", "error");
+                SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: "capture");
                 return;
             }
 
             string word = definitionOriginal.Text;
-            bool isExist = SavedWord.IsExist(word).Result;
 
             if (isExist)
                 await SavedWord.Remove(word);
             else
                 await SavedWord.Add(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
             SavedWordButtonStateChange(word);
+        }
+
+        // Utility
+        private void App_Deactivated(object sender, EventArgs e)
+        {
+            if (Setting.CloseLostFocus)
+                this.Hide();
         }
     }
 }
