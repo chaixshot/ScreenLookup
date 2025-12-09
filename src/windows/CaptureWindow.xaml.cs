@@ -22,6 +22,7 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
+        private readonly Dictionary<string, string> translatedCache = [];
         public CaptureWindow()
         {
             InitializeComponent();
@@ -266,7 +267,12 @@ namespace ScreenLookup.src.windows
             TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
             SavedWordButtonStateChange(word);
 
-            string translateResult = await LanguageList.TranslatedText(word, Setting.TargetLanguage);
+            if (!translatedCache.TryGetValue(word, out string translateResult))
+            {
+                translateResult = await LanguageList.TranslatedText(word, Setting.TargetLanguage);
+                translatedCache.TryAdd(word, translateResult);
+            }
+
             definitionTranslated.Text = translateResult;
             definitionTranslatedLoading.Visibility = Visibility.Collapsed;
         }
