@@ -238,7 +238,7 @@ namespace ScreenLookup.src.pages
         {
             var saveButton = wordSave as Button;
             var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
-            saveSymbolIcon?.Filled = await SavedWord.IsExist(word);
+            saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
@@ -251,7 +251,7 @@ namespace ScreenLookup.src.pages
 
             string word = definitionOriginal.Text;
 
-            SavedWord.ToggleSaved(word, definitionTranslated.Text, Int32.Parse(definitionOriginal.Tag.ToString()), Int32.Parse(definitionTranslated.Tag.ToString()));
+            SavedWordLogger.ToggleSaved(word, definitionTranslated.Text, Int32.Parse(definitionOriginal.Tag.ToString()), Int32.Parse(definitionTranslated.Tag.ToString()));
             SavedWordButtonStateChange(word);
         }
 

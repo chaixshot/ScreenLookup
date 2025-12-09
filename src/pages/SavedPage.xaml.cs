@@ -39,7 +39,7 @@ namespace ScreenLookup.src.pages
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    var data = await SavedWord.LoadAsync(currentPage, maxRowPerPage, SearchText);
+                    var data = await SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText);
                     List<SavedWordEntry> saved = data.Item1;
 
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
@@ -85,7 +85,7 @@ namespace ScreenLookup.src.pages
             if (isYes)
             {
                 currentPage = 1;
-                SavedWord.Clear();
+                SavedWordLogger.Clear();
                 LoadSavedWord();
             }
         }
@@ -109,7 +109,7 @@ namespace ScreenLookup.src.pages
             {
                 try
                 {
-                    await SavedWord.ExportToCSV(saveFileDialog.FileName);
+                    await SavedWordLogger.ExportToCSV(saveFileDialog.FileName);
 
                     AppUtilities.OpenExplorer(saveFileDialog.FileName);
                     SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", "success", width: 800);
@@ -164,7 +164,7 @@ namespace ScreenLookup.src.pages
 
             if (isYes)
             {
-                SavedWord.Remove(button.Tag.ToString());
+                SavedWordLogger.Remove(button.Tag.ToString());
                 LoadSavedWord();
             }
         }

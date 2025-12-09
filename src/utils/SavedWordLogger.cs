@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ScreenLookup.src.utils
 {
-    public static class SavedWord
+    public static class SavedWordLogger
     {
         private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
         public static readonly string CONNECTION_STRING = $"Data Source={appData}\\ScreenLookup\\database.db;";
@@ -15,7 +15,7 @@ namespace ScreenLookup.src.utils
         private static SqliteConnection _sharedConnection;
         private static readonly object _connectionLock = new object();
 
-        static SavedWord()
+        static SavedWordLogger()
         {
             InitializeDatabase();
         }
@@ -88,12 +88,12 @@ namespace ScreenLookup.src.utils
 
         public static async Task ToggleSaved(string original, string translated, int sourceLanguage, int targetLanguage)
         {
-            bool isExist = SavedWord.IsExist(original).Result;
+            bool isExist = SavedWordLogger.IsExist(original).Result;
 
             if (isExist)
-                await SavedWord.Remove(original);
+                await SavedWordLogger.Remove(original);
             else
-                await SavedWord.Add(original, translated, sourceLanguage, targetLanguage);
+                await SavedWordLogger.Add(original, translated, sourceLanguage, targetLanguage);
         }
 
         public static async Task Clear(CancellationToken token = default)
@@ -143,19 +143,17 @@ namespace ScreenLookup.src.utils
                 command.Parameters.AddWithValue("@maxRow", maxRow);
                 command.Parameters.AddWithValue("@offset", offset);
 
-                using (var reader = await command.ExecuteReaderAsync(token))
+                using var reader = await command.ExecuteReaderAsync(token);
+                while (await reader.ReadAsync(token))
                 {
-                    while (await reader.ReadAsync(token))
+                    history.Add(new SavedWordEntry
                     {
-                        history.Add(new SavedWordEntry
-                        {
-                            Id = reader.GetString(reader.GetOrdinal("Id")),
-                            Original = reader.GetString(reader.GetOrdinal("Original")),
-                            Translated = reader.GetString(reader.GetOrdinal("Translated")),
-                            SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
-                            TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
-                        });
-                    }
+                        Id = reader.GetString(reader.GetOrdinal("Id")),
+                        Original = reader.GetString(reader.GetOrdinal("Original")),
+                        Translated = reader.GetString(reader.GetOrdinal("Translated")),
+                        SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
+                        TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
+                    });
                 }
             }
             return (history, maxPage);
