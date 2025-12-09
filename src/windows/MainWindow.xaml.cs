@@ -47,7 +47,7 @@ namespace ScreenLookup
             if (Setting.MinimizeToTray)
                 e.Cancel = true;
             else
-                captureWindow.Close();
+                GetCaptureWindow().Close();
 
             var isShuttingDownProp = typeof(Application).GetProperty("IsShuttingDown", BindingFlags.Static | BindingFlags.NonPublic);
             dynamic isShuttingDown = isShuttingDownProp.GetValue(Application.Current, null);
@@ -62,6 +62,7 @@ namespace ScreenLookup
             if (captureWindow != null)
                 return captureWindow;
             captureWindow = new CaptureWindow();
+            captureWindow.Activate();
             return captureWindow;
         }
 
@@ -83,7 +84,7 @@ namespace ScreenLookup
 
             hotkey = new(shortcutKey.NonModifierKey, modifierKey, (s, e) =>
             {
-                captureWindow.StartCaptureScreen();
+                GetCaptureWindow().StartCaptureScreen();
             });
 
             hotkeyManager.TryAddHotkey(hotkey);
