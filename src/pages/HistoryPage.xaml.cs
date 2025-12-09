@@ -22,6 +22,8 @@ namespace ScreenLookup.src.pages
 
         public string SearchText { get; set; } = string.Empty;
 
+        private readonly Dictionary<string, string> translatedCache = [];
+
         public HistoryPage()
         {
             InitializeComponent();
@@ -30,6 +32,7 @@ namespace ScreenLookup.src.pages
             Unloaded += (s, e) =>
             {
                 TextToSpeech.StopTTS();
+                translatedCache.Clear();
             };
 
             maxRow.SelectionChanged += maxRow_SelectionChanged;
@@ -204,7 +207,12 @@ namespace ScreenLookup.src.pages
             TextToSpeech.StartTTS(word, sourceLanguage);
             SavedWordButtonStateChange(word);
 
-            string translateResult = await LanguageList.TranslatedText(word, targetLanguage);
+            if (!translatedCache.TryGetValue(word, out string translateResult))
+            {
+                translateResult = await LanguageList.TranslatedText(word, targetLanguage);
+                translatedCache.TryAdd(word, translateResult);
+            }
+
             definitionTranslated.Text = translateResult;
             definitionTranslatedLoading.Visibility = Visibility.Collapsed;
         }
