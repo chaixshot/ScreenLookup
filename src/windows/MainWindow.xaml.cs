@@ -87,7 +87,14 @@ namespace ScreenLookup
                 GetCaptureWindow().StartCaptureScreen();
             });
 
-            hotkeyManager.TryAddHotkey(hotkey);
+            try
+            {
+                hotkeyManager.TryAddHotkey(hotkey);
+            }
+            catch
+            {
+                Notification.Show("Lookup Shortcut. The shortcut is already in use for other application");
+            }
         }
 
         private void HideToTray()
