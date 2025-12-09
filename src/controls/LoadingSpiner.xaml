@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:ScreenLookup.src.controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignWidth="450"
     mc:Ignorable="d">
     <Viewbox Stretch="Fill">
         <Path
@@ -15,7 +15,7 @@
             RenderTransformOrigin="0.5,0.5"
             Stretch="Fill"
             Stroke="Black"
-            StrokeThickness="8">
+            StrokeThickness="5">
             <Path.RenderTransform>
                 <RotateTransform />
             </Path.RenderTransform>
