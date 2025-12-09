@@ -145,8 +145,7 @@
                     Grid.Column="1"
                     IsScrollingVertically="True"
                     VerticalScrollBarVisibility="Visible">
-                    <StackPanel Orientation="Horizontal">
-
+                    <WrapPanel Orientation="Horizontal">
                         <Controls:TextBlock
                             x:Name="translatedText"
                             Grid.Column="1"
@@ -156,7 +155,7 @@
                             x:Name="translatedTextLoading"
                             Width="20"
                             Height="20" />
-                    </StackPanel>
+                    </WrapPanel>
                 </Controls:DynamicScrollViewer>
             </Grid>
         </Controls:Card>
@@ -181,7 +180,7 @@
                         VerticalContentAlignment="Center"
                         Click="Button_WordOriginalTTS"
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}" />
+                        Filled=False}" />
                     <Controls:TextBlock
                         x:Name="definitionOriginal"
                         Margin="5,0,0,0"
@@ -201,7 +200,7 @@
                         VerticalContentAlignment="Center"
                         Click="Button_WordTranslatedTTS"
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}" />
+                        Filled=False}" />
                     <Controls:TextBlock
                         x:Name="definitionTranslated"
                         Margin="5,0,0,0"
@@ -228,7 +227,7 @@
                             VerticalContentAlignment="Center"
                             Click="Button_OpenBrowser"
                             Icon="{wpfui:SymbolIcon Symbol=Globe24,
-                                                    Filled=False}" />
+                            Filled=False}" />
                         <Controls:Button
                             x:Name="wordSave"
                             Width="20"
@@ -242,6 +241,7 @@
                             Click="Button_WordSave"
                             Icon="{wpfui:SymbolIcon Symbol=Star24,
                                                     Filled=False}" />
+                            Filled=False}" />
                     </StackPanel>
                 </Controls:Card>
             </StackPanel>
