@@ -7,6 +7,8 @@ namespace ScreenLookup.src.utils
     class TextToSpeech
     {
         public static CancellationTokenSource CTS = new CancellationTokenSource();
+        public static readonly Dictionary<string, Stream> audioStreamCache = [];
+        public static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
 
         public static async void PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
@@ -15,21 +17,43 @@ namespace ScreenLookup.src.utils
 
             try
             {
-                Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6393);
-
-                Stream ms = new MemoryStream();
-                byte[] buffer = new byte[32768];
-                int read;
-                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                // Get sound stream
+                if (!audioStreamCache.TryGetValue(Text, out Stream audioStream))
                 {
-                    ms.Write(buffer, 0, read);
+                    Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6393);
+                    audioStream = new MemoryStream();
+                    byte[] buffer = new byte[32768];
+                    int read;
+                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        audioStream.Write(buffer, 0, read);
+                    }
+                    audioStreamCache.TryAdd(Text, audioStream);
                 }
 
-                ms.Position = 0;
+                // Release sound stream
+                if (audioStreamCTS.TryGetValue(Text, out CancellationTokenSource cancleToken))
+                {
+                    cancleToken.Cancel();
+                    cancleToken.Dispose();
+                    audioStreamCTS.Remove(Text);
+                }
+                cancleToken = new CancellationTokenSource();
+
+                audioStreamCTS.TryAdd(Text, cancleToken);
+                _ = Task.Delay(30 * 1000).ContinueWith((task) =>
+                {
+                    audioStreamCache[Text].Close();
+                    audioStreamCache.Remove(Text);
+                    audioStreamCTS.Remove(Text);
+                }, cancleToken.Token);
+
+                // Play sound stream
+                audioStream.Position = 0;
                 using WaveStream blockAlignedStream =
                     new BlockAlignReductionStream(
                         WaveFormatConversionStream.CreatePcmStream(
-                            new Mp3FileReader(ms)));
+                            new Mp3FileReader(audioStream)));
                 WaveOut waveOut = new(WaveCallbackInfo.FunctionCallback());
                 waveOut.Init(blockAlignedStream);
                 waveOut.Play();
@@ -48,7 +72,7 @@ namespace ScreenLookup.src.utils
         public static void StartTTS(string Text, int langID)
         {
             StopTTS();
-            CTS = new CancellationTokenSource();
+            CTS = new();
             TextToSpeech.PlayTTS(Text, langID, CTS);
         }
 
