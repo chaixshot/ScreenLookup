@@ -139,28 +139,26 @@ namespace ScreenLookup.src.utils
                 command.Parameters.AddWithValue("@maxRow", maxRow);
                 command.Parameters.AddWithValue("@offset", offset);
 
-                using (var reader = await command.ExecuteReaderAsync(token))
+                using var reader = await command.ExecuteReaderAsync(token);
+                while (await reader.ReadAsync(token))
                 {
-                    while (await reader.ReadAsync(token))
-                    {
-                        string originalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
-                        string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
-                        string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
-                        List<CaptureWordsEntrySimplify> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsEntrySimplify>>(originalWords);
-                        List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage));
+                    string originalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
+                    string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
+                    string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
+                    List<CaptureWordsEntrySimplify> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsEntrySimplify>>(originalWords);
+                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage));
 
-                        history.Add(new HistoryLoggerPageEntry
-                        {
-                            Id = reader.GetString(reader.GetOrdinal("Id")),
-                            Original = reader.GetString(reader.GetOrdinal("Original")),
-                            OriginalWords = captureWords,
-                            Translated = reader.GetString(reader.GetOrdinal("Translated")),
-                            SourceLanguage = sourceLanguage,
-                            TargetLanguage = targetLanguage,
-                            FontSizeS = Setting.FontSizeS,
-                            FontFace = new FontFamily(Setting.FontFace),
-                        });
-                    }
+                    history.Add(new HistoryLoggerPageEntry
+                    {
+                        Id = reader.GetString(reader.GetOrdinal("Id")),
+                        Original = reader.GetString(reader.GetOrdinal("Original")),
+                        OriginalWords = captureWords,
+                        Translated = reader.GetString(reader.GetOrdinal("Translated")),
+                        SourceLanguage = sourceLanguage,
+                        TargetLanguage = targetLanguage,
+                        FontSizeS = Setting.FontSizeS,
+                        FontFace = new FontFamily(Setting.FontFace),
+                    });
                 }
             }
             return (history, maxPage);
