@@ -45,9 +45,9 @@ namespace ScreenLookup.src.utils
         ];
 
         public static readonly string[] SourceAccuracys = [
-            "Fast",
+            "Fast (Bad)",
             "Normal",
-            "Accurate",
+            "Slow (Accurate)",
         ];
 
         public static int SourceLanguageAccuracy
