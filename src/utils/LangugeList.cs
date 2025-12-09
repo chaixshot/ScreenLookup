@@ -289,12 +289,12 @@ namespace ScreenLookup.src.utils
             var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
             try
             {
-                var translateResult = await translator.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLanguage));
+                var translateResult = await translator.TranslateAsync(text, "sad");
                 return translateResult.Translation;
             }
             catch (Exception ex)
             {
-                Notification.Show(ex.ToString());
+                Notification.Show(ex.Message);
                 return "";
             }
         }

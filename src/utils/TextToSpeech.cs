@@ -10,7 +10,7 @@ namespace ScreenLookup.src.utils
 
         public static async void PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
-            var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6393FromID(langID));
+            var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
             var translator = LanguageList.GetTranslatorService(Setting.TTSProvider);
 
             try
@@ -39,9 +39,9 @@ namespace ScreenLookup.src.utils
                 }
                 waveOut.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.ProviderServices[Setting.TTSProvider]}");
+                Notification.Show(ex.Message);
             }
         }
 
