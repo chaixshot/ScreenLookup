@@ -41,7 +41,7 @@ namespace ScreenLookup.src.utils
             }
             catch
             {
-                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.ProviderServices[Setting.TranslationProvider]}");
+                Notification.Show($"{languageData.NativeName} doesn't support text-to-speech with {Setting.ProviderServices[Setting.TTSProvider]}");
             }
         }
 
