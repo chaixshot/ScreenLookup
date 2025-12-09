@@ -204,9 +204,8 @@ namespace ScreenLookup.src.pages
             TextToSpeech.StartTTS(word, sourceLanguage);
             SavedWordButtonStateChange(word);
 
-            var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
-            var translateResult = await translator.TranslateAsync(word, LanguageList.GetLanguageISO6391FromID(targetLanguage));
-            definitionTranslated.Text = translateResult.Translation;
+            string translateResult = await LanguageList.TranslatedText(word, targetLanguage);
+            definitionTranslated.Text = translateResult;
             definitionTranslatedLoading.Visibility = Visibility.Collapsed;
         }
 

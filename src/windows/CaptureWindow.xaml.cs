@@ -266,9 +266,8 @@ namespace ScreenLookup.src.windows
             TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
             SavedWordButtonStateChange(word);
 
-            var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
-            var translateResult = await translator.TranslateAsync(word, LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage));
-            definitionTranslated.Text = translateResult.Translation;
+            string translateResult = await LanguageList.TranslatedText(word, Setting.TargetLanguage);
+            definitionTranslated.Text = translateResult;
             definitionTranslatedLoading.Visibility = Visibility.Collapsed;
         }
 

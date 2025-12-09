@@ -282,5 +282,21 @@ namespace ScreenLookup.src.utils
                     return new GoogleTranslator();
             }
         }
+
+        public static async Task<string> TranslatedText(string text, int targetLanguage)
+        {
+            // Translated text
+            var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
+            try
+            {
+                var translateResult = await translator.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLanguage));
+                return translateResult.Translation;
+            }
+            catch (Exception ex)
+            {
+                Notification.Show(ex.ToString());
+                return "";
+            }
+        }
     }
 }
