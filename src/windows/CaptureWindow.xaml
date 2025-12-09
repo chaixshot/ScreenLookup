@@ -71,7 +71,7 @@
                     VerticalContentAlignment="Center"
                     Click="Button_OriginalTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                            Filled=False}" />
+                    Filled=False}" />
                 <Controls:DynamicScrollViewer
                     Grid.Column="1"
                     IsScrollingVertically="True"
@@ -106,10 +106,14 @@
                                             HorizontalAlignment="Left"
                                             BorderThickness="{Binding Border}"
                                             Click="Button_Word"
-                                            Content="{Binding Word}"
-                                            FontFamily="{Binding FontFace}"
-                                            FontSize="{Binding FontSizeS, Mode=OneWay}"
-                                            Tag="{Binding SourceLanguage}" />
+                                            Tag="{Binding SourceLanguage}">
+                                            <Controls:Button.Content>
+                                                <wpfui:TextBlock
+                                                    FontFamily="{Binding FontFace}"
+                                                    FontSize="{Binding FontSizeS, Mode=OneWay}"
+                                                    Text="{Binding Word}" />
+                                            </Controls:Button.Content>
+                                        </Controls:Button>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -140,7 +144,7 @@
                     VerticalContentAlignment="Center"
                     Click="Button_TranslatedTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                            Filled=False}" />
+                    Filled=False}" />
                 <Controls:DynamicScrollViewer
                     Grid.Column="1"
                     IsScrollingVertically="True"
@@ -240,7 +244,6 @@
                             VerticalContentAlignment="Center"
                             Click="Button_WordSave"
                             Icon="{wpfui:SymbolIcon Symbol=Star24,
-                                                    Filled=False}" />
                             Filled=False}" />
                     </StackPanel>
                 </Controls:Card>
