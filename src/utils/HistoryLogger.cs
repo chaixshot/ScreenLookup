@@ -146,7 +146,7 @@ namespace ScreenLookup.src.utils
                     string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
                     string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
                     List<CaptureWordsEntrySimplify> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsEntrySimplify>>(originalWords);
-                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage));
+                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage), App.Current.MainWindow.Width);
 
                     history.Add(new HistoryLoggerPageEntry
                     {

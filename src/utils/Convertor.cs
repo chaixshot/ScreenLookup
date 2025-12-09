@@ -5,14 +5,13 @@ namespace ScreenLookup.src.utils
 {
     class Convertor
     {
-        public static MainWindow mainWindow = (App.Current.MainWindow as MainWindow);
-        public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsEntrySimplify> data, int sourceLanguage = 0, int targetLanguage = 0)
+        public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsEntrySimplify> data, int sourceLanguage = 0, int targetLanguage = 0, double width = 200)
         {
             List<CaptureWordsEntry> itemsForCard = [];
 
             foreach (var item in data)
             {
-                if (item.Stop == 0)
+                if (item.Stop == 0) // Normal
                     itemsForCard.Add(new CaptureWordsEntry()
                     {
                         Word = item.Word,
@@ -24,11 +23,11 @@ namespace ScreenLookup.src.utils
                         SourceLanguage = sourceLanguage,
                         TargetLanguage = targetLanguage
                     });
-                if (item.Stop == 1)
+                if (item.Stop == 1) // New line
                     itemsForCard.Add(new CaptureWordsEntry()
                     {
                         Word = "",
-                        Width = mainWindow.Width,
+                        Width = width,
                         Height = 0,
                         Border = 0,
                         FontSizeS = Setting.FontSizeS,
@@ -36,11 +35,11 @@ namespace ScreenLookup.src.utils
                         SourceLanguage = 0,
                         TargetLanguage = 0
                     });
-                if (item.Stop == 2)
+                if (item.Stop == 2) // New paragraph
                     itemsForCard.Add(new CaptureWordsEntry()
                     {
                         Word = "",
-                        Width = mainWindow.Width,
+                        Width = width,
                         Height = Double.NaN,
                         Border = 0,
                         FontSizeS = Setting.FontSizeS,
@@ -48,11 +47,11 @@ namespace ScreenLookup.src.utils
                         SourceLanguage = 0,
                         TargetLanguage = 0
                     });
-                if (item.Stop == 3)
+                if (item.Stop == 3) // New block
                     itemsForCard.Add(new CaptureWordsEntry()
                     {
                         Word = "",
-                        Width = mainWindow.Width,
+                        Width = width,
                         Height = Double.NaN,
                         Border = 0,
                         FontSizeS = Setting.FontSizeS,
