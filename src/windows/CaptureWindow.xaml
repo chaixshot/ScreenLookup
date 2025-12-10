@@ -140,8 +140,6 @@
             </Grid>
         </Controls:Card>
 
-        <Controls:SnackbarPresenter x:Name="snackbarHost" Grid.Row="2" />
-
         <Controls:Card
             x:Name="translatedCard"
             Grid.Row="3"
@@ -195,6 +193,8 @@
                 </Controls:DynamicScrollViewer>
             </Grid>
         </Controls:Card>
+
+        <Controls:SnackbarPresenter x:Name="snackbarHost" Grid.Row="3" />
 
         <Controls:Flyout
             x:Name="flayOut"
