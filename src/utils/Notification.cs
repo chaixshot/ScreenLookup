@@ -44,18 +44,17 @@ namespace ScreenLookup.src.utils
                 // convert only as much as bytesFree bytes
 
                 plainTextBytes = new byte[maxTextBytes];
-                int bytesUsed = 0;
 
                 // Encoder.ConvertCaptureWordsEntry() won't fail when the byte array is smaller than the size needed to hold the source string,
                 // it will just convert as many characters as possible.
-                Encoding.UTF8.GetEncoder().Convert(copiedText.AsSpan(), plainTextBytes.AsSpan(), true, out _, out bytesUsed, out _);
+                Encoding.UTF8.GetEncoder().Convert(copiedText.AsSpan(), plainTextBytes.AsSpan(), true, out _, out int bytesUsed, out _);
 
                 encodedString = Convert.ToBase64String(plainTextBytes, 0, bytesUsed).TrimEnd('=');
 
                 // rebuild the toast XML
                 toast = new ToastContentBuilder()
                     .AddArgument("text", encodedString)
-                    .AddText("Text Grab")
+                    .AddText("ScreenLookup")
                     .AddText(toastBody);
             }
 
