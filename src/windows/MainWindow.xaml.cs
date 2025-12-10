@@ -5,7 +5,6 @@ using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
 using ScreenLookup.src.windows;
 using System.ComponentModel;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using Wpf.Ui.Appearance;
@@ -49,12 +48,24 @@ namespace ScreenLookup
             else
                 GetCaptureWindow().Close();
 
-            var isShuttingDownProp = typeof(Application).GetProperty("IsShuttingDown", BindingFlags.Static | BindingFlags.NonPublic);
-            dynamic isShuttingDown = isShuttingDownProp.GetValue(Application.Current, null);
-            if (!isShuttingDown)
-                HideToTray();
-
             base.OnClosing(e);
+        }
+
+
+        // Title bar
+        private void TopmostButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleTopmost(!Setting.Topmost);
+        }
+
+        private void MinimizeButton_Clicked(TitleBar sender, RoutedEventArgs args)
+        {
+            HideToTray();
+        }
+
+        private void CloseButton_Clicked(TitleBar sender, RoutedEventArgs args)
+        {
+            HideToTray();
         }
 
         public CaptureWindow GetCaptureWindow()
@@ -105,11 +116,9 @@ namespace ScreenLookup
                 {
                     Notification.Show("ScreenLookup running in the background");
                 }
-                finally
-                {
-                    this.WindowState = (WindowState)FormWindowState.Minimized;
-                    this.Hide();
-                }
+                catch { }
+                this.WindowState = (WindowState)FormWindowState.Minimized;
+                this.Hide();
             }
         }
 
@@ -130,12 +139,6 @@ namespace ScreenLookup
         }
 
         // ----------------- Window Persistence State -----------------
-        private void WindowStateChanged(object sender, EventArgs e)
-        {
-            if (WindowState == (WindowState)FormWindowState.Minimized)
-                HideToTray();
-        }
-
         private void MainWindow_BoundsChanged(object sender, EventArgs e)
         {
             var window = sender as Window;
@@ -175,30 +178,25 @@ namespace ScreenLookup
         }
 
         // ----------------- Tray Icon -----------------
-        private void NotifyIcon_LeftClick(Wpf.Ui.Tray.Controls.NotifyIcon sender, RoutedEventArgs e)
+        private void Tray_LeftClick(Wpf.Ui.Tray.Controls.NotifyIcon sender, RoutedEventArgs e)
         {
             e.Handled = true;
             GetCaptureWindow().StartCaptureScreen();
         }
 
-        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        private void TrayItemSettings_Click(object sender, RoutedEventArgs e)
         {
             ShowFromTray();
         }
 
-        private void CaptureWindowItem_Click(object sender, RoutedEventArgs e)
+        private void TrayItemCapture_Click(object sender, RoutedEventArgs e)
         {
             GetCaptureWindow().StartCaptureScreen();
         }
 
-        private void Exit_Click(object sender, RoutedEventArgs e)
+        private void TrayItemExit_Click(object sender, RoutedEventArgs e)
         {
             App.Current.Shutdown();
-        }
-
-        private void TopmostButton_Click(object sender, RoutedEventArgs e)
-        {
-            ToggleTopmost(!Setting.Topmost);
         }
     }
 }

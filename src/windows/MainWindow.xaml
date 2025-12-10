@@ -17,7 +17,6 @@
     ExtendsContentIntoTitleBar="True"
     LocationChanged="MainWindow_BoundsChanged"
     SizeChanged="MainWindow_BoundsChanged"
-    StateChanged="WindowStateChanged"
     WindowBackdropType="Mica"
     WindowStartupLocation="Manual"
     WindowStyle="None"
@@ -43,7 +42,9 @@
             <Controls:TitleBar
                 Grid.Row="0"
                 Height="27"
-                Icon="{StaticResource AppIcon}">
+                CloseClicked="CloseButton_Clicked"
+                Icon="{StaticResource AppIcon}"
+                MinimizeClicked="MinimizeButton_Clicked">
                 <Controls:TitleBar.Header>
                     <Controls:TextBlock
                         Padding="0"
@@ -127,11 +128,11 @@
             x:Name="NotifyIcon"
             FocusOnLeftClick="False"
             Icon="/src/images/applicationIcon.ico"
-            LeftClick="NotifyIcon_LeftClick"
+            LeftClick="Tray_LeftClick"
             TooltipText="ScreenLookup">
             <tray:NotifyIcon.Menu>
                 <ContextMenu>
-                    <MenuItem Click="SettingsMenuItem_Click" Header="Settings">
+                    <MenuItem Click="TrayItemSettings_Click" Header="Settings">
                         <MenuItem.Icon>
                             <Controls:SymbolIcon Symbol="Settings24" />
                         </MenuItem.Icon>
@@ -139,14 +140,14 @@
 
                     <MenuItem
                         x:Name="trayCapture"
-                        Click="CaptureWindowItem_Click"
+                        Click="TrayItemCapture_Click"
                         Header="Lookup">
                         <MenuItem.Icon>
                             <Controls:SymbolIcon Symbol="Screenshot20" />
                         </MenuItem.Icon>
                     </MenuItem>
 
-                    <MenuItem Click="Exit_Click" Header="Close">
+                    <MenuItem Click="TrayItemExit_Click" Header="Close">
                         <MenuItem.Icon>
                             <Controls:SymbolIcon Symbol="Dismiss24" />
                         </MenuItem.Icon>
