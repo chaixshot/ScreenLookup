@@ -8,7 +8,7 @@ namespace ScreenLookup.src.utils
         public static MainWindow? mainWindow = (MainWindow)App.Current.MainWindow;
         public static SnackbarPresenter? snackbarMain = mainWindow?.snackbarHost;
 
-        public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, string windows = "main")
+        public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, string windows = "main", bool closeButton = true)
         {
             ControlAppearance appearance;
             SymbolIcon icon;
@@ -44,7 +44,9 @@ namespace ScreenLookup.src.utils
             snackbar.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
             snackbar.SetCurrentValue(Snackbar.IconProperty, icon);
             snackbar.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+
             snackbar.Width = width;
+            snackbar.IsCloseButtonEnabled = closeButton;
 
             snackbar.Show(true);
         }
