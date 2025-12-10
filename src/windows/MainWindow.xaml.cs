@@ -178,7 +178,7 @@ namespace ScreenLookup
         private void NotifyIcon_LeftClick(Wpf.Ui.Tray.Controls.NotifyIcon sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            ShowFromTray();
+            GetCaptureWindow().StartCaptureScreen();
         }
 
         private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
