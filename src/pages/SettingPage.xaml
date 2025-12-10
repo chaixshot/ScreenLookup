@@ -25,227 +25,376 @@
                     FontWeight="SemiBold"
                     Text="General" />
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Source Language" />
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=ClipboardTask24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Controls:Button
-                                x:Name="downloadTesseract"
-                                Margin="0,0,5,0"
-                                Click="DownloadTesseractButton_Click">
-                                <StackPanel>
-                                    <xControls:LoadingSpiner x:Name="tesseractLoadingIcon" Width="12" />
-                                    <Controls:SymbolIcon
-                                        x:Name="tesseractLoadIcon"
-                                        Filled="True"
-                                        Symbol="ArrowDownload24" />
-                                </StackPanel>
-                            </Controls:Button>
-                            <ComboBox
-                                x:Name="sourceLanguageAccuracy"
-                                Grid.Column="1"
-                                Width="110"
-                                SelectedIndex="{Binding SourceLanguageAccuracy}" />
-                            <ComboBox
-                                x:Name="sourceLanguage"
-                                Grid.Column="1"
-                                Width="200"
-                                Margin="5,0,0,0"
-                                SelectedIndex="{Binding SourceLanguage}" />
-                        </StackPanel>
-                    </Grid>
-                </Controls:Card>
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Startup With Windows" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Auto start ScreenLookup when login" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
+                </Controls:CardControl>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Source Language Correction (Hunspell)" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Controls:Button
-                                x:Name="downloadHunspell"
-                                Margin="0,0,5,0"
-                                Click="DownloadHunspellButton_Click">
-                                <StackPanel>
-                                    <xControls:LoadingSpiner x:Name="hunspellLoadingIcon" Width="12" />
-                                    <Controls:SymbolIcon
-                                        x:Name="hunspellLoadIcon"
-                                        Filled="True"
-                                        Symbol="ArrowDownload24" />
-                                </StackPanel>
-                            </Controls:Button>
-                            <CheckBox IsChecked="{Binding HunSpell}" />
-                        </StackPanel>
-                    </Grid>
-                </Controls:Card>
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=SlideHide24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Target Language" />
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Start In Background" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Hide ScreenLook to tray after starting" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
+                </Controls:CardControl>
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Apps24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Minimize To Tray" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Allow ScreenLookup hide to tray when minimizing and closing" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" />
+                </Controls:CardControl>
+
+                <TextBlock
+                    Margin="5,0,0,5"
+                    FontWeight="SemiBold"
+                    Text="Language" />
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Source Language" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Capture target language" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Controls:Button
+                            x:Name="downloadTesseract"
+                            Margin="0,0,5,0"
+                            Click="DownloadTesseractButton_Click">
+                            <StackPanel>
+                                <xControls:LoadingSpiner x:Name="tesseractLoadingIcon" Width="12" />
+                                <Controls:SymbolIcon
+                                    x:Name="tesseractLoadIcon"
+                                    Filled="True"
+                                    Symbol="ArrowDownload24" />
+                            </StackPanel>
+                        </Controls:Button>
                         <ComboBox
-                            x:Name="targetLanguage"
+                            x:Name="sourceLanguageAccuracy"
+                            Grid.Column="1"
+                            Width="110"
+                            SelectedIndex="{Binding SourceLanguageAccuracy}" />
+                        <ComboBox
+                            x:Name="sourceLanguage"
                             Grid.Column="1"
                             Width="200"
-                            SelectedIndex="{Binding TargetLanguage}" />
-                    </Grid>
-                </Controls:Card>
+                            Margin="5,0,0,0"
+                            SelectedIndex="{Binding SourceLanguage}" />
+                    </StackPanel>
+                </Controls:CardControl>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Translation Provider" />
-                        <ComboBox
-                            x:Name="translationProvider"
-                            Grid.Column="1"
-                            Width="200"
-                            SelectedIndex="{Binding TranslationProvider}" />
-                    </Grid>
-                </Controls:Card>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Text-To-Speech Provider" />
-                        <ComboBox
-                            x:Name="ttsProvider"
-                            Grid.Column="1"
-                            Width="200"
-                            SelectedIndex="{Binding TTSProvider}" />
-                    </Grid>
-                </Controls:Card>
+                <Controls:CardControl
+                    Margin="0,0,0,4"
+                    Padding="14,8,14,8"
+                    Icon="{wpfui:SymbolIcon Symbol=Checkmark24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Startup With Windows" />
-                        <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
-                    </Grid>
-                </Controls:Card>
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Replace the words that are similar to recognized ones in dictionary" />
+                                <wpfui:TextBlock Grid.Row="2">
+                                    <Hyperlink NavigateUri="https://hunspell.github.io/" RequestNavigate="Hyperlink_RequestNavigate">
+                                        Read more
+                                    </Hyperlink>
+                                </wpfui:TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Controls:Button
+                            x:Name="downloadHunspell"
+                            Margin="0,0,5,0"
+                            Click="DownloadHunspellButton_Click">
+                            <StackPanel>
+                                <xControls:LoadingSpiner x:Name="hunspellLoadingIcon" Width="12" />
+                                <Controls:SymbolIcon
+                                    x:Name="hunspellLoadIcon"
+                                    Filled="True"
+                                    Symbol="ArrowDownload24" />
+                            </StackPanel>
+                        </Controls:Button>
+                        <CheckBox IsChecked="{Binding HunSpell}" />
+                    </StackPanel>
+                </Controls:CardControl>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Start In Background" />
-                        <CheckBox Grid.Column="1" IsChecked="{Binding StartInBackground}" />
-                    </Grid>
-                </Controls:Card>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Minimize To Tray" />
-                        <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" />
-                    </Grid>
-                </Controls:Card>
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Target Language" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Language for translating to you native language" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <ComboBox
+                        x:Name="targetLanguage"
+                        Grid.Column="1"
+                        Width="200"
+                        SelectedIndex="{Binding TargetLanguage}" />
+                </Controls:CardControl>
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Translate24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Translation Provider" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Provider for translation service" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <ComboBox
+                        x:Name="translationProvider"
+                        Grid.Column="1"
+                        Width="200"
+                        SelectedIndex="{Binding TranslationProvider}" />
+                </Controls:CardControl>
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=PersonVoice24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Text-To-Speech Provider" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Provider for Text-To-Speech service" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <ComboBox
+                        x:Name="ttsProvider"
+                        Grid.Column="1"
+                        Width="200"
+                        SelectedIndex="{Binding TTSProvider}" />
+                </Controls:CardControl>
 
                 <TextBlock
                     Margin="5,0,0,5"
                     FontWeight="SemiBold"
                     Text="Lookup" />
 
-                <Controls:Card Margin="0,0,0,4" Padding="14,14,14,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock
-                            Margin="6"
-                            VerticalAlignment="Center"
-                            Text="Lookup Shortcut" />
-                        <xControls:ShortcutControl
-                            x:Name="captureShortcut"
-                            Grid.Column="1"
-                            KeySetChanged="ShortcutControl_KeySetChanged" />
-                    </Grid>
-                </Controls:Card>
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Keyboard24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Show Capture Image" />
-                        <CheckBox Grid.Column="1" IsChecked="{Binding ShowImage}" />
-                    </Grid>
-                </Controls:Card>
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Lookup Shortcut" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Hotkey for start Lookup the screen" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <xControls:ShortcutControl
+                        x:Name="captureShortcut"
+                        Grid.Column="1"
+                        KeySetChanged="ShortcutControl_KeySetChanged" />
+                </Controls:CardControl>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Close When Lost Focus" />
-                        <CheckBox Grid.Column="1" IsChecked="{Binding CloseLostFocus}" />
-                    </Grid>
-                </Controls:Card>
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Font" />
-                        <ComboBox
-                            Grid.Column="1"
-                            Width="200"
-                            FontFamily="{Binding FontFace}"
-                            IsEditable="True"
-                            ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
-                            Text="{Binding FontFace}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Label Content="{Binding Source}" FontFamily="{Binding .}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </Grid>
-                </Controls:Card>
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Show Capture Image" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Show Lookup's result capture image" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding ShowImage}" />
+                </Controls:CardControl>
 
-                <Controls:Card Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Controls:TextBlock Margin="6" Text="Font Size" />
-                        <Controls:NumberBox
-                            Grid.Column="1"
-                            Width="200"
-                            Maximum="100"
-                            Minimum="10"
-                            Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}" />
-                    </Grid>
-                </Controls:Card>
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Highlight24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Show Word Highlight" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Show Lookup's result source language words highlighting" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding ShowHighlight}" />
+                </Controls:CardControl>
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Window24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Close When Lost Focus" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Automatically close result window when losing focus" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding CloseLostFocus}" />
+                </Controls:CardControl>
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Font" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Lookup's result font style" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <ComboBox
+                        Grid.Column="1"
+                        Width="200"
+                        FontFamily="{Binding FontFace}"
+                        IsEditable="True"
+                        ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
+                        Text="{Binding FontFace}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <Label Content="{Binding Source}" FontFamily="{Binding .}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Controls:CardControl>
+
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
+                    <Controls:CardControl.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Controls:TextBlock Text="Font Size" />
+                                <wpfui:TextBlock
+                                    Grid.Row="1"
+                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Lookup's result font size" />
+                            </StackPanel>
+                        </Grid>
+                    </Controls:CardControl.Header>
+                    <Controls:NumberBox
+                        Grid.Column="1"
+                        Width="200"
+                        Maximum="100"
+                        Minimum="10"
+                        Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}" />
+                </Controls:CardControl>
 
                 <TextBlock
                     Margin="5,0,0,5"

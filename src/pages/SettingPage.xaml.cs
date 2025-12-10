@@ -1,5 +1,6 @@
 ﻿using ScreenLookup.src.utils;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -369,6 +370,12 @@ namespace ScreenLookup.src.pages
                 Setting.Reset();
                 await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
             }
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
         }
     }
 }
