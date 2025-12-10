@@ -9,6 +9,7 @@ namespace ScreenLookup.src.utils
         {
             List<CaptureWordsEntry> itemsForCard = [];
 
+            double padding = Math.Max(1.7, Setting.FontSizeS / 5.5);
             foreach (var item in data)
             {
                 if (item.Stop == 0) // Normal
@@ -17,6 +18,7 @@ namespace ScreenLookup.src.utils
                         Word = item.Word,
                         Width = Double.NaN,
                         Height = Double.NaN,
+                        Padding = $"{padding}, 0, {padding}, 0",
                         Border = Setting.ShowHighlight ? 1 : 0,
                         FontSizeS = Setting.FontSizeS,
                         FontFace = new FontFamily(Setting.FontFace),

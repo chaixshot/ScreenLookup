@@ -7,6 +7,7 @@ namespace ScreenLookup.src.models
         public required string Word { get; set; }
         public double Width { get; set; }
         public double Height { get; set; }
+        public string Padding { get; set; }
         public double Border { get; set; }
         public int FontSizeS { get; set; }
         public FontFamily FontFace { get; set; }

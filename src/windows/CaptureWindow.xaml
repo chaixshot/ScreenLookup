@@ -103,7 +103,7 @@
                                             Width="{Binding Width}"
                                             Height="{Binding Height}"
                                             Margin="0"
-                                            Padding="1.5,0,1.5,0"
+                                            Padding="{Binding Padding}"
                                             HorizontalAlignment="Left"
                                             BorderThickness="{Binding Border}"
                                             Click="Button_Word"
