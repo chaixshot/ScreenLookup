@@ -318,6 +318,21 @@
                                     Click="Button_WordOriginalTTS"
                                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                             Filled=False}" />
+                                <Controls:Button
+                                    Grid.Column="0"
+                                    Width="{Binding Width, ElementName=flayoutOriginalTSS}"
+                                    Height="{Binding Height, ElementName=flayoutOriginalTSS}"
+                                    Margin="2,0,0,0"
+                                    Padding="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Click="Button_ParagraphCopy"
+                                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                                            Filled=False}"
+                                    Tag="{Binding Text, ElementName=definitionOriginal}"
+                                    ToolTip="Copy" />
                                 <Controls:TextBlock
                                     x:Name="definitionOriginal"
                                     Margin="5,0,0,0"
@@ -338,6 +353,21 @@
                                     Click="Button_WordTranslatedTTS"
                                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                             Filled=False}" />
+                                <Controls:Button
+                                    Grid.Column="0"
+                                    Width="{Binding Width, ElementName=flayoutTranslatedTSS}"
+                                    Height="{Binding Height, ElementName=flayoutTranslatedTSS}"
+                                    Margin="2,0,0,0"
+                                    Padding="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Click="Button_ParagraphCopy"
+                                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                                            Filled=False}"
+                                    Tag="{Binding Text, ElementName=definitionTranslated}"
+                                    ToolTip="Copy" />
                                 <Controls:TextBlock
                                     x:Name="definitionTranslated"
                                     Margin="5,0,0,0"
@@ -369,7 +399,7 @@
                                         x:Name="wordSave"
                                         Width="20"
                                         Height="20"
-                                        Margin="5,0,0,0"
+                                        Margin="2,0,0,0"
                                         Padding="0"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
