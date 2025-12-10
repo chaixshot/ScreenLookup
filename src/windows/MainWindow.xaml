@@ -60,7 +60,7 @@
                             BorderThickness="0"
                             Click="TopmostButton_Click"
                             Icon="{wpfui:SymbolIcon Symbol=Pin16,
-                            Filled=True}"
+                                                    Filled=True}"
                             ToolTip="Always on Top" />
                     </StackPanel>
                 </Controls:TitleBar.TrailingContent>

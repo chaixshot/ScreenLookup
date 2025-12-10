@@ -5,7 +5,7 @@ namespace ScreenLookup.src.utils
     internal class SnackbarHost
     {
         public static Snackbar? snackbar;
-        public static MainWindow? mainWindow = App.Current.MainWindow as MainWindow;
+        public static MainWindow? mainWindow = (MainWindow)App.Current.MainWindow;
         public static SnackbarPresenter? snackbarMain = mainWindow?.snackbarHost;
 
         public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, string windows = "main")

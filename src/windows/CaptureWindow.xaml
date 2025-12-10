@@ -72,7 +72,7 @@
                     VerticalContentAlignment="Center"
                     Click="Button_OriginalTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                    Filled=False}" />
+                                            Filled=False}" />
                 <Controls:DynamicScrollViewer
                     Grid.Column="1"
                     IsScrollingVertically="True"
@@ -146,7 +146,7 @@
                     VerticalContentAlignment="Center"
                     Click="Button_TranslatedTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                    Filled=False}" />
+                                            Filled=False}" />
                 <Controls:DynamicScrollViewer
                     Grid.Column="1"
                     IsScrollingVertically="True"
@@ -186,7 +186,7 @@
                         VerticalContentAlignment="Center"
                         Click="Button_WordOriginalTTS"
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                        Filled=False}" />
+                                                Filled=False}" />
                     <Controls:TextBlock
                         x:Name="definitionOriginal"
                         Margin="5,0,0,0"
@@ -206,7 +206,7 @@
                         VerticalContentAlignment="Center"
                         Click="Button_WordTranslatedTTS"
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                        Filled=False}" />
+                                                Filled=False}" />
                     <Controls:TextBlock
                         x:Name="definitionTranslated"
                         Margin="5,0,0,0"
@@ -233,7 +233,7 @@
                             VerticalContentAlignment="Center"
                             Click="Button_OpenBrowser"
                             Icon="{wpfui:SymbolIcon Symbol=Globe24,
-                            Filled=False}" />
+                                                    Filled=False}" />
                         <Controls:Button
                             x:Name="wordSave"
                             Width="20"
@@ -246,7 +246,7 @@
                             VerticalContentAlignment="Center"
                             Click="Button_WordSave"
                             Icon="{wpfui:SymbolIcon Symbol=Star24,
-                            Filled=False}" />
+                                                    Filled=False}" />
                     </StackPanel>
                 </Controls:Card>
             </StackPanel>

@@ -136,7 +136,7 @@ namespace ScreenLookup.src.windows
             wordSave.Width = buttonWidth;
             wordSave.Height = buttonWidth;
 
-            captureImageCard.Visibility = Setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
+            captureCard.Visibility = Setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
 
             translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
