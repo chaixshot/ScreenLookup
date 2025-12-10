@@ -77,11 +77,13 @@ namespace ScreenLookup.src.windows
                 {
                     TesseractOCR.Page tesseract = await GetTesseractPageFromBitmap(image);
 
-                    if (!string.IsNullOrWhiteSpace(tesseract.Text))
+                    if (string.IsNullOrWhiteSpace(tesseract.Text))
                     {
-                        originalCard.Visibility = Visibility.Visible;
-                        translatedCard.Visibility = Visibility.Visible;
-
+                        originalCard.Visibility = Visibility.Collapsed;
+                        translatedCard.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
                         // Original full paragraph
                         ocrText.Text = tesseract.Text;
 
