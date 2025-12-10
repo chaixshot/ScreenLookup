@@ -1,199 +1,30 @@
 ﻿using ScreenLookup.src.utils;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace ScreenLookup.src.pages
 {
-    public partial class SettingPage : Page, INotifyPropertyChanged
+    public partial class SettingPage : Page
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         private bool isLoadingTesseract = false;
         private bool isLoadingHunspell = false;
 
         public SettingPage()
         {
-            DataContext = this;
+            DataContext = new Setting();
             InitializeComponent();
 
             LoadTesseractContent();
             LoadProvidersContent();
 
-            ButtonDownloadTesseracChanged();
             ButtonDownloadHunspellChanged();
+            ButtonDownloadTesseracChanged();
 
             ApplyStartupWithWindows();
 
             captureShortcut.KeySet = Setting.ShortcutKey;
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public int SourceLanguageAccuracy
-        {
-            get { return Setting.SourceLanguageAccuracy; }
-            set
-            {
-                Setting.SourceLanguageAccuracy = value;
-                ButtonDownloadTesseracChanged();
-                OnPropertyChanged();
-            }
-        }
-
-        public int SourceLanguage
-        {
-            get { return Setting.SourceLanguage; }
-            set
-            {
-                Setting.SourceLanguage = value;
-                ButtonDownloadTesseracChanged();
-                ButtonDownloadHunspellChanged();
-                OnPropertyChanged();
-            }
-        }
-
-        public bool HunSpell
-        {
-            get { return Setting.HunSpell; }
-            set
-            {
-                if (Setting.IsHunspellInstalled(Setting.SourceLanguage))
-                    Setting.HunSpell = value;
-                else
-                {
-                    if (value)
-                        SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}\"", "error");
-
-                    Setting.HunSpell = false;
-                }
-
-                OnPropertyChanged();
-            }
-        }
-
-        public int TargetLanguage
-        {
-            get { return Setting.TargetLanguage; }
-            set
-            {
-                Setting.TargetLanguage = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int TranslationProvider
-        {
-            get { return Setting.TranslationProvider; }
-            set
-            {
-                Setting.TranslationProvider = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int TTSProvider
-        {
-            get { return Setting.TTSProvider; }
-            set
-            {
-                Setting.TTSProvider = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool StartupWithWindows
-        {
-            get { return Setting.StartupWithWindows; }
-            set
-            {
-                Setting.StartupWithWindows = value;
-
-                ApplyStartupWithWindows();
-                OnPropertyChanged();
-            }
-        }
-
-        public bool StartInBackground
-        {
-            get { return Setting.StartInBackground; }
-            set
-            {
-                Setting.StartInBackground = value;
-                OnPropertyChanged();
-            }
-        }
-        public bool MinimizeToTray
-        {
-            get { return Setting.MinimizeToTray; }
-            set
-            {
-                Setting.MinimizeToTray = value;
-                OnPropertyChanged();
-            }
-        }
-        public bool ShowImage
-        {
-            get { return Setting.ShowImage; }
-            set
-            {
-                Setting.ShowImage = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool ShowHighlight
-        {
-            get { return Setting.ShowHighlight; }
-            set
-            {
-                Setting.ShowHighlight = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool CloseLostFocus
-        {
-            get { return Setting.CloseLostFocus; }
-            set
-            {
-                Setting.CloseLostFocus = value;
-                OnPropertyChanged();
-            }
-        }
-        public bool Topmost
-        {
-            get { return Setting.Topmost; }
-            set
-            {
-                Setting.Topmost = value;
-                OnPropertyChanged();
-            }
-        }
-        public int FontSizeS
-        {
-            get { return Setting.FontSizeS; }
-            set
-            {
-                Setting.FontSizeS = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string FontFace
-        {
-            get { return Setting.FontFace; }
-            set
-            {
-                Setting.FontFace = value;
-                OnPropertyChanged();
-            }
         }
 
         private void ApplyStartupWithWindows()
@@ -266,7 +97,7 @@ namespace ScreenLookup.src.pages
                 downloadHunspell.Visibility = Visibility.Hidden;
             else
             {
-                HunSpell = false;
+                hunspell.IsChecked = false;
                 hunspellLoadingIcon.Visibility = Visibility.Collapsed;
                 hunspellLoadIcon.Visibility = Visibility.Visible;
             }
@@ -285,7 +116,7 @@ namespace ScreenLookup.src.pages
             ButtonDownloadTesseracChanged();
             SnackbarHost.Show("Source Language", $"Downloading {Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999, closeButton: false);
 
-            string tesseractFilePath = TesseractHelper.GetTessdataPath();
+            string tesseractFilePath = TesseractHelper.GetTessdataPath(Setting.SourceLanguageAccuracy);
             string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
             string filePath = Path.Combine(tempPath, pickedLanguageFile);
 
@@ -376,6 +207,38 @@ namespace ScreenLookup.src.pages
         {
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
             e.Handled = true;
+        }
+
+        private void SourceLanguageAccuracy_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ButtonDownloadTesseracChanged();
+        }
+
+        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ButtonDownloadTesseracChanged();
+            ButtonDownloadHunspellChanged();
+        }
+
+        private void HunSpell_Changed(object sender, RoutedEventArgs e)
+        {
+            CheckBox checkbox = sender as CheckBox;
+            bool isCheck = (bool)checkbox.IsChecked;
+
+            if (Setting.IsHunspellInstalled(Setting.SourceLanguage))
+                hunspell.IsChecked = isCheck;
+            else
+            {
+                if (isCheck)
+                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}\"", "error");
+
+                hunspell.IsChecked = false;
+            }
+        }
+
+        private void StartupWithWindows_Changed(object sender, RoutedEventArgs e)
+        {
+            ApplyStartupWithWindows();
         }
     }
 }

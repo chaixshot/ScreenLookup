@@ -42,7 +42,10 @@
                             </StackPanel>
                         </Grid>
                     </Controls:CardControl.Header>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding StartupWithWindows}" />
+                    <CheckBox
+                        Grid.Column="1"
+                        Click="StartupWithWindows_Changed"
+                        IsChecked="{Binding StartupWithWindows}" />
                 </Controls:CardControl>
 
                 <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=SlideHide24}">
@@ -124,13 +127,15 @@
                             x:Name="sourceLanguageAccuracy"
                             Grid.Column="1"
                             Width="110"
-                            SelectedIndex="{Binding SourceLanguageAccuracy}" />
+                            SelectedIndex="{Binding SourceLanguageAccuracy}"
+                            SelectionChanged="SourceLanguageAccuracy_Changed" />
                         <ComboBox
                             x:Name="sourceLanguage"
                             Grid.Column="1"
                             Width="200"
                             Margin="5,0,0,0"
-                            SelectedIndex="{Binding SourceLanguage}" />
+                            SelectedIndex="{Binding SourceLanguage}"
+                            SelectionChanged="SourceLanguage_Changed" />
                     </StackPanel>
                 </Controls:CardControl>
 
@@ -174,10 +179,12 @@
                                     Symbol="ArrowDownload24" />
                             </StackPanel>
                         </Controls:Button>
-                        <CheckBox IsChecked="{Binding HunSpell}" />
+                        <CheckBox
+                            x:Name="hunspell"
+                            Click="HunSpell_Changed"
+                            IsChecked="{Binding HunSpell}" />
                     </StackPanel>
                 </Controls:CardControl>
-
 
                 <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
                     <Controls:CardControl.Header>
