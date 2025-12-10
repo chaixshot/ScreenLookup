@@ -57,7 +57,7 @@ namespace ScreenLookup.src.windows
                 return;
             }
 
-            // Screenshot   
+            // Screenshot
             Bitmap image = ScreenGrabber.CaptureDialog(false);
             if (image == null)
             {
@@ -160,7 +160,7 @@ namespace ScreenLookup.src.windows
 
             this.MaxWidth = screenWidth - 100;
             this.MaxHeight = screenHeight - 100;
-            this.Width = captureImage.Width + 50;
+            this.Width = captureImage.Width + (Setting.FontSizeS * 10);
 
             this.Left = (screenWidth / 2) - (this.Width / 2);
             this.Top = (screenHeight / 2) - (this.Height / 2);
