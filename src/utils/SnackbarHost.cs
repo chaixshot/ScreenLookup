@@ -6,7 +6,7 @@ namespace ScreenLookup.src.utils
     {
         public static Snackbar? snackbarMain;
         public static Snackbar? snackbarCapture;
-        public static MainWindow? mainWindow = (MainWindow)App.Current.MainWindow;
+        public static MainWindow? mainWindow = App.mainWindow;
 
         public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, string windows = "main", bool closeButton = true)
         {
@@ -42,7 +42,7 @@ namespace ScreenLookup.src.utils
             }
             else
             {
-                snackbarCapture ??= new Snackbar((mainWindow?.GetCaptureWindow().snackbarHost));
+                snackbarCapture ??= new Snackbar((App.GetCaptureWindow().snackbarHost));
                 snackbar = snackbarCapture;
             }
 

@@ -25,5 +25,8 @@
     <Compile Update="src\windows\CaptureWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="src\windows\TrayIcon.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

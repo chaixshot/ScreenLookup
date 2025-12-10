@@ -5,30 +5,28 @@ using System.Windows.Input;
 
 namespace ScreenLookup.src.utils
 {
-    internal class Setting
+    public class Settings
     {
-        public static MainWindow? mainWindow = (App.Current.MainWindow as MainWindow);
-
         public static RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
         public static readonly RegistryKey RegSetting = ScreenLookupReg.CreateSubKey("Settings");
-        public static readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
-        public static readonly RegistryKey RegLoadedTesseract = ScreenLookupReg.CreateSubKey("InstalledTesseract");
-        public static readonly RegistryKey RegLoadedHunspell = ScreenLookupReg.CreateSubKey("InstalledHunspell");
-        public static readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
+        public readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
+        public readonly RegistryKey RegLoadedTesseract = ScreenLookupReg.CreateSubKey("InstalledTesseract");
+        public readonly RegistryKey RegLoadedHunspell = ScreenLookupReg.CreateSubKey("InstalledHunspell");
+        public readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
-        public static bool topmost = RegSetting.GetValue("Topmost") == null || RegSetting.GetValue("Topmost").ToString() == "True";
-        public static bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") == null || RegSetting.GetValue("StartupWithWindows").ToString() == "True";
-        public static bool startInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
-        public static bool minimizeToTray = RegSetting.GetValue("MinimizeToTray") == null || RegSetting.GetValue("MinimizeToTray").ToString() == "True";
+        public bool topmost = RegSetting.GetValue("Topmost") == null || RegSetting.GetValue("Topmost").ToString() == "True";
+        public bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") == null || RegSetting.GetValue("StartupWithWindows").ToString() == "True";
+        public bool startInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
+        public bool minimizeToTray = RegSetting.GetValue("MinimizeToTray") == null || RegSetting.GetValue("MinimizeToTray").ToString() == "True";
 
-        public static int sourceLanguageAccuracy = RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
-        public static int sourceLanguage = RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguage")) : 29;
-        public static bool hunSpell = RegSetting.GetValue("hunSpell") != null && RegSetting.GetValue("hunSpell").ToString() == "True";
-        public static int targetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : 117;
-        public static int translationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : 1;
-        public static int ttsProvider = RegSetting.GetValue("TTSProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TTSProvider")) : 1;
+        public int sourceLanguageAccuracy = RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
+        public int sourceLanguage = RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguage")) : 29;
+        public bool hunSpell = RegSetting.GetValue("hunSpell") != null && RegSetting.GetValue("hunSpell").ToString() == "True";
+        public int targetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : 117;
+        public int translationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : 1;
+        public int ttsProvider = RegSetting.GetValue("TTSProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TTSProvider")) : 1;
 
-        public static ShortcutKeySet shortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : new ShortcutKeySet()
+        public ShortcutKeySet shortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : new ShortcutKeySet()
         {
             Modifiers = { ModifierKeys.Alt },
             NonModifierKey = Key.Z,
@@ -39,7 +37,7 @@ namespace ScreenLookup.src.utils
         public static string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
         public static int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
 
-        public static readonly string[] ProviderServices = [
+        public readonly string[] ProviderServices = [
             "Google",
             "Google New",
             "Bing",
@@ -47,13 +45,13 @@ namespace ScreenLookup.src.utils
             "Yandex",
         ];
 
-        public static readonly string[] SourceAccuracys = [
+        public readonly string[] SourceAccuracys = [
             "Fast (Bad)",
             "Normal",
             "Slow (Accurate)",
         ];
 
-        public static int SourceLanguageAccuracy
+        public int SourceLanguageAccuracy
         {
             get { return sourceLanguageAccuracy; }
             set
@@ -65,7 +63,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static int SourceLanguage
+        public int SourceLanguage
         {
             get { return sourceLanguage; }
             set
@@ -77,7 +75,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool HunSpell
+        public bool HunSpell
         {
             get { return hunSpell; }
             set
@@ -89,7 +87,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static int TargetLanguage
+        public int TargetLanguage
         {
             get { return targetLanguage; }
             set
@@ -101,7 +99,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static int TranslationProvider
+        public int TranslationProvider
         {
             get { return translationProvider; }
             set
@@ -112,7 +110,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("TranslationProvider", value.ToString());
             }
         }
-        public static int TTSProvider
+        public int TTSProvider
         {
             get { return ttsProvider; }
             set
@@ -124,7 +122,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool StartupWithWindows
+        public bool StartupWithWindows
         {
             get { return startupWithWindows; }
             set
@@ -136,7 +134,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool StartInBackground
+        public bool StartInBackground
         {
             get { return startInBackground; }
             set
@@ -148,7 +146,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool MinimizeToTray
+        public bool MinimizeToTray
         {
             get { return minimizeToTray; }
             set
@@ -160,7 +158,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool ShowImage
+        public bool ShowImage
         {
             get { return showImage; }
             set
@@ -172,7 +170,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool ShowHighlight
+        public bool ShowHighlight
         {
             get { return showHighlight; }
             set
@@ -183,7 +181,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("ShowHighlight", value.ToString());
             }
         }
-        public static bool CloseLostFocus
+        public bool CloseLostFocus
         {
             get { return closeLostFocus; }
             set
@@ -195,7 +193,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static bool Topmost
+        public bool Topmost
         {
             get { return topmost; }
             set
@@ -206,7 +204,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("Topmost", value.ToString());
             }
         }
-        public static int FontSizeS
+        public int FontSizeS
         {
             get { return fontSizes; }
             set
@@ -217,7 +215,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("FontSizeS", value.ToString());
             }
         }
-        public static string FontFace
+        public string FontFace
         {
             get { return fontFace; }
             set
@@ -228,7 +226,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("FontFace", value.ToString());
             }
         }
-        public static ShortcutKeySet ShortcutKey
+        public ShortcutKeySet ShortcutKey
         {
             get { return shortcutKey; }
             set
@@ -238,11 +236,11 @@ namespace ScreenLookup.src.utils
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("ShortcutKey", JsonSerializer.Serialize(value));
 
-                mainWindow.SetupHoykey();
+                App.trayIcon.SetupHoykey();
             }
         }
 
-        public static bool IsTesseractInstalled(int accID, int langID)
+        public bool IsTesseractInstalled(int accID, int langID)
         {
             RegistryKey key = RegLoadedTesseract.CreateSubKey(accID.ToString());
             var reg = key.GetValue(LanguageList.GetTesseractTagFromID(langID));
@@ -250,27 +248,27 @@ namespace ScreenLookup.src.utils
             return reg != null;
         }
 
-        public static void SaveTesseractInstalled(int accID, int langID)
+        public void SaveTesseractInstalled(int accID, int langID)
         {
             RegistryKey key = RegLoadedTesseract.CreateSubKey(accID.ToString());
             key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
         }
 
-        public static bool IsHunspellInstalled(int langID)
+        public bool IsHunspellInstalled(int langID)
         {
             var reg = RegLoadedHunspell.GetValue(langID.ToString());
 
             return reg != null;
         }
 
-        public static void SaveHunspellInstalled(int langID)
+        public void SaveHunspellInstalled(int langID)
         {
             RegLoadedHunspell.SetValue(langID.ToString(), true);
         }
 
-        public static void Reset()
+        public void Reset()
         {
-            Setting.ScreenLookupReg.DeleteSubKeyTree("");
+            ScreenLookupReg.DeleteSubKeyTree("");
         }
     }
 }

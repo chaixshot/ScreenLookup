@@ -50,9 +50,9 @@ namespace ScreenLookup.src.windows
 
         public async void StartCaptureScreen()
         {
-            if (!Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
+            if (!App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
             {
-                Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)} in the setting");
+                Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting");
                 HideWindow();
                 return;
             }
@@ -93,7 +93,7 @@ namespace ScreenLookup.src.windows
                         originalWordsLoading.Visibility = Visibility.Collapsed;
 
                         // Translate card
-                        string translateResult = await LanguageList.TranslatedText(tesseract.Text, Setting.TargetLanguage);
+                        string translateResult = await LanguageList.TranslatedText(tesseract.Text, App.setting.TargetLanguage);
                         translatedText.Text = translateResult;
                         translatedTextLoading.Visibility = Visibility.Collapsed;
 
@@ -109,18 +109,18 @@ namespace ScreenLookup.src.windows
 
         private void ResetDefaultState()
         {
-            int buttonWidth = Setting.FontSizeS + 10;
+            int buttonWidth = App.setting.FontSizeS + 10;
             ocrText.Text = "";
             ocrCard.Visibility = Visibility.Collapsed;
 
-            translatedText.FontSize = Setting.FontSizeS;
-            translatedText.FontFamily = new FontFamily(Setting.FontFace);
+            translatedText.FontSize = App.setting.FontSizeS;
+            translatedText.FontFamily = new FontFamily(App.setting.FontFace);
 
-            definitionOriginal.FontSize = Setting.FontSizeS;
-            definitionOriginal.FontFamily = new FontFamily(Setting.FontFace);
+            definitionOriginal.FontSize = App.setting.FontSizeS;
+            definitionOriginal.FontFamily = new FontFamily(App.setting.FontFace);
 
-            definitionTranslated.FontSize = Setting.FontSizeS;
-            definitionTranslated.FontFamily = new FontFamily(Setting.FontFace);
+            definitionTranslated.FontSize = App.setting.FontSizeS;
+            definitionTranslated.FontFamily = new FontFamily(App.setting.FontFace);
 
             originalTTS.Width = buttonWidth;
             originalTTS.Height = buttonWidth;
@@ -138,7 +138,7 @@ namespace ScreenLookup.src.windows
             wordSave.Width = buttonWidth;
             wordSave.Height = buttonWidth;
 
-            captureCard.Visibility = Setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
+            captureCard.Visibility = App.setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
 
             translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
@@ -149,7 +149,7 @@ namespace ScreenLookup.src.windows
             originalWords.ItemsSource = null;
             translatedText.Text = "";
 
-            this.Topmost = Setting.Topmost;
+            this.Topmost = App.setting.Topmost;
         }
 
         private void CenterWindowOnScreen(double imgWidth, double imgHeight)
@@ -162,7 +162,7 @@ namespace ScreenLookup.src.windows
 
             this.MaxWidth = screenWidth - 100;
             this.MaxHeight = screenHeight - 100;
-            this.Width = captureImage.Width + (Setting.FontSizeS * 10);
+            this.Width = captureImage.Width + (App.setting.FontSizeS * 10);
 
             this.Left = (screenWidth / 2) - (this.Width / 2);
             this.Top = (screenHeight / 2) - (this.Height / 2);
@@ -176,7 +176,7 @@ namespace ScreenLookup.src.windows
             byte[] fileBytes = ms.ToArray();
 
             // TesseractOCR
-            var engine = new Engine(TesseractHelper.GetTessdataPath(), LanguageList.GetTesseractTagFromID(Setting.SourceLanguage), EngineMode.Default);
+            var engine = new Engine(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
 
             return engine.Process(img);
@@ -197,7 +197,7 @@ namespace ScreenLookup.src.windows
                             {
                                 string text = word.Text;
 
-                                if (Setting.HunSpell)
+                                if (App.setting.HunSpell)
                                 {
                                     var hunspell = new Hunspell($"{HunspellHelper.FilePath}\\en_US.aff", $"{HunspellHelper.FilePath}\\en_US.dic");
                                     if (!hunspell.Spell(word.Text))
@@ -222,7 +222,7 @@ namespace ScreenLookup.src.windows
 
         private async Task AddToHistory(string original, List<CaptureWordsEntrySimplify> originalWords, string translated)
         {
-            await HistoryLogger.Add(original, originalWords, translated, Setting.SourceLanguage, Setting.TargetLanguage);
+            await HistoryLogger.Add(original, originalWords, translated, App.setting.SourceLanguage, App.setting.TargetLanguage);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
@@ -243,12 +243,12 @@ namespace ScreenLookup.src.windows
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(ocrText.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(ocrText.Text, App.setting.SourceLanguage);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedText.Text, Setting.TargetLanguage);
+            TextToSpeech.StartTTS(translatedText.Text, App.setting.TargetLanguage);
         }
 
         // Word
@@ -274,12 +274,12 @@ namespace ScreenLookup.src.windows
             definitionTranslated.Text = "";
             definitionTranslatedLoading.Visibility = Visibility.Visible;
 
-            TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(definitionOriginal.Text, App.setting.SourceLanguage);
             SavedWordButtonStateChange(word);
 
             if (!translatedCache.TryGetValue(word, out string translateResult))
             {
-                translateResult = await LanguageList.TranslatedText(word, Setting.TargetLanguage);
+                translateResult = await LanguageList.TranslatedText(word, App.setting.TargetLanguage);
                 translatedCache.TryAdd(word, translateResult);
             }
 
@@ -289,24 +289,24 @@ namespace ScreenLookup.src.windows
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(definitionOriginal.Text, App.setting.SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
+            TextToSpeech.StartTTS(definitionTranslated.Text, App.setting.TargetLanguage);
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
         {
-            switch (Setting.translationProvider)
+            switch (App.setting.translationProvider)
             {
                 case 4:
-                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}") { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={definitionOriginal.Text}") { UseShellExecute = true });
 
                     break;
                 default:
-                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
                     break;
             }
         }
@@ -328,14 +328,14 @@ namespace ScreenLookup.src.windows
 
             string word = definitionOriginal.Text;
 
-            SavedWordLogger.ToggleSaved(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
+            SavedWordLogger.ToggleSaved(word, definitionTranslated.Text, App.setting.SourceLanguage, App.setting.TargetLanguage);
             SavedWordButtonStateChange(word);
         }
 
         // Utility
         private void App_Deactivated(object sender, EventArgs e)
         {
-            if (Setting.CloseLostFocus)
+            if (App.setting.CloseLostFocus)
                 HideWindow();
         }
 

@@ -219,24 +219,24 @@ namespace ScreenLookup.src.pages
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(definitionOriginal.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(definitionOriginal.Text, App.setting.SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(definitionTranslated.Text, Setting.TargetLanguage);
+            TextToSpeech.StartTTS(definitionTranslated.Text, App.setting.TargetLanguage);
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
         {
-            switch (Setting.translationProvider)
+            switch (App.setting.TranslationProvider)
             {
                 case 4:
-                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}") { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={definitionOriginal.Text}") { UseShellExecute = true });
 
                     break;
                 default:
-                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(Setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
                     break;
             }
         }

@@ -9,7 +9,7 @@ namespace ScreenLookup.src.utils
         {
             List<CaptureWordsEntry> itemsForCard = [];
 
-            double padding = Math.Max(1.7, Setting.FontSizeS / 5.5);
+            double padding = Math.Max(1.7, App.setting.FontSizeS / 5.5);
             foreach (var item in data)
             {
                 if (item.Stop == 0) // Normal
@@ -19,9 +19,9 @@ namespace ScreenLookup.src.utils
                         Width = Double.NaN,
                         Height = Double.NaN,
                         Padding = $"{padding}, 0, {padding}, 0",
-                        Border = Setting.ShowHighlight ? 1 : 0,
-                        FontSizeS = Setting.FontSizeS,
-                        FontFace = new FontFamily(Setting.FontFace),
+                        Border = App.setting.ShowHighlight ? 1 : 0,
+                        FontSizeS = App.setting.FontSizeS,
+                        FontFace = new FontFamily(App.setting.FontFace),
                         SourceLanguage = sourceLanguage,
                         TargetLanguage = targetLanguage
                     });
@@ -32,8 +32,8 @@ namespace ScreenLookup.src.utils
                         Width = width,
                         Height = 0,
                         Border = 0,
-                        FontSizeS = Setting.FontSizeS,
-                        FontFace = new FontFamily(Setting.FontFace),
+                        FontSizeS = App.setting.FontSizeS,
+                        FontFace = new FontFamily(App.setting.FontFace),
                         SourceLanguage = 0,
                         TargetLanguage = 0
                     });
@@ -44,8 +44,8 @@ namespace ScreenLookup.src.utils
                         Width = width,
                         Height = Double.NaN,
                         Border = 0,
-                        FontSizeS = Setting.FontSizeS,
-                        FontFace = new FontFamily(Setting.FontFace),
+                        FontSizeS = App.setting.FontSizeS,
+                        FontFace = new FontFamily(App.setting.FontFace),
                         SourceLanguage = 0,
                         TargetLanguage = 0
                     });
@@ -56,8 +56,8 @@ namespace ScreenLookup.src.utils
                         Width = width,
                         Height = Double.NaN,
                         Border = 0,
-                        FontSizeS = Setting.FontSizeS,
-                        FontFace = new FontFamily(Setting.FontFace),
+                        FontSizeS = App.setting.FontSizeS,
+                        FontFace = new FontFamily(App.setting.FontFace),
                         SourceLanguage = 0,
                         TargetLanguage = 0
                     });

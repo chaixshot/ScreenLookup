@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:tray="http://schemas.lepo.co/wpfui/2022/xaml/tray"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="MainWindow"
     Width="800"
@@ -76,7 +75,7 @@
                 <Controls:NavigationView.MenuItems>
                     <Controls:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:SettingPage}">
                         <Controls:NavigationViewItem.Content>
-                            <TextBlock Style="{StaticResource NavMenuContent}" Text="Setting" />
+                            <TextBlock Style="{StaticResource NavMenuContent}" Text="App.setting" />
                         </Controls:NavigationViewItem.Content>
                         <Controls:NavigationViewItem.Icon>
                             <Controls:SymbolIcon Symbol="Settings24" />
@@ -123,51 +122,5 @@
             x:Name="DialogHostContainer"
             MinHeight="167"
             Visibility="Collapsed" />
-
-        <tray:NotifyIcon
-            x:Name="NotifyIcon"
-            FocusOnLeftClick="False"
-            Icon="/src/images/applicationIcon.ico"
-            LeftClick="Tray_LeftClick"
-            TooltipText="ScreenLookup">
-            <tray:NotifyIcon.Menu>
-                <ContextMenu>
-                    <MenuItem Click="TrayItemSettings_Click" Header="Settings">
-                        <MenuItem.Icon>
-                            <Controls:SymbolIcon Symbol="Settings24" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-
-                    <MenuItem Click="TrayItemHistory_Click" Header="History">
-                        <MenuItem.Icon>
-                            <Controls:SymbolIcon Symbol="History24" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-
-                    <MenuItem Click="TrayItemSaved_Click" Header="Saved">
-                        <MenuItem.Icon>
-                            <Controls:SymbolIcon Symbol="Star24" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-
-                    <Separator />
-
-                    <MenuItem
-                        x:Name="trayCapture"
-                        Click="TrayItemCapture_Click"
-                        Header="Lookup">
-                        <MenuItem.Icon>
-                            <Controls:SymbolIcon Symbol="Screenshot20" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-
-                    <MenuItem Click="TrayItemExit_Click" Header="Close">
-                        <MenuItem.Icon>
-                            <Controls:SymbolIcon Symbol="Dismiss24" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </ContextMenu>
-            </tray:NotifyIcon.Menu>
-        </tray:NotifyIcon>
     </Grid>
 </Controls:FluentWindow>

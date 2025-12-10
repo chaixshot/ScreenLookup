@@ -1,5 +1,4 @@
-﻿using ScreenLookup.src.utils;
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 
 class DownloadHelper
@@ -56,10 +55,8 @@ class DownloadHelper
 internal class TesseractHelper
 {
     private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-    public static string GetTessdataPath()
+    public static string GetTessdataPath(int accID)
     {
-        int accID = Setting.SourceLanguageAccuracy;
-
         if (accID == 0)
             return Path.Combine(appData, "ScreenLookup", "tessdata_fast");
         if (accID == 1)

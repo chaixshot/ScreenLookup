@@ -13,7 +13,7 @@ namespace ScreenLookup.src.pages
 
         public SettingPage()
         {
-            DataContext = new Setting();
+            DataContext = App.setting;
             InitializeComponent();
 
             LoadTesseractContent();
@@ -24,15 +24,15 @@ namespace ScreenLookup.src.pages
 
             ApplyStartupWithWindows();
 
-            captureShortcut.KeySet = Setting.ShortcutKey;
+            captureShortcut.KeySet = App.setting.ShortcutKey;
         }
 
         private void ApplyStartupWithWindows()
         {
-            if (Setting.StartupWithWindows)
-                Setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
+            if (App.setting.StartupWithWindows)
+                App.setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
             else
-                Setting.RegAutorun.DeleteValue("ScreenLookup", false);
+                App.setting.RegAutorun.DeleteValue("ScreenLookup", false);
         }
 
         private void LoadTesseractContent()
@@ -50,7 +50,7 @@ namespace ScreenLookup.src.pages
                 targetLanguage.Items.Add(text);
             }
 
-            foreach (string accuracy in Setting.SourceAccuracys)
+            foreach (string accuracy in App.setting.SourceAccuracys)
             {
                 sourceLanguageAccuracy.Items.Add(accuracy);
             }
@@ -61,7 +61,7 @@ namespace ScreenLookup.src.pages
             translationProvider.Items.Clear();
             ttsProvider.Items.Clear();
 
-            foreach (string provider in Setting.ProviderServices)
+            foreach (string provider in App.setting.ProviderServices)
             {
                 this.translationProvider.Items.Add(provider);
                 this.ttsProvider.Items.Add(provider);
@@ -76,7 +76,7 @@ namespace ScreenLookup.src.pages
                 tesseractLoadingIcon.Visibility = Visibility.Visible;
                 tesseractLoadIcon.Visibility = Visibility.Collapsed;
             }
-            else if (Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
+            else if (App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
             {
@@ -93,7 +93,7 @@ namespace ScreenLookup.src.pages
                 hunspellLoadingIcon.Visibility = Visibility.Visible;
                 hunspellLoadIcon.Visibility = Visibility.Collapsed;
             }
-            else if (Setting.IsHunspellInstalled(Setting.SourceLanguage))
+            else if (App.setting.IsHunspellInstalled(App.setting.SourceLanguage))
                 downloadHunspell.Visibility = Visibility.Hidden;
             else
             {
@@ -105,8 +105,8 @@ namespace ScreenLookup.src.pages
 
         private async void DownloadTesseractButton_Click(object sender, RoutedEventArgs e)
         {
-            int langID = Setting.SourceLanguage;
-            int accID = Setting.SourceLanguageAccuracy;
+            int langID = App.setting.SourceLanguage;
+            int accID = App.setting.SourceLanguageAccuracy;
 
             string? pickedLanguageFile = LanguageList.LanguageTesseract[langID];
             if (isLoadingTesseract || string.IsNullOrWhiteSpace(pickedLanguageFile))
@@ -114,9 +114,9 @@ namespace ScreenLookup.src.pages
 
             isLoadingTesseract = true;
             ButtonDownloadTesseracChanged();
-            SnackbarHost.Show("Source Language", $"Downloading {Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999, closeButton: false);
+            SnackbarHost.Show("Source Language", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999, closeButton: false);
 
-            string tesseractFilePath = TesseractHelper.GetTessdataPath(Setting.SourceLanguageAccuracy);
+            string tesseractFilePath = TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy);
             string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
             string filePath = Path.Combine(tempPath, pickedLanguageFile);
 
@@ -126,11 +126,11 @@ namespace ScreenLookup.src.pages
             if (isDownloaded)
             {
                 await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
-                Setting.SaveTesseractInstalled(accID, langID);
-                SnackbarHost.Show("Source Language", $"\"{Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
+                App.setting.SaveTesseractInstalled(accID, langID);
+                SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
             }
             else
-                SnackbarHost.Show("Source Language", $"Unable to download \"{Setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", "error");
+                SnackbarHost.Show("Source Language", $"Unable to download \"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", "error");
 
             isLoadingTesseract = false;
             ButtonDownloadTesseracChanged();
@@ -138,7 +138,7 @@ namespace ScreenLookup.src.pages
 
         private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
         {
-            int langID = Setting.SourceLanguage;
+            int langID = App.setting.SourceLanguage;
             string DisplayName = LanguageList.GetDisplayNameFromID(langID, false);
 
             if (!HunspellHelper.FileNames.TryGetValue(DisplayName, out string? fileName))
@@ -182,14 +182,14 @@ namespace ScreenLookup.src.pages
             }
 
             isLoadingHunspell = false;
-            Setting.SaveHunspellInstalled(langID);
+            App.setting.SaveHunspellInstalled(langID);
             ButtonDownloadHunspellChanged();
             SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
         }
 
         private void ShortcutControl_KeySetChanged(object sender, EventArgs e)
         {
-            Setting.ShortcutKey = captureShortcut.KeySet;
+            App.setting.ShortcutKey = captureShortcut.KeySet;
         }
 
         private async void ResetButton(object sender, RoutedEventArgs e)
@@ -198,7 +198,7 @@ namespace ScreenLookup.src.pages
             bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This operation cannot be undone!", 0);
             if (isYes)
             {
-                Setting.Reset();
+                App.setting.Reset();
                 await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
             }
         }
@@ -225,12 +225,12 @@ namespace ScreenLookup.src.pages
             CheckBox checkbox = sender as CheckBox;
             bool isCheck = (bool)checkbox.IsChecked;
 
-            if (Setting.IsHunspellInstalled(Setting.SourceLanguage))
+            if (App.setting.IsHunspellInstalled(App.setting.SourceLanguage))
                 hunspell.IsChecked = isCheck;
             else
             {
                 if (isCheck)
-                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(Setting.SourceLanguage, true)}\"", "error");
+                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
 
                 hunspell.IsChecked = false;
             }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using Wpf.Ui.Controls;
 
 namespace ScreenLookup.src.utils
@@ -10,7 +7,7 @@ namespace ScreenLookup.src.utils
     {
         public static async Task<bool> Show(string title, string content, int type)
         {
-            var dialogHostContainer = (App.Current.MainWindow as MainWindow)?.DialogHostContainer;
+            var dialogHostContainer = App.mainWindow?.DialogHostContainer;
             var dialog = new ContentDialog
             {
                 Title = new Wpf.Ui.Controls.TextBlock

@@ -286,7 +286,7 @@ namespace ScreenLookup.src.utils
         public static async Task<string> TranslatedText(string text, int targetLanguage)
         {
             // Translated text
-            var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
+            var translator = LanguageList.GetTranslatorService(App.setting.TranslationProvider);
             try
             {
                 var translateResult = await translator.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLanguage));

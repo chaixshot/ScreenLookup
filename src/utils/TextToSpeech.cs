@@ -13,7 +13,7 @@ namespace ScreenLookup.src.utils
         public static async void PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
             var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
-            var translator = LanguageList.GetTranslatorService(Setting.TTSProvider);
+            var translator = LanguageList.GetTranslatorService(App.setting.TTSProvider);
 
             try
             {
@@ -66,7 +66,7 @@ namespace ScreenLookup.src.utils
             catch (Exception ex)
             {
                 if (ex.Message.Contains("Language not supported"))
-                    Notification.Show($"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{Setting.ProviderServices[Setting.TTSProvider]}\"");
+                    Notification.Show($"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"");
                 else
                     Notification.Show(ex.Message);
             }
