@@ -105,11 +105,11 @@ namespace ScreenLookup
                 {
                     Notification.Show("ScreenLookup running in the background");
                 }
-                catch (Exception)
+                finally
                 {
+                    this.WindowState = (WindowState)FormWindowState.Minimized;
+                    this.Hide();
                 }
-                this.WindowState = (WindowState)FormWindowState.Minimized;
-                this.Hide();
             }
         }
 
@@ -188,8 +188,7 @@ namespace ScreenLookup
 
         private void CaptureWindowItem_Click(object sender, RoutedEventArgs e)
         {
-            CaptureWindow CaptureWindow = new CaptureWindow();
-            CaptureWindow.Show();
+            GetCaptureWindow().StartCaptureScreen();
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
