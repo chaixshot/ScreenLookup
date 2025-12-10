@@ -138,6 +138,20 @@
                         </MenuItem.Icon>
                     </MenuItem>
 
+                    <MenuItem Click="TrayItemHistory_Click" Header="History">
+                        <MenuItem.Icon>
+                            <Controls:SymbolIcon Symbol="History24" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+
+                    <MenuItem Click="TrayItemSaved_Click" Header="Saved">
+                        <MenuItem.Icon>
+                            <Controls:SymbolIcon Symbol="Star24" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+
+                    <Separator />
+
                     <MenuItem
                         x:Name="trayCapture"
                         Click="TrayItemCapture_Click"

@@ -187,6 +187,19 @@ namespace ScreenLookup
         private void TrayItemSettings_Click(object sender, RoutedEventArgs e)
         {
             ShowFromTray();
+            this.RootNavigation.Navigate(typeof(SettingPage));
+        }
+
+        private void TrayItemHistory_Click(object sender, RoutedEventArgs e)
+        {
+            ShowFromTray();
+            this.RootNavigation.Navigate(typeof(HistoryPage));
+        }
+
+        private void TrayItemSaved_Click(object sender, RoutedEventArgs e)
+        {
+            ShowFromTray();
+            this.RootNavigation.Navigate(typeof(SavedPage));
         }
 
         private void TrayItemCapture_Click(object sender, RoutedEventArgs e)
