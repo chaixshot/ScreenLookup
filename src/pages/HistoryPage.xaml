@@ -220,8 +220,6 @@
                                                                 BorderThickness="{Binding Border}"
                                                                 Click="Button_Word"
                                                                 Content="{Binding Word}"
-                                                                FontFamily="{Binding FontFace}"
-                                                                FontSize="{Binding FontSizeS, Mode=OneWay}"
                                                                 Tag="{Binding TargetLanguage}"
                                                                 ToolTip="{Binding SourceLanguage}" />
                                                         </DataTemplate>
@@ -271,8 +269,6 @@
                                                 <Controls:TextBlock
                                                     Grid.Column="1"
                                                     Margin="15,0,0,0"
-                                                    FontFamily="{Binding FontFace}"
-                                                    FontSize="{Binding FontSizeS, Mode=OneWay}"
                                                     Text="{Binding Translated}"
                                                     TextWrapping="Wrap" />
                                             </Grid>
