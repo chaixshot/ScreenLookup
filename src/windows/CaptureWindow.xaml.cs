@@ -141,8 +141,8 @@ namespace ScreenLookup.src.windows
             translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
 
-            originalCard.Visibility = Visibility.Collapsed;
-            translatedCard.Visibility = Visibility.Collapsed;
+            originalCard.Visibility = Visibility.Visible;
+            translatedCard.Visibility = Visibility.Visible;
 
             originalWords.ItemsSource = null;
             translatedText.Text = "";
@@ -335,6 +335,14 @@ namespace ScreenLookup.src.windows
         {
             if (Setting.CloseLostFocus)
                 HideWindow();
+        }
+
+        private void Button_Copy(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+
+            Clipboard.SetText(button.Tag.ToString());
+            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: "capture");
         }
     }
 }

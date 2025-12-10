@@ -272,7 +272,7 @@ namespace ScreenLookup.src.pages
         {
             var button = sender as Button;
 
-            Clipboard.SetText(button.ToolTip.ToString());
+            Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
     }

@@ -187,8 +187,8 @@
                                                     Click="Button_WordCopy"
                                                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                                             Filled=False}"
-                                                    Tag="{Binding SourceLanguage}"
-                                                    ToolTip="{Binding Original}" />
+                                                    Tag="{Binding Original}"
+                                                    ToolTip="Copy" />
                                                 <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Original}" />
                                             </StackPanel>
                                         </DataTemplate>
@@ -223,8 +223,8 @@
                                                     Click="Button_WordCopy"
                                                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                                             Filled=False}"
-                                                    Tag="{Binding TargetLanguage}"
-                                                    ToolTip="{Binding Translated}" />
+                                                    Tag="{Binding Translated}"
+                                                    ToolTip="Copy" />
                                                 <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Translated}" />
                                             </StackPanel>
                                         </DataTemplate>
