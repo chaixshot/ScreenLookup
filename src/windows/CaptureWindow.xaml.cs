@@ -88,8 +88,8 @@ namespace ScreenLookup.src.windows
         private void ApplySettings()
         {
             int buttonWidth = Setting.FontSizeS + 10;
-            originalText.Text = "";
-            originalTextCard.Visibility = Visibility.Collapsed;
+            ocrText.Text = "";
+            ocrCard.Visibility = Visibility.Collapsed;
 
             translatedText.FontSize = Setting.FontSizeS;
             translatedText.FontFamily = new FontFamily(Setting.FontFace);
@@ -121,7 +121,7 @@ namespace ScreenLookup.src.windows
             translatedTextLoading.Visibility = Visibility.Visible;
             ocrWordsLoading.Visibility = Visibility.Visible;
 
-            ocrWords.ItemsSource = null;
+            originalWords.ItemsSource = null;
             translatedText.Text = "";
 
             this.Topmost = Setting.Topmost;
@@ -233,7 +233,7 @@ namespace ScreenLookup.src.windows
         // Paragraph
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(originalText.Text, Setting.SourceLanguage);
+            TextToSpeech.StartTTS(ocrText.Text, Setting.SourceLanguage);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
@@ -250,7 +250,7 @@ namespace ScreenLookup.src.windows
             string word = button.Content.ToString();
 
             // Change flyout position follow cursor
-            var MousePos_Point = Mouse.GetPosition(originalWords);
+            var MousePos_Point = Mouse.GetPosition(originalCard);
             Matrix matrix = new Matrix();
             matrix.Translate(MousePos_Point.X - 50, MousePos_Point.Y);
             mt.Matrix = matrix;
@@ -305,7 +305,7 @@ namespace ScreenLookup.src.windows
         {
             var saveButton = wordSave as Button;
             var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
-            saveSymbolIcon?.Filled = await SavedWord.IsExist(word);
+            saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
@@ -318,7 +318,7 @@ namespace ScreenLookup.src.windows
 
             string word = definitionOriginal.Text;
 
-            SavedWord.ToggleSaved(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
+            SavedWordLogger.ToggleSaved(word, definitionTranslated.Text, Setting.SourceLanguage, Setting.TargetLanguage);
             SavedWordButtonStateChange(word);
         }
 

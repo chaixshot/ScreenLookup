@@ -19,6 +19,7 @@
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
+
     <Grid Margin="10,5,10,5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -28,7 +29,7 @@
         </Grid.RowDefinitions>
 
         <Controls:Card
-            x:Name="captureImageCard"
+            x:Name="captureCard"
             Grid.Row="0"
             Padding="0">
             <Controls:Image
@@ -38,12 +39,12 @@
         </Controls:Card>
 
         <Controls:Card
-            x:Name="originalTextCard"
+            x:Name="ocrCard"
             Grid.Row="1"
             Margin="0,3,0,0">
             <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
                 <Controls:TextBlock
-                    x:Name="originalText"
+                    x:Name="ocrText"
                     Grid.Column="1"
                     Margin="45,0,0,0"
                     Text="originalText"
@@ -53,7 +54,7 @@
 
 
         <Controls:Card
-            x:Name="originalWords"
+            x:Name="originalCard"
             Grid.Row="2"
             Margin="0,3,0,0">
             <Grid>
@@ -83,13 +84,13 @@
                         </Grid.ColumnDefinitions>
 
                         <xControls:LoadingSpiner
-                            x:Name="ocrWordsLoading"
+                            x:Name="originalWordsLoading"
                             Width="20"
                             Height="20"
                             Margin="5,0,0,0" />
 
                         <StackPanel Grid.Column="1" Margin="5,0,0,0">
-                            <ItemsControl Name="ocrWords">
+                            <ItemsControl Name="originalWords">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal" />
@@ -106,7 +107,8 @@
                                             HorizontalAlignment="Left"
                                             BorderThickness="{Binding Border}"
                                             Click="Button_Word"
-                                            Tag="{Binding SourceLanguage}">
+                                            Tag="{Binding SourceLanguage}"
+                                            ToolTip="{Binding Word}">
                                             <Controls:Button.Content>
                                                 <wpfui:TextBlock
                                                     FontFamily="{Binding FontFace}"
