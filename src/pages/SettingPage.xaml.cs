@@ -147,6 +147,16 @@ namespace ScreenLookup.src.pages
             }
         }
 
+        public bool ShowHighlight
+        {
+            get { return Setting.ShowHighlight; }
+            set
+            {
+                Setting.ShowHighlight = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool CloseLostFocus
         {
             get { return Setting.CloseLostFocus; }

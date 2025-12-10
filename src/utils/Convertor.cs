@@ -17,7 +17,7 @@ namespace ScreenLookup.src.utils
                         Word = item.Word,
                         Width = Double.NaN,
                         Height = Double.NaN,
-                        Border = 1,
+                        Border = Setting.ShowHighlight ? 1 : 0,
                         FontSizeS = Setting.FontSizeS,
                         FontFace = new FontFamily(Setting.FontFace),
                         SourceLanguage = sourceLanguage,
