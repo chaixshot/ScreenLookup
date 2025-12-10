@@ -65,7 +65,10 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                Notification.Show(ex.Message);
+                if (ex.Message.Contains("Language not supported"))
+                    Notification.Show($"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{Setting.ProviderServices[Setting.TTSProvider]}\"");
+                else
+                    Notification.Show(ex.Message);
             }
         }
 
