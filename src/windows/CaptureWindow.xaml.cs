@@ -26,7 +26,7 @@ namespace ScreenLookup.src.windows
         public CaptureWindow()
         {
             InitializeComponent();
-            ApplySettings();
+            ResetDefaultState();
 
             PreviewKeyDown += (s, e) =>
             {
@@ -38,10 +38,17 @@ namespace ScreenLookup.src.windows
         private void HideWindow()
         {
             this.Hide();
+            translatedCache.Clear();
             TextToSpeech.StopTTS();
         }
 
-        public void StartCaptureScreen()
+        private void ShowWindow()
+        {
+            this.Show();
+            this.Activate();
+        }
+
+        public async void StartCaptureScreen()
         {
             if (!Setting.IsTesseractInstalled(Setting.SourceLanguageAccuracy, Setting.SourceLanguage))
             {
@@ -59,33 +66,46 @@ namespace ScreenLookup.src.windows
                 return;
             }
 
-            ApplySettings();
-
-            // Window size
-            this.Width = image.Width + 50 + (Setting.FontSizeS * 5);
-            this.MinWidth = this.Width;
-            this.MaxWidth = this.Width;
-
-            BitmapSource writeBmp = GetImageSourceFromBitmap(image);
-            captureImage.Source = writeBmp;
+            ResetDefaultState();
+            ChangeCaptureImage(image);
+            CenterWindowOnScreen(image.Width, image.Height);
 
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
-                Dispatcher.BeginInvoke(new Action(() =>
+                Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    Task<TesseractOCR.Page> tesseractPage = GetTesseractPageFromBitmap(image);
+                    TesseractOCR.Page tesseract = await GetTesseractPageFromBitmap(image);
 
-                    ApplyTesseractPage(tesseractPage.Result);
+                    if (!string.IsNullOrWhiteSpace(tesseract.Text))
+                    {
+                        originalCard.Visibility = Visibility.Visible;
+                        translatedCard.Visibility = Visibility.Visible;
+
+                        // Original full paragraph
+                        ocrText.Text = tesseract.Text;
+
+                        // Original words card
+                        List<CaptureWordsEntrySimplify> captureWords = await TesseractCaptureWordsySimplify(tesseract);
+                        originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, width: this.Width);
+                        originalWordsLoading.Visibility = Visibility.Collapsed;
+
+                        // Translate card
+                        string translateResult = await LanguageList.TranslatedText(tesseract.Text, Setting.TargetLanguage);
+                        translatedText.Text = translateResult;
+                        translatedTextLoading.Visibility = Visibility.Collapsed;
+
+                        await AddToHistory(ocrText.Text, captureWords, translateResult);
+
+                        CenterWindowOnScreen(image.Width, image.Height);
+                    }
                 }));
             });
 
-            CenterWindowOnScreen();
-            this.Show();
-            this.Activate();
+            ShowWindow();
         }
 
-        private void ApplySettings()
+        private void ResetDefaultState()
         {
             int buttonWidth = Setting.FontSizeS + 10;
             ocrText.Text = "";
@@ -119,7 +139,10 @@ namespace ScreenLookup.src.windows
             captureImageCard.Visibility = Setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
 
             translatedTextLoading.Visibility = Visibility.Visible;
-            ocrWordsLoading.Visibility = Visibility.Visible;
+            originalWordsLoading.Visibility = Visibility.Visible;
+
+            originalCard.Visibility = Visibility.Collapsed;
+            translatedCard.Visibility = Visibility.Collapsed;
 
             originalWords.ItemsSource = null;
             translatedText.Text = "";
@@ -127,20 +150,26 @@ namespace ScreenLookup.src.windows
             this.Topmost = Setting.Topmost;
         }
 
-        private void CenterWindowOnScreen()
+        private void CenterWindowOnScreen(double imgWidth, double imgHeight)
         {
-            double screenWidth = System.Windows.SystemParameters.PrimaryScreenWidth;
-            double screenHeight = System.Windows.SystemParameters.PrimaryScreenHeight;
-            double windowWidth = this.Width;
-            double windowHeight = this.Height;
-            this.Left = (screenWidth / 2) - (windowWidth / 2);
-            this.Top = (screenHeight / 2) - (windowHeight / 2);
+            double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
+            double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
+
+            captureImage.Width = Math.Min(imgWidth, screenWidth);
+            captureImage.Height = Math.Min(imgHeight, screenHeight / 2);
+
+            this.MaxWidth = screenWidth - 100;
+            this.MaxHeight = screenHeight - 100;
+            this.Width = captureImage.Width + 50;
+
+            this.Left = (screenWidth / 2) - (this.Width / 2);
+            this.Top = (screenHeight / 2) - (this.Height / 2);
         }
 
-        private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
+        private static async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
         {
             // Image
-            MemoryStream ms = new MemoryStream();
+            MemoryStream ms = new();
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
             byte[] fileBytes = ms.ToArray();
 
@@ -151,16 +180,8 @@ namespace ScreenLookup.src.windows
             return engine.Process(img);
         }
 
-        private async void ApplyTesseractPage(TesseractOCR.Page page)
+        private static async Task<List<CaptureWordsEntrySimplify>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
         {
-            var cardVisibility = string.IsNullOrWhiteSpace(page.Text) ? Visibility.Collapsed : Visibility.Visible;
-            originalWords.Visibility = cardVisibility;
-            translatedCard.Visibility = cardVisibility;
-
-            // Original text
-            originalText.Text = page.Text;
-
-            // Original words
             List<CaptureWordsEntrySimplify> items = [];
             foreach (var block in page.Layout)
             {
@@ -193,29 +214,16 @@ namespace ScreenLookup.src.windows
                 }
                 items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 3 });
             }
-            ocrWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(items);
-            ocrWordsLoading.Visibility = Visibility.Collapsed;
 
-            // Translated text
-            if (!string.IsNullOrWhiteSpace(page.Text))
-            {
-                var translator = LanguageList.GetTranslatorService(Setting.TranslationProvider);
-                var translateResult = await translator.TranslateAsync(page.Text, LanguageList.GetTesseractTagFromID(Setting.TargetLanguage));
-                translatedText.Text = translateResult.Translation;
-                translatedTextLoading.Visibility = Visibility.Collapsed;
-            }
-
-            AddToHistory(originalText.Text, items, translatedText.Text);
-            CenterWindowOnScreen();
+            return items;
         }
 
-        private async void AddToHistory(string original, List<CaptureWordsEntrySimplify> originalWords, string translated)
+        private async Task AddToHistory(string original, List<CaptureWordsEntrySimplify> originalWords, string translated)
         {
             await HistoryLogger.Add(original, originalWords, translated, Setting.SourceLanguage, Setting.TargetLanguage);
         }
 
-
-        private static BitmapSource GetImageSourceFromBitmap(Bitmap bmp)
+        private void ChangeCaptureImage(Bitmap bmp)
         {
             // If you get 'dllimport unknown'-, then add 'using System.Runtime.InteropServices;'
             [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
@@ -225,7 +233,7 @@ namespace ScreenLookup.src.windows
             var handle = bmp.GetHbitmap();
             try
             {
-                return Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                captureImage.Source = Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
             }
             finally { DeleteObject(handle); }
         }
@@ -244,10 +252,12 @@ namespace ScreenLookup.src.windows
         // Word
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            flayOut.IsOpen = false;
 
             Button? button = sender as Button;
-            string word = button.Content.ToString();
+            string word = button.ToolTip.ToString();
+
+            if (string.IsNullOrWhiteSpace(word))
+                return;
 
             // Change flyout position follow cursor
             var MousePos_Point = Mouse.GetPosition(originalCard);
@@ -256,9 +266,7 @@ namespace ScreenLookup.src.windows
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            if (string.IsNullOrWhiteSpace(word))
-                return;
-
+            flayOut.IsOpen = false;
             flayOut.IsOpen = true;
             definitionOriginal.Text = word;
             definitionTranslated.Text = "";
