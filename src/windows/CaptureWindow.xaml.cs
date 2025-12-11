@@ -50,21 +50,18 @@ namespace ScreenLookup.src.windows
 
         public async void StartCaptureScreen()
         {
+            HideWindow();
+
             if (!App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
             {
                 Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting");
-                HideWindow();
                 return;
             }
 
             // Screenshot
             Bitmap image = ScreenGrabber.CaptureDialog(false);
             if (image == null)
-            {
-                Notification.Show("No image has been captured");
-                HideWindow();
                 return;
-            }
 
             ResetDefaultState();
             ChangeCaptureImage(image);
