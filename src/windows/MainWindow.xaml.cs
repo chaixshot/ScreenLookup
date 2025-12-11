@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Windows;
@@ -15,12 +16,12 @@ namespace ScreenLookup
     {
         public MainWindow()
         {
-            DataContext = this;
             InitializeComponent();
             WindowStateRestore(this, "Main");
 
             Loaded += (s, e) =>
             {
+                this.RootNavigation.Navigate(typeof(SettingPage));
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
 
                 ToggleTopmost(App.setting.Topmost);

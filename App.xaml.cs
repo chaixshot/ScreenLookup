@@ -16,8 +16,12 @@ namespace ScreenLookup
             trayIcon = new();
             trayIcon.Show();
 
-            if (!setting.StartInBackground)
+            if (setting.StartInBackground)
+                Notification.Show("ScreenLookup running in the background");
+            else
+            {
                 mainWindow.Show();
+            }
 
             base.OnStartup(e);
         }
