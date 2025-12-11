@@ -276,18 +276,14 @@ namespace ScreenLookup.src.pages
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
 
-        private void ToggleHistoryWords(object sender, RoutedEventArgs e)
+        private void original_MouseEnter(object sender, MouseEventArgs e)
         {
-            var toggleSwitch = sender as ToggleSwitch;
-            bool isCheck = (bool)toggleSwitch.IsChecked;
-            var parentStackPanel = toggleSwitch?.Parent as StackPanel;
-            var parentGird = parentStackPanel?.Parent as Grid;
+            var parent = sender as Grid;
+            var originalWords = parent.FindName("originalWords") as ItemsControl;
+            var original = parent.FindName("original") as Wpf.Ui.Controls.TextBlock;
 
-            var originalWords = parentGird.FindName("originalWords") as ItemsControl;
-            var original = parentGird.FindName("original") as Wpf.Ui.Controls.TextBlock;
-
-            originalWords.Visibility = isCheck ? Visibility.Visible : Visibility.Collapsed;
-            original.Visibility = isCheck ? Visibility.Collapsed : Visibility.Visible;
+            originalWords.Visibility = Visibility.Visible;
+            original.Visibility = Visibility.Collapsed;
         }
     }
 }

@@ -195,7 +195,7 @@
                                 <DataGridTemplateColumn Width="*" Header="Original">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Grid>
+                                            <Grid MouseEnter="original_MouseEnter">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
@@ -226,20 +226,6 @@
                                                                                 Filled=False}"
                                                         Tag="{Binding Original}"
                                                         ToolTip="Copy" />
-
-                                                    <Controls:ToggleSwitch
-                                                        Margin="2,2,0,0"
-                                                        HorizontalContentAlignment="Center"
-                                                        VerticalContentAlignment="Center"
-                                                        Click="ToggleHistoryWords"
-                                                        ToolTip="Show words">
-                                                        <Controls:ToggleSwitch.LayoutTransform>
-                                                            <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
-                                                        </Controls:ToggleSwitch.LayoutTransform>
-                                                        <Controls:ToggleSwitch.RenderTransform>
-                                                            <ScaleTransform ScaleX=".7" ScaleY=".7" />
-                                                        </Controls:ToggleSwitch.RenderTransform>
-                                                    </Controls:ToggleSwitch>
                                                 </StackPanel>
 
                                                 <ItemsControl
