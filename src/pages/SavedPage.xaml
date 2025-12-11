@@ -135,10 +135,15 @@
                             VerticalAlignment="Stretch"
                             AutoGenerateColumns="False"
                             BorderThickness="0,0,0,0"
+                            EnableColumnVirtualization="True"
                             EnableRowVirtualization="True"
                             GridLinesVisibility="Horizontal"
                             IsReadOnly="True"
+                            ScrollViewer.CanContentScroll="True"
+                            ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                            ScrollViewer.VerticalScrollBarVisibility="Visible"
                             VirtualizingPanel.IsVirtualizing="True"
+                            VirtualizingPanel.IsVirtualizingWhenGrouping="False"
                             VirtualizingPanel.VirtualizationMode="Recycling">
                             <DataGrid.VerticalGridLinesBrush>
                                 <LinearGradientBrush MappingMode="Absolute" EndPoint="0,3">

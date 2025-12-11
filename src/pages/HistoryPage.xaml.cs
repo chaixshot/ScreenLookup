@@ -1,5 +1,5 @@
-﻿using ScreenLookup.src.models;
-using ScreenLookup.src.utils;
+﻿using ScreenLookup.src.utils;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,10 +15,12 @@ namespace ScreenLookup.src.pages
     /// </summary>
     public partial class HistoryPage : Page
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private int currentPage = 1;
         private int searchPage = 1;
         private int maxPage = 1;
-        private int maxRowPerPage = 5;
+        private int maxRowPerPage = 10;
 
         public string SearchText { get; set; } = string.Empty;
 
@@ -46,12 +48,10 @@ namespace ScreenLookup.src.pages
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
                     var data = await HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText);
-                    List<HistoryLoggerPageEntry> history = data.Item1;
 
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-
-                    dataGrid.ItemsSource = history;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
+                    dataGrid.ItemsSource = data.Item1;
                 }));
             });
         }
@@ -274,6 +274,20 @@ namespace ScreenLookup.src.pages
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
+        }
+
+        private void ToggleHistoryWords(object sender, RoutedEventArgs e)
+        {
+            var toggleSwitch = sender as ToggleSwitch;
+            bool isCheck = (bool)toggleSwitch.IsChecked;
+            var parentStackPanel = toggleSwitch?.Parent as StackPanel;
+            var parentGird = parentStackPanel?.Parent as Grid;
+
+            var originalWords = parentGird.FindName("originalWords") as ItemsControl;
+            var original = parentGird.FindName("original") as Wpf.Ui.Controls.TextBlock;
+
+            originalWords.Visibility = isCheck ? Visibility.Visible : Visibility.Collapsed;
+            original.Visibility = isCheck ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 }

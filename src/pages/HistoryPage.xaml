@@ -11,6 +11,29 @@
     Title="History"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <Style x:Key="DataGrid_Top" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Top" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Setter Property="Foreground" Value="Black" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{x:Null}" />
+                    <Setter Property="BorderBrush" Value="{x:Null}" />
+                </Trigger>
+            </Style.Triggers>
+
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="20,12,40,40">
         <Controls:DynamicScrollViewer>
             <StackPanel Grid.Column="0" Orientation="Vertical">
@@ -69,10 +92,10 @@
                                 Padding="10,4,10,7"
                                 VerticalAlignment="Stretch"
                                 SelectedIndex="0">
-                                <ComboBoxItem Content="5/page" Tag="5" />
                                 <ComboBoxItem Content="10/page" Tag="10" />
                                 <ComboBoxItem Content="20/page" Tag="20" />
                                 <ComboBoxItem Content="30/page" Tag="30" />
+                                <ComboBoxItem Content="50/page" Tag="50" />
                             </ComboBox>
 
                             <Controls:AutoSuggestBox
@@ -136,11 +159,18 @@
                             VerticalAlignment="Stretch"
                             AutoGenerateColumns="False"
                             BorderThickness="0,0,0,0"
+                            CellStyle="{StaticResource DataGrid_Top}"
+                            EnableColumnVirtualization="True"
                             EnableRowVirtualization="True"
                             GridLinesVisibility="Horizontal"
                             IsReadOnly="True"
+                            ScrollViewer.CanContentScroll="True"
+                            ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                            ScrollViewer.VerticalScrollBarVisibility="Visible"
                             VirtualizingPanel.IsVirtualizing="True"
+                            VirtualizingPanel.IsVirtualizingWhenGrouping="False"
                             VirtualizingPanel.VirtualizationMode="Recycling">
+
                             <DataGrid.VerticalGridLinesBrush>
                                 <LinearGradientBrush MappingMode="Absolute" EndPoint="0,3">
                                     <GradientStop Offset="0.33" Color="#18FFFFFF" />
@@ -172,7 +202,6 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel>
                                                     <Controls:Button
-                                                        Grid.Column="0"
                                                         Width="20"
                                                         Height="20"
                                                         Padding="0"
@@ -185,7 +214,6 @@
                                                         Tag="{Binding SourceLanguage}"
                                                         ToolTip="{Binding Original}" />
                                                     <Controls:Button
-                                                        Grid.Column="0"
                                                         Width="20"
                                                         Height="20"
                                                         Margin="0,2,0,0"
@@ -198,11 +226,28 @@
                                                                                 Filled=False}"
                                                         Tag="{Binding Original}"
                                                         ToolTip="Copy" />
+
+                                                    <Controls:ToggleSwitch
+                                                        Margin="2,2,0,0"
+                                                        HorizontalContentAlignment="Center"
+                                                        VerticalContentAlignment="Center"
+                                                        Click="ToggleHistoryWords"
+                                                        ToolTip="Show words">
+                                                        <Controls:ToggleSwitch.LayoutTransform>
+                                                            <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
+                                                        </Controls:ToggleSwitch.LayoutTransform>
+                                                        <Controls:ToggleSwitch.RenderTransform>
+                                                            <ScaleTransform ScaleX=".7" ScaleY=".7" />
+                                                        </Controls:ToggleSwitch.RenderTransform>
+                                                    </Controls:ToggleSwitch>
                                                 </StackPanel>
+
                                                 <ItemsControl
+                                                    x:Name="originalWords"
                                                     Grid.Column="1"
                                                     Margin="15,0,0,0"
-                                                    ItemsSource="{Binding OriginalWords}">
+                                                    ItemsSource="{Binding OriginalWords}"
+                                                    Visibility="Collapsed">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <WrapPanel Orientation="Horizontal" />
@@ -225,6 +270,12 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
+                                                <Controls:TextBlock
+                                                    x:Name="original"
+                                                    Grid.Column="1"
+                                                    Margin="15,0,0,0"
+                                                    Text="{Binding Original}"
+                                                    TextWrapping="Wrap" />
                                             </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
@@ -280,16 +331,20 @@
                                 <DataGridTemplateColumn Width="Auto">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Controls:Button
-                                                Margin="5,0,0,0"
-                                                HorizontalAlignment="Right"
-                                                Appearance="Transparent"
-                                                Click="Delete_click"
-                                                Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
-                                                                        Filled=False}"
-                                                MouseOverBackground="#07000000"
-                                                Tag="{Binding Id}"
-                                                ToolTip="Delete" />
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Controls:Button
+                                                    Margin="5,0,0,0"
+                                                    Appearance="Transparent"
+                                                    Click="Delete_click"
+                                                    Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
+                                                                            Filled=False}"
+                                                    MouseOverBackground="#07000000"
+                                                    Tag="{Binding Id}"
+                                                    ToolTip="Delete" />
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
