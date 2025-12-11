@@ -1,4 +1,5 @@
 ﻿using NAudio.Wave;
+using System.Diagnostics;
 using System.IO;
 using GLanguage = GTranslate.Language;
 
@@ -6,11 +7,11 @@ namespace ScreenLookup.src.utils
 {
     class TextToSpeech
     {
-        public static CancellationTokenSource CTS = new CancellationTokenSource();
+        public static CancellationTokenSource CTS = new();
         public static readonly Dictionary<string, Stream> audioStreamCache = [];
         public static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
 
-        public static async void PlayTTS(string Text, int langID, CancellationTokenSource token)
+        public static async void PlayTTS(string Text, int langID, bool isCaptureWindow, CancellationTokenSource token)
         {
             var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
             var translator = LanguageList.GetTranslatorService(App.setting.TTSProvider);
@@ -66,17 +67,20 @@ namespace ScreenLookup.src.utils
             catch (Exception ex)
             {
                 if (ex.Message.Contains("Language not supported"))
-                    Notification.Show($"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"");
+                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: "error", windows: isCaptureWindow ? "capture" : "main");
                 else
-                    Notification.Show(ex.Message);
+                    SnackbarHost.Show("Error", ex.Message, type: "error", windows: isCaptureWindow ? "capture" : "main");
             }
         }
 
         public static void StartTTS(string Text, int langID)
         {
+            var methodInfo = new StackTrace().GetFrame(1).GetMethod();
+            bool isCaptureWindow = methodInfo.ReflectedType.Name == "CaptureWindow";
+
             StopTTS();
             CTS = new();
-            TextToSpeech.PlayTTS(Text, langID, CTS);
+            TextToSpeech.PlayTTS(Text, langID, isCaptureWindow, CTS);
         }
 
         public static void StopTTS()
