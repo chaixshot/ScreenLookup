@@ -41,12 +41,21 @@ namespace ScreenLookup.src.pages
             sourceLanguage.Items.Clear();
             targetLanguage.Items.Clear();
 
-            foreach (string languageTesseract in LanguageList.LanguageTesseract)
+            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
             {
+                string languageTesseract = LanguageList.LanguageTesseract[langID];
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(42)}\t{languageTesseract}";
-                sourceLanguage.Items.Add(text);
+
+                ComboBoxItem item = new()
+                {
+                    Content = $"{text}",
+                };
+
+                if (App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, langID))
+                    item.FontWeight = FontWeights.ExtraBold;
+
+                sourceLanguage.Items.Add(item);
                 targetLanguage.Items.Add(text);
             }
 
@@ -134,6 +143,7 @@ namespace ScreenLookup.src.pages
 
             isLoadingTesseract = false;
             ButtonDownloadTesseracChanged();
+            LoadTesseractContent();
         }
 
         private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
