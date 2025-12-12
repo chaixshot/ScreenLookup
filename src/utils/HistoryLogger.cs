@@ -111,16 +111,17 @@ namespace ScreenLookup.src.utils
         }
 
         public static async Task<(List<HistoryLoggerPageEntry>, int)> LoadAsync(
-            int page, int maxRow, string searchText, CancellationToken token = default)
+            int page, int maxRow, string searchText, int searchSourceLanguage, CancellationToken token = default)
         {
             var history = new List<HistoryLoggerPageEntry>();
             int totalCount = 0;
             using (var command = new SqliteCommand(@"
                 SELECT COUNT(*) 
                 FROM history
-                WHERE Original LIKE @search OR Translated LIKE @search", GetConnection()))
+                WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')", GetConnection()))
             {
-                command.Parameters.AddWithValue("@search", $"%{searchText}%");
+                command.Parameters.AddWithValue("@searchText", $"%{searchText}%");
+                command.Parameters.AddWithValue("@searchSourceLanguage", $"{searchSourceLanguage}");
                 totalCount = Convert.ToInt32(await command.ExecuteScalarAsync(token));
             }
 
@@ -130,12 +131,12 @@ namespace ScreenLookup.src.utils
             using (var command = new SqliteCommand(@"
                 SELECT Id, Original, OriginalWords, Translated, SourceLanguage, TargetLanguage
                 FROM history
-                WHERE Original LIKE @search OR Translated LIKE @search
+                WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')
                 ORDER BY Id DESC
                 LIMIT @maxRow OFFSET @offset", GetConnection()))
-
             {
-                command.Parameters.AddWithValue("@search", $"%{searchText}%");
+                command.Parameters.AddWithValue("@searchText", $"%{searchText}%");
+                command.Parameters.AddWithValue("@searchSourceLanguage", $"{searchSourceLanguage}");
                 command.Parameters.AddWithValue("@maxRow", maxRow);
                 command.Parameters.AddWithValue("@offset", offset);
 

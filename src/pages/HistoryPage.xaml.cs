@@ -23,6 +23,7 @@ namespace ScreenLookup.src.pages
         private int maxRowPerPage = 10;
 
         public string SearchText { get; set; } = string.Empty;
+        public int SearchSourceLanguage = -1;
 
         private readonly Dictionary<string, string> translatedCache = [];
 
@@ -30,6 +31,7 @@ namespace ScreenLookup.src.pages
         {
             InitializeComponent();
             LoadHistoryLogger();
+            LoadInstalledLanguage();
 
             Unloaded += (s, e) =>
             {
@@ -47,13 +49,35 @@ namespace ScreenLookup.src.pages
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    var data = await HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText);
+                    var data = await HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
 
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
                     dataGrid.ItemsSource = data.Item1;
                 }));
             });
+        }
+
+        private void LoadInstalledLanguage()
+        {
+            sourceLanguage.Items.Clear();
+            sourceLanguage.Items.Add("");
+
+            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            {
+                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(42)}\t{languageTesseract}";
+
+                ComboBoxItem item = new()
+                {
+                    Content = $"{text}",
+                    Tag = langID,
+                };
+
+                if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
+                    sourceLanguage.Items.Add(item);
+            }
         }
 
         private void maxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -162,6 +186,20 @@ namespace ScreenLookup.src.pages
                     LoadHistoryLogger();
                 }
             }
+        }
+
+        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var comboBox = (sender as ComboBox);
+            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+            if (comboBoxItem != null)
+            {
+                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+                SearchSourceLanguage = searchSourceLanguage;
+            }
+            else
+                SearchSourceLanguage = -1;
+            LoadHistoryLogger();
         }
 
         private async void Delete_click(object sender, RoutedEventArgs e)
