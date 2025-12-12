@@ -31,7 +31,7 @@ namespace ScreenLookup.src.pages
         {
             InitializeComponent();
             LoadHistoryLogger();
-            LoadInstalledLanguage();
+            LoadSourceLanguageItems();
 
             Unloaded += (s, e) =>
             {
@@ -58,7 +58,7 @@ namespace ScreenLookup.src.pages
             });
         }
 
-        private void LoadInstalledLanguage()
+        private void LoadSourceLanguageItems()
         {
             sourceLanguage.Items.Clear();
             sourceLanguage.Items.Add("");
@@ -75,8 +75,7 @@ namespace ScreenLookup.src.pages
                     Tag = langID,
                 };
 
-                if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
-                    sourceLanguage.Items.Add(item);
+                sourceLanguage.Items.Add(item);
             }
         }
 
