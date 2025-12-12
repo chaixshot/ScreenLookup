@@ -16,15 +16,22 @@ namespace ScreenLookup.src.pages
             DataContext = App.setting;
             InitializeComponent();
 
-            LoadTesseractContent();
+            LoadTargetLanguageContent();
+            LoadSourceAccuracys();
+            //LoadTesseractContent();
             LoadProvidersContent();
 
-            ButtonDownloadHunspellChanged();
-            ButtonDownloadTesseracChanged();
+            //ButtonDownloadHunspellChanged();
+            //ButtonDownloadTesseracChanged();
 
             ApplyStartupWithWindows();
 
             captureShortcut.KeySet = App.setting.ShortcutKey;
+
+            Loaded += (s, e) =>
+            {
+                SelectSourceLanguageComboBox();
+            };
         }
 
         private void ApplyStartupWithWindows()
@@ -35,10 +42,17 @@ namespace ScreenLookup.src.pages
                 App.setting.RegAutorun.DeleteValue("ScreenLookup", false);
         }
 
-        private void LoadTesseractContent()
+        private void LoadSourceAccuracys()
         {
             sourceLanguageAccuracy.Items.Clear();
-            sourceLanguage.Items.Clear();
+            foreach (string accuracy in App.setting.SourceAccuracys)
+            {
+                sourceLanguageAccuracy.Items.Add(accuracy);
+            }
+        }
+
+        private void LoadTargetLanguageContent()
+        {
             targetLanguage.Items.Clear();
 
             for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
@@ -47,22 +61,52 @@ namespace ScreenLookup.src.pages
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
 
-                ComboBoxItem item = new()
-                {
-                    Content = $"{text}",
-                };
-
-                if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
-                    item.FontWeight = FontWeights.ExtraBold;
-
-                sourceLanguage.Items.Add(item);
                 targetLanguage.Items.Add(text);
             }
+        }
 
-            foreach (string accuracy in App.setting.SourceAccuracys)
+        private void LoadSourceLanguageContent()
+        {
+            int langAcc = App.setting.SourceLanguageAccuracy;
+
+            sourceLanguage.Items.Clear();
+
+            // sourceLanguage downloaded at top
+            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
             {
-                sourceLanguageAccuracy.Items.Add(accuracy);
+                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+
+                if (TesseractHelper.IsInstalled(langAcc, langID))
+                {
+                    sourceLanguage.Items.Add(new ComboBoxItem
+                    {
+                        Content = $"{text}",
+                        Tag = langID,
+                        FontWeight = FontWeights.ExtraBold,
+                    });
+                }
             }
+
+            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            {
+                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+
+                // sourceLanguage not download
+                if (!TesseractHelper.IsInstalled(langAcc, langID))
+                {
+                    sourceLanguage.Items.Add(new ComboBoxItem
+                    {
+                        Content = $"{text}",
+                        Tag = langID,
+                    });
+                }
+            }
+
+            SelectSourceLanguageComboBox();
         }
 
         private void LoadProvidersContent()
@@ -143,7 +187,7 @@ namespace ScreenLookup.src.pages
 
             isLoadingTesseract = false;
             ButtonDownloadTesseracChanged();
-            LoadTesseractContent();
+            LoadSourceLanguageContent();
         }
 
         private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
@@ -222,27 +266,30 @@ namespace ScreenLookup.src.pages
         private void SourceLanguageAccuracy_Changed(object sender, SelectionChangedEventArgs e)
         {
             ButtonDownloadTesseracChanged();
+            LoadSourceLanguageContent();
         }
 
         private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
         {
+            var comboBox = sender as ComboBox;
+            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+
+            if (selectedItem != null)
+                App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+
             ButtonDownloadTesseracChanged();
             ButtonDownloadHunspellChanged();
         }
 
-        private void HunSpell_Changed(object sender, RoutedEventArgs e)
+        public void SelectSourceLanguageComboBox()
         {
-            CheckBox checkbox = sender as CheckBox;
-            bool isCheck = (bool)checkbox.IsChecked;
-
-            if (HunspellHelper.IsInstalled(App.setting.SourceLanguage))
-                hunspell.IsChecked = isCheck;
-            else
+            foreach (ComboBoxItem item in sourceLanguage.Items)
             {
-                if (isCheck)
-                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
-
-                hunspell.IsChecked = false;
+                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
+                {
+                    sourceLanguage.SelectedItem = item;
+                    break;
+                }
             }
         }
 

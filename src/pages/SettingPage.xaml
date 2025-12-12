@@ -180,7 +180,7 @@
                         </Controls:Button>
                         <CheckBox
                             x:Name="hunspell"
-                            Click="HunSpell_Changed"
+                            Click="HunSpell_Click"
                             IsChecked="{Binding HunSpell}" />
                     </StackPanel>
                 </Controls:CardControl>
