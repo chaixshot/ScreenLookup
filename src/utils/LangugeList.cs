@@ -219,43 +219,43 @@ namespace ScreenLookup.src.utils
                     "chi_tra" => new CultureInfo("zh-Hant"),
                     _ => new CultureInfo(tessLangTag)
                 };
-                string DisplayName = cultureInfo.DisplayName;
+                string note = "";
 
                 if (tesseractTag == "dan_frak")
-                    DisplayName = $"{cultureInfo.DisplayName} (Fraktur)";
+                    note = "(Fraktur)";
 
                 if (tesseractTag == "deu_frak")
-                    DisplayName = $"{cultureInfo.DisplayName} (Fraktur)";
+                    note = "(Fraktur)";
 
                 if (tesseractTag == "ita_old")
-                    DisplayName = $"{cultureInfo.DisplayName} (Old)";
+                    note = "(Old)";
 
                 if (tesseractTag == "kat_old")
-                    DisplayName = $"{cultureInfo.DisplayName} (Old)";
+                    note = "(Old)";
 
                 if (tesseractTag == "slk_frak")
-                    DisplayName = $"{cultureInfo.DisplayName} (Fraktur)";
+                    note = "(Fraktur)";
 
                 if (tesseractTag == "spa_old")
-                    DisplayName = $"{cultureInfo.DisplayName} (Old)";
+                    note = "(Old)";
 
                 if (tesseractTag == "srp_latn")
-                    DisplayName = $"{cultureInfo.DisplayName} (Latin)";
+                    note = "(Latin)";
 
                 if (tesseractTag.Contains("vert"))
-                    DisplayName = $"{cultureInfo.DisplayName} Vertical";
+                    note = "Vertical";
 
                 if (tesseractTag.Contains("script"))
-                    DisplayName = $"{cultureInfo.DisplayName} Script";
+                    note = "Script";
 
                 try
                 {
-                    GLanguage languageData = GLanguage.GetLanguage(DisplayName);
-                    return isNative ? languageData.NativeName : languageData.Name;
+                    GLanguage languageData = GLanguage.GetLanguage(cultureInfo.DisplayName);
+                    return isNative ? $"{languageData.NativeName} {note}" : $"{languageData.Name} {note}";
                 }
                 catch
                 {
-                    return DisplayName;
+                    return $"{cultureInfo.DisplayName} {note}";
                 }
             }
         }
