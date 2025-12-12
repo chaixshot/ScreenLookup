@@ -1,12 +1,16 @@
 ﻿using Microsoft.Win32;
 using ScreenLookup.src.models;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows.Input;
 
 namespace ScreenLookup.src.utils
 {
-    public class Settings
+    public class Settings : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public static RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
         public static readonly RegistryKey RegSetting = ScreenLookupReg.CreateSubKey("Settings");
         public readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
@@ -60,6 +64,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("SourceLanguageAccuracy", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -72,6 +78,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("SourceLanguage", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -84,6 +92,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("HunSpell", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -96,6 +106,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("TargetLanguage", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -108,6 +120,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("TranslationProvider", value.ToString());
+
+                OnPropertyChanged();
             }
         }
         public int TTSProvider
@@ -119,6 +133,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("TTSProvider", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -131,6 +147,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("StartupWithWindows", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -143,6 +161,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("StartInBackground", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -155,6 +175,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("MinimizeToTray", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -167,6 +189,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("ShowImage", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -179,6 +203,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("ShowHighlight", value.ToString());
+
+                OnPropertyChanged();
             }
         }
         public bool CloseLostFocus
@@ -190,6 +216,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("CloseLostFocus", value.ToString());
+
+                OnPropertyChanged();
             }
         }
 
@@ -202,6 +230,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("Topmost", value.ToString());
+
+                OnPropertyChanged();
             }
         }
         public int FontSizeS
@@ -213,6 +243,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("FontSizeS", value.ToString());
+
+                OnPropertyChanged();
             }
         }
         public string FontFace
@@ -224,6 +256,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("FontFace", value.ToString());
+
+                OnPropertyChanged();
             }
         }
         public ShortcutKeySet ShortcutKey
@@ -237,7 +271,14 @@ namespace ScreenLookup.src.utils
                 key.SetValue("ShortcutKey", JsonSerializer.Serialize(value));
 
                 App.trayIcon?.SetupHoykey();
+
+                OnPropertyChanged();
             }
+        }
+
+        public void OnPropertyChanged([CallerMemberName] string? propName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
         public void Reset()
