@@ -36,41 +36,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\CsvHelper.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\e_sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\GTranslate.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\HotkeyUtility.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\HunspellSharp.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Microsoft.Data.Sqlite.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Microsoft.Extensions.DependencyInjection.Abstractions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Microsoft.Extensions.Logging.Abstractions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Microsoft.Toolkit.Uwp.Notifications.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Microsoft.Windows.SDK.NET.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.Asio.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.Midi.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.Wasapi.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.WinForms.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\NAudio.WinMM.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenGrab.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenGrab.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenLookup.deps.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenLookup.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenLookup.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenLookup.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\ScreenLookup.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\SQLitePCLRaw.batteries_v2.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\SQLitePCLRaw.core.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\SQLitePCLRaw.provider.e_sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\TesseractOCR.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\WinRT.Runtime.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Wpf.Ui.Abstractions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Wpf.Ui.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\Wpf.Ui.Tray.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\WpfScreenHelper.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\x86\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\src\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\win-x86\publish\*"; DestDir: "{app}"; Excludes: "x64"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
