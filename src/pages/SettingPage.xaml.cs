@@ -52,7 +52,7 @@ namespace ScreenLookup.src.pages
                     Content = $"{text}",
                 };
 
-                if (App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, langID))
+                if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
                     item.FontWeight = FontWeights.ExtraBold;
 
                 sourceLanguage.Items.Add(item);
@@ -85,7 +85,7 @@ namespace ScreenLookup.src.pages
                 tesseractLoadingIcon.Visibility = Visibility.Visible;
                 tesseractLoadIcon.Visibility = Visibility.Collapsed;
             }
-            else if (App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
+            else if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
             {
@@ -102,7 +102,7 @@ namespace ScreenLookup.src.pages
                 hunspellLoadingIcon.Visibility = Visibility.Visible;
                 hunspellLoadIcon.Visibility = Visibility.Collapsed;
             }
-            else if (App.setting.IsHunspellInstalled(App.setting.SourceLanguage))
+            else if (HunspellHelper.IsInstalled(App.setting.SourceLanguage))
                 downloadHunspell.Visibility = Visibility.Hidden;
             else
             {
@@ -135,7 +135,7 @@ namespace ScreenLookup.src.pages
             if (isDownloaded)
             {
                 await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
-                App.setting.SaveTesseractInstalled(accID, langID);
+                TesseractHelper.SaveInstalled(accID, langID);
                 SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
             }
             else
@@ -192,7 +192,7 @@ namespace ScreenLookup.src.pages
             }
 
             isLoadingHunspell = false;
-            App.setting.SaveHunspellInstalled(langID);
+            HunspellHelper.SaveInstalled(langID);
             ButtonDownloadHunspellChanged();
             SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
         }
@@ -235,7 +235,7 @@ namespace ScreenLookup.src.pages
             CheckBox checkbox = sender as CheckBox;
             bool isCheck = (bool)checkbox.IsChecked;
 
-            if (App.setting.IsHunspellInstalled(App.setting.SourceLanguage))
+            if (HunspellHelper.IsInstalled(App.setting.SourceLanguage))
                 hunspell.IsChecked = isCheck;
             else
             {

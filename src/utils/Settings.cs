@@ -240,32 +240,6 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public bool IsTesseractInstalled(int accID, int langID)
-        {
-            RegistryKey key = RegLoadedTesseract.CreateSubKey(accID.ToString());
-            var reg = key.GetValue(LanguageList.GetTesseractTagFromID(langID));
-
-            return reg != null;
-        }
-
-        public void SaveTesseractInstalled(int accID, int langID)
-        {
-            RegistryKey key = RegLoadedTesseract.CreateSubKey(accID.ToString());
-            key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
-        }
-
-        public bool IsHunspellInstalled(int langID)
-        {
-            var reg = RegLoadedHunspell.GetValue(langID.ToString());
-
-            return reg != null;
-        }
-
-        public void SaveHunspellInstalled(int langID)
-        {
-            RegLoadedHunspell.SetValue(langID.ToString(), true);
-        }
-
         public void Reset()
         {
             ScreenLookupReg.DeleteSubKeyTree("");

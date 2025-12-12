@@ -52,7 +52,7 @@ namespace ScreenLookup.src.windows
         {
             HideWindow();
 
-            if (!App.setting.IsTesseractInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
+            if (!TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
             {
                 Notification.Show($"You have to install {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting");
                 return;

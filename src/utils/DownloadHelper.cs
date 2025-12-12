@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using Microsoft.Win32;
+using ScreenLookup;
+using ScreenLookup.src.utils;
+using System.IO;
 using System.Net.Http;
 
 class DownloadHelper
@@ -52,7 +55,7 @@ class DownloadHelper
     }
 }
 
-internal class TesseractHelper
+public class TesseractHelper
 {
     private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
     public static string GetTessdataPath(int accID)
@@ -62,6 +65,20 @@ internal class TesseractHelper
         if (accID == 1)
             return Path.Combine(appData, "ScreenLookup", "tessdata");
         return Path.Combine(appData, "ScreenLookup", "tessdata_best");
+    }
+
+    public static bool IsInstalled(int accID, int langID)
+    {
+        RegistryKey key = App.setting.RegLoadedTesseract.CreateSubKey(accID.ToString());
+        var reg = key.GetValue(LanguageList.GetTesseractTagFromID(langID));
+
+        return reg != null;
+    }
+
+    public static void SaveInstalled(int accID, int langID)
+    {
+        RegistryKey key = App.setting.RegLoadedTesseract.CreateSubKey(accID.ToString());
+        key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
     }
 }
 
@@ -121,4 +138,16 @@ internal class HunspellHelper
         {"Ukrainian", "uk_UA/uk_UA"},
         {"Vietnamese", "vi/vi_VN"},
     };
+
+    public static bool IsInstalled(int langID)
+    {
+        var reg = App.setting.RegLoadedHunspell.GetValue(langID.ToString());
+
+        return reg != null;
+    }
+
+    public static void SaveInstalled(int langID)
+    {
+        App.setting.RegLoadedHunspell.SetValue(langID.ToString(), true);
+    }
 }

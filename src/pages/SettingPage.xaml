@@ -126,7 +126,7 @@
                         <ComboBox
                             x:Name="sourceLanguageAccuracy"
                             Grid.Column="1"
-                            Width="110"
+                            Width="146"
                             SelectedIndex="{Binding SourceLanguageAccuracy}"
                             SelectionChanged="SourceLanguageAccuracy_Changed" />
                         <ComboBox
