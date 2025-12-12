@@ -28,7 +28,7 @@
         </Grid.RowDefinitions>
 
         <Grid x:Name="configSection">
-            <ScrollViewer Padding="0,10,0,10">
+            <wpfui:DynamicScrollViewer Padding="15">
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -63,7 +63,7 @@
                         Click="Button_Click"
                         Content="Submit" />
                 </StackPanel>
-            </ScrollViewer>
+            </wpfui:DynamicScrollViewer>
         </Grid>
 
         <Grid x:Name="resultSection" Grid.Row="1">
