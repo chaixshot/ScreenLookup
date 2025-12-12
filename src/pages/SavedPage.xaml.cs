@@ -61,7 +61,7 @@ namespace ScreenLookup.src.pages
             {
                 string languageTesseract = LanguageList.LanguageTesseract[langID];
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(42)}\t{languageTesseract}";
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
 
                 ComboBoxItem item = new()
                 {
