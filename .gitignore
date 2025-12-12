@@ -52,4 +52,5 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
-InnoSetup/ScreenLookup.exe
+InnoSetup/ScreenLookup_x64-Installer.exe
+InnoSetup/ScreenLookup_x86-Installer.exe
