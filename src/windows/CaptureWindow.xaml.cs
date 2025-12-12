@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -22,17 +23,48 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
+        private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
+        private DispatcherFrame configDispatcher;
+
         public CaptureWindow()
         {
+            DataContext = App.setting;
             InitializeComponent();
             ResetDefaultState();
+            LoadInstalledLanguage();
 
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape)
                     HideWindow();
             };
+        }
+
+        public void LoadInstalledLanguage()
+        {
+            sourceLanguageConfig.Items.Clear();
+            targetLanguageConfig.Items.Clear();
+
+            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            {
+                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+
+                // sourceLanguageConfig
+                if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
+                    sourceLanguageConfig.Items.Add(new ComboBoxItem
+                    {
+                        Content = $"{text}",
+                        Tag = langID,
+                    });
+
+                // targetLanguageConfig
+                targetLanguageConfig.Items.Add(text);
+            }
+
+            targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
         }
 
         private void HideWindow()
@@ -48,8 +80,33 @@ namespace ScreenLookup.src.windows
             this.Activate();
         }
 
+        private void ToggleConfigMenu(bool show)
+        {
+            if (show)
+            {
+                configSection.Visibility = Visibility.Visible;
+                resultSection.Visibility = Visibility.Collapsed;
+
+                System.Drawing.Point point = System.Windows.Forms.Control.MousePosition;
+                var transform = PresentationSource.FromVisual(this).CompositionTarget.TransformFromDevice;
+                var mouse = transform.Transform(new System.Windows.Point(point.X, point.Y));
+
+                this.Left = mouse.X - (this.ActualWidth / 2);
+                this.Top = mouse.Y - (this.ActualHeight / 2);
+                this.Width = 0;
+            }
+            else
+            {
+                configSection.Visibility = Visibility.Collapsed;
+                resultSection.Visibility = Visibility.Visible;
+            }
+        }
+
         public async void StartCaptureScreen()
         {
+            if (IsCapturing)
+                return;
+
             HideWindow();
 
             if (!TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
@@ -59,11 +116,28 @@ namespace ScreenLookup.src.windows
             }
 
             // Screenshot
-            Bitmap image = ScreenGrabber.CaptureDialog(false);
+            IsCapturing = true;
+            (Bitmap? image, bool isRightMouse) = ScreenGrabber.CaptureDialog(false);
+            IsCapturing = false;
             if (image == null)
+            {
                 return;
+            }
 
             ResetDefaultState();
+
+            if (isRightMouse)
+            {
+                configDispatcher = new DispatcherFrame();
+
+                SelectSourceLanguageComboBox();
+                ShowWindow();
+                ToggleConfigMenu(true);
+
+                Dispatcher.PushFrame(configDispatcher);
+            }
+
+            ToggleConfigMenu(false);
             ChangeCaptureImage(image);
             CenterWindowOnScreen(image.Width, image.Height);
 
@@ -161,8 +235,8 @@ namespace ScreenLookup.src.windows
             this.MaxHeight = screenHeight - 100;
             this.Width = captureImage.Width + (App.setting.FontSizeS * 10);
 
-            this.Left = (screenWidth / 2) - (this.Width / 2);
-            this.Top = (screenHeight / 2) - (this.Height / 2);
+            this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
+            this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
         }
 
         private static async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
@@ -196,12 +270,21 @@ namespace ScreenLookup.src.windows
 
                                 if (App.setting.HunSpell)
                                 {
-                                    var hunspell = new Hunspell($"{HunspellHelper.FilePath}\\en_US.aff", $"{HunspellHelper.FilePath}\\en_US.dic");
-                                    if (!hunspell.Spell(word.Text))
+                                    string DisplayName = LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, false);
+                                    if (HunspellHelper.FileNames.TryGetValue(DisplayName, out string? fileName))
                                     {
-                                        List<string> suggestions = hunspell.Suggest(word.Text);
-                                        if (suggestions.Count != 0)
-                                            text = suggestions[0];
+                                        string nameTag = fileName.Split('/')[1];
+                                        var hunspell = new Hunspell($"{HunspellHelper.FilePath}\\{nameTag}.aff", $"{HunspellHelper.FilePath}\\{nameTag}.dic");
+                                        if (!hunspell.Spell(word.Text))
+                                        {
+                                            List<string> suggestions = hunspell.Suggest(word.Text);
+                                            if (suggestions.Count != 0)
+                                                text = suggestions[0];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\" dosen't support Hunspell", "error", windows: "capture");
                                     }
                                 }
                                 items.Add(new CaptureWordsEntrySimplify() { Word = text, Stop = 0 });
@@ -342,6 +425,49 @@ namespace ScreenLookup.src.windows
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: "capture");
+        }
+
+        private void SourceLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var comboBox = sender as ComboBox;
+            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+
+            if (selectedItem != null)
+                App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+        }
+
+        private void TargetLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var comboBox = sender as ComboBox;
+            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+
+            if (selectedItem != null)
+                App.setting.TargetLanguage = Int32.Parse(selectedItem.Tag.ToString());
+        }
+
+        public void SelectSourceLanguageComboBox()
+        {
+            foreach (ComboBoxItem item in sourceLanguageConfig.Items)
+            {
+                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
+                {
+                    sourceLanguageConfig.SelectedItem = item;
+                    break;
+                }
+            }
+
+            targetLanguageConfig.SelectedIndex = App.setting.targetLanguage;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            configDispatcher.Continue = false;
+        }
+
+        private void ToggleSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
+                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error", windows: "capture");
         }
     }
 }

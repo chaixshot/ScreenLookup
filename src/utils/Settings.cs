@@ -65,6 +65,8 @@ namespace ScreenLookup.src.utils
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("SourceLanguageAccuracy", value.ToString());
 
+                App.captureWindow.LoadInstalledLanguage();
+
                 OnPropertyChanged();
             }
         }

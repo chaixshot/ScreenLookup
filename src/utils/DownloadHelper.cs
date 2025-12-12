@@ -79,6 +79,8 @@ public class TesseractHelper
     {
         RegistryKey key = App.setting.RegLoadedTesseract.CreateSubKey(accID.ToString());
         key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
+
+        App.captureWindow.LoadInstalledLanguage();
     }
 }
 
