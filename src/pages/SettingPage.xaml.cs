@@ -246,6 +246,12 @@ namespace ScreenLookup.src.pages
             }
         }
 
+        private void HunSpell_Click(object sender, RoutedEventArgs e)
+        {
+            if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
+                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
+        }
+
         private void StartupWithWindows_Changed(object sender, RoutedEventArgs e)
         {
             ApplyStartupWithWindows();

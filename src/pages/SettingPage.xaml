@@ -134,7 +134,6 @@
                             Grid.Column="1"
                             Width="200"
                             Margin="5,0,0,0"
-                            SelectedIndex="{Binding SourceLanguage}"
                             SelectionChanged="SourceLanguage_Changed" />
                     </StackPanel>
                 </Controls:CardControl>

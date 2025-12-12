@@ -76,6 +76,9 @@ namespace ScreenLookup.src.utils
             {
                 sourceLanguage = value;
 
+                if (!HunspellHelper.IsInstalled(sourceLanguage))
+                    HunSpell = false;
+
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("SourceLanguage", value.ToString());
 
@@ -88,10 +91,24 @@ namespace ScreenLookup.src.utils
             get { return hunSpell; }
             set
             {
-                hunSpell = value;
+                if (value == true)
+                {
+                    if (HunspellHelper.IsInstalled(SourceLanguage))
+                    {
+                        hunSpell = true;
 
-                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
-                key.SetValue("HunSpell", value.ToString());
+                        RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                        key.SetValue("HunSpell", value.ToString());
+
+                    }
+                }
+                else
+                {
+                    hunSpell = false;
+
+                    RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                    key.SetValue("HunSpell", value.ToString());
+                }
 
                 OnPropertyChanged();
             }
