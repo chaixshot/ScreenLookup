@@ -11,8 +11,7 @@ namespace ScreenLookup.src.utils
 {
     internal class HistoryLogger
     {
-        private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-        public static readonly string CONNECTION_STRING = $"Data Source={appData}\\ScreenLookup\\database.db;";
+        public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
 
         private static SqliteConnection _sharedConnection;
         private static readonly object _connectionLock = new object();

@@ -11,13 +11,14 @@ namespace ScreenLookup
         public static TrayIcon? trayIcon;
         public static MainWindow? mainWindow = new();
         public static CaptureWindow? captureWindow = new();
+        public static readonly string appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenLookup");
 
         protected override void OnStartup(StartupEventArgs e)
         {
             trayIcon = new();
             trayIcon.Show();
 
-            CreateAppDataFolder();
+            Directory.CreateDirectory(appDataFolder);
 
             if (setting.StartInBackground)
                 Notification.Show("ScreenLookup running in the background");
@@ -29,13 +30,6 @@ namespace ScreenLookup
             base.OnStartup(e);
         }
 
-        private static async Task CreateAppDataFolder()
-        {
-            string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-            string appDataFolder = Path.Combine(appData, "ScreenLookup");
-
-            Directory.CreateDirectory(appDataFolder);
-        }
 
         public static CaptureWindow GetCaptureWindow()
         {

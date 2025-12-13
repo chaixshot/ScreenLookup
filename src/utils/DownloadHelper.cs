@@ -57,14 +57,13 @@ class DownloadHelper
 
 public class TesseractHelper
 {
-    private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
     public static string GetTessdataPath(int accID)
     {
         if (accID == 0)
-            return Path.Combine(appData, "ScreenLookup", "tessdata_fast");
+            return Path.Combine(App.appDataFolder, "tessdata_fast");
         if (accID == 1)
-            return Path.Combine(appData, "ScreenLookup", "tessdata");
-        return Path.Combine(appData, "ScreenLookup", "tessdata_best");
+            return Path.Combine(App.appDataFolder, "tessdata");
+        return Path.Combine(App.appDataFolder, "tessdata_best");
     }
 
     public static bool IsInstalled(int accID, int langID)
@@ -86,8 +85,7 @@ public class TesseractHelper
 
 internal class HunspellHelper
 {
-    private static readonly string appData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-    public static string FilePath = Path.Combine(appData, "ScreenLookup", "hunspell");
+    public static string FilePath = Path.Combine(App.appDataFolder, "hunspell");
 
     public static Dictionary<string, string> FileNames = new Dictionary<string, string> {
         {"Afrikaans", "af_ZA/af_ZA"},
