@@ -43,7 +43,7 @@ namespace ScreenLookup.src.windows
 
             hotkey = new(shortcutKey.NonModifierKey, modifierKey, (s, e) =>
             {
-                App.GetCaptureWindow().StartCaptureScreen();
+                App.captureWindow.StartCaptureScreen();
             });
 
             try
@@ -61,7 +61,7 @@ namespace ScreenLookup.src.windows
         private void Tray_LeftClick(Wpf.Ui.Tray.Controls.NotifyIcon sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            App.GetCaptureWindow().StartCaptureScreen();
+            App.captureWindow.StartCaptureScreen();
         }
 
         private void TrayItemSettings_Click(object sender, RoutedEventArgs e)
@@ -84,7 +84,7 @@ namespace ScreenLookup.src.windows
 
         private void TrayItemCapture_Click(object sender, RoutedEventArgs e)
         {
-            App.GetCaptureWindow().StartCaptureScreen();
+            App.captureWindow.StartCaptureScreen();
         }
 
         private void TrayItemExit_Click(object sender, RoutedEventArgs e)

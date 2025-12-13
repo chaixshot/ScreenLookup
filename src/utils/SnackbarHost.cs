@@ -42,7 +42,7 @@ namespace ScreenLookup.src.utils
             }
             else
             {
-                snackbarCapture ??= new Snackbar((App.GetCaptureWindow().snackbarHost));
+                snackbarCapture ??= new Snackbar((App.captureWindow.snackbarHost));
                 snackbar = snackbarCapture;
             }
 
