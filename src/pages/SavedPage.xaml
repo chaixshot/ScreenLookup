@@ -261,9 +261,14 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Controls:Button
-                                                Margin="5,0,0,0"
+                                                Width="17"
+                                                Height="17"
+                                                Margin="0"
+                                                Padding="0"
                                                 HorizontalAlignment="Right"
                                                 Appearance="Transparent"
+                                                Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
+                                                BorderThickness="0"
                                                 Click="Delete_click"
                                                 Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
                                                                         Filled=False}"
