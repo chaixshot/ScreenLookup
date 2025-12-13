@@ -168,6 +168,7 @@
                                                 Margin="0"
                                                 Padding="{Binding Padding}"
                                                 HorizontalAlignment="Left"
+                                                Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
                                                 BorderThickness="{Binding Border}"
                                                 Click="Button_Word"
                                                 Tag="{Binding SourceLanguage}"
