@@ -21,9 +21,10 @@ namespace ScreenLookup
 
             Loaded += (s, e) =>
             {
-                this.RootNavigation.Navigate(typeof(SettingPage));
+                ApplicationThemeManager.ApplySystemTheme();
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
 
+                this.RootNavigation.Navigate(typeof(SettingPage));
                 ToggleTopmost(App.setting.Topmost);
             };
         }

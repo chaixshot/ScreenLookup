@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TesseractOCR;
 using TesseractOCR.Enums;
+using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -33,6 +34,12 @@ namespace ScreenLookup.src.windows
             InitializeComponent();
             ResetDefaultState();
             LoadInstalledLanguage();
+
+            Loaded += (s, e) =>
+            {
+                ApplicationThemeManager.ApplySystemTheme();
+                SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
+            };
 
             PreviewKeyDown += (s, e) =>
             {
