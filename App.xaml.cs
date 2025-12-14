@@ -7,6 +7,7 @@ namespace ScreenLookup
 {
     public partial class App : Application
     {
+        public static readonly string tempFolder = Path.Combine(Path.GetTempPath(), "ScreenLookup");
         public static readonly string appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenLookup");
         public static readonly Settings? setting = new();
         public static readonly TrayIcon? trayIcon = new();
@@ -17,6 +18,7 @@ namespace ScreenLookup
         {
             trayIcon.Show();
 
+            Directory.CreateDirectory(tempFolder);
             Directory.CreateDirectory(appDataFolder);
 
             if (setting.StartInBackground)

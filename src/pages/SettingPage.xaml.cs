@@ -169,8 +169,7 @@ namespace ScreenLookup.src.pages
             SnackbarHost.Show("Source Language", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999, closeButton: false);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy);
-            string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
-            string filePath = Path.Combine(tempPath, pickedLanguageFile);
+            string filePath = Path.Combine(App.tempFolder, pickedLanguageFile);
 
             DownloadHelper fileDownloader = new();
             bool isDownloaded = await fileDownloader.DownloadFileAsync($"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{pickedLanguageFile}", filePath);
@@ -207,21 +206,20 @@ namespace ScreenLookup.src.pages
             // Download files
             foreach (string extension in new string[] { "aff", "dic" })
             {
-                string tempPath = Path.Combine(Path.GetTempPath(), "ScreenLookup");
                 string nameTag = fileName.Split('/')[1];
-                //string zipPath = $"{tempPath}{nameTag}.{extension}.zip";
-                string zipPath = Path.Combine(tempPath, $"{nameTag}.{extension}.zip");
+                //string zipPath = $"{App.teampFolder}{nameTag}.{extension}.zip";
+                string zipPath = Path.Combine(App.tempFolder, $"{nameTag}.{extension}.zip");
 
                 DownloadHelper fileDownloader = new();
                 bool isDownloaded = await fileDownloader.DownloadFileAsync($"https://translator.gres.biz/resources/dictionaries/{fileName}.{extension}.zip", zipPath);
 
                 if (isDownloaded)
                 {
-                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempPath, null, true);
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, App.tempFolder, null, true);
                     FileInfo zipFile = new(zipPath);
                     zipFile.Delete();
 
-                    await DownloadHelper.MoveFileToFolder(Path.Combine(tempPath, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
+                    await DownloadHelper.MoveFileToFolder(Path.Combine(App.tempFolder, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
                 }
                 else
                 {
