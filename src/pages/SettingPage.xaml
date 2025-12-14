@@ -107,11 +107,11 @@
                         <StackPanel Margin="5,0,0,0">
                             <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
                             <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Replace the words that are similar to recognized ones in dictionary" />
-                            <wpfui:TextBlock>
-                                <Hyperlink NavigateUri="https://hunspell.github.io/" RequestNavigate="Hyperlink_RequestNavigate">
-                                    Read more
-                                </Hyperlink>
-                            </wpfui:TextBlock>
+                            <wpfui:HyperlinkButton
+                                Padding="0"
+                                Content="Read more"
+                                Icon="{wpfui:SymbolIcon Link24}"
+                                NavigateUri="https://hunspell.github.io/" />
                         </StackPanel>
                     </Controls:CardControl.Header>
                     <StackPanel Orientation="Horizontal">
@@ -276,5 +276,9 @@
 
             </StackPanel>
         </Controls:DynamicScrollViewer>
+        <wpfui:HyperlinkButton
+            Margin="-250,919,0,0"
+            VerticalAlignment="Top"
+            Content="HyperlinkButton" />
     </Grid>
 </Page>

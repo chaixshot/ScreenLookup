@@ -1,5 +1,4 @@
 ﻿using ScreenLookup.src.utils;
-using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -256,13 +255,6 @@ namespace ScreenLookup.src.pages
                 await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
             }
         }
-
-        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
-        {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-            e.Handled = true;
-        }
-
         private void SourceLanguageAccuracy_Changed(object sender, SelectionChangedEventArgs e)
         {
             ButtonDownloadTesseracChanged();
