@@ -281,6 +281,7 @@
                                                     x:Name="original"
                                                     Grid.Column="1"
                                                     Margin="15,0,0,0"
+                                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                                                     Text="{Binding Original}"
                                                     TextWrapping="Wrap" />
                                             </Grid>
@@ -327,6 +328,7 @@
                                                 <Controls:TextBlock
                                                     Grid.Column="1"
                                                     Margin="15,0,0,0"
+                                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                                                     Text="{Binding Translated}"
                                                     TextWrapping="Wrap" />
                                             </Grid>
