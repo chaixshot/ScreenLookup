@@ -227,6 +227,9 @@ namespace ScreenLookup.src.windows
             originalWords.ItemsSource = null;
             translatedText.Text = "";
 
+            originalScrollView.ScrollToTop();
+            translatedScrollViewer.ScrollToTop();
+
             this.Topmost = App.setting.Topmost;
         }
 
