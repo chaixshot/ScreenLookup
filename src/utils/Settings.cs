@@ -11,7 +11,7 @@ namespace ScreenLookup.src.utils
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public static RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
+        public static readonly RegistryKey ScreenLookupReg = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup");
         public static readonly RegistryKey RegSetting = ScreenLookupReg.CreateSubKey("Settings");
         public readonly RegistryKey RegWindowBounds = ScreenLookupReg.CreateSubKey("WindowBounds");
         public readonly RegistryKey RegLoadedTesseract = ScreenLookupReg.CreateSubKey("InstalledTesseract");
@@ -35,11 +35,11 @@ namespace ScreenLookup.src.utils
             Modifiers = { ModifierKeys.Alt },
             NonModifierKey = Key.Z,
         };
-        public static bool showImage = RegSetting.GetValue("ShowImage") == null || RegSetting.GetValue("ShowImage").ToString() == "True";
-        public static bool showHighlight = RegSetting.GetValue("ShowHighlight") == null || RegSetting.GetValue("ShowHighlight").ToString() == "True";
-        public static bool closeLostFocus = RegSetting.GetValue("CloseLostFocus") == null || RegSetting.GetValue("CloseLostFocus").ToString() == "True";
-        public static string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
-        public static int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
+        public bool showImage = RegSetting.GetValue("ShowImage") == null || RegSetting.GetValue("ShowImage").ToString() == "True";
+        public bool showHighlight = RegSetting.GetValue("ShowHighlight") == null || RegSetting.GetValue("ShowHighlight").ToString() == "True";
+        public bool closeLostFocus = RegSetting.GetValue("CloseLostFocus") == null || RegSetting.GetValue("CloseLostFocus").ToString() == "True";
+        public string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
+        public int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
 
         public readonly string[] ProviderServices = [
             "Google",
