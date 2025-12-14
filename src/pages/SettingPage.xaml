@@ -73,7 +73,12 @@
                             Margin="0,0,5,0"
                             Click="DownloadTesseractButton_Click">
                             <StackPanel>
-                                <xControls:LoadingSpiner x:Name="tesseractLoadingIcon" Width="12" />
+                                <wpfui:ProgressRing
+                                    x:Name="tesseractLoadingIcon"
+                                    Width="12"
+                                    Height="12"
+                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                    IsIndeterminate="True" />
                                 <Controls:SymbolIcon
                                     x:Name="tesseractLoadIcon"
                                     Filled="True"
@@ -115,7 +120,12 @@
                             Margin="0,0,5,0"
                             Click="DownloadHunspellButton_Click">
                             <StackPanel>
-                                <xControls:LoadingSpiner x:Name="hunspellLoadingIcon" Width="12" />
+                                <wpfui:ProgressRing
+                                    x:Name="hunspellLoadingIcon"
+                                    Width="12"
+                                    Height="12"
+                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                    IsIndeterminate="True" />
                                 <Controls:SymbolIcon
                                     x:Name="hunspellLoadIcon"
                                     Filled="True"

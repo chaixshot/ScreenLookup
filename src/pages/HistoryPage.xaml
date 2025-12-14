@@ -440,10 +440,12 @@
                                     Margin="5,0,0,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center" />
-                                <xControls:LoadingSpiner
+                                <wpfui:ProgressRing
                                     x:Name="definitionTranslatedLoading"
-                                    Width="20"
-                                    Height="20" />
+                                    Width="12"
+                                    Height="12"
+                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                    IsIndeterminate="True" />
                             </StackPanel>
                             <Controls:Card
                                 Margin="0,10,0,0"
