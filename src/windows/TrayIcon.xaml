@@ -14,7 +14,10 @@
     IsHitTestVisible="False"
     Left="-50"
     Opacity="0"
+    RenderOptions.ClearTypeHint="Enabled"
     ShowInTaskbar="True"
+    TextOptions.TextFormattingMode="Ideal"
+    TextOptions.TextRenderingMode="ClearType"
     Top="-50"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
