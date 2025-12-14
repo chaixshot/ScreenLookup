@@ -57,6 +57,7 @@ public partial class ShortcutControl : UserControl
 
             isRecording = false;
             RecordingToggleButton.IsChecked = isRecording;
+            RecordText.Text = isRecording ? "Recording..." : "Record";
         }
     }
 
@@ -237,5 +238,6 @@ public partial class ShortcutControl : UserControl
             return;
 
         isRecording = recordingToggleButton.IsChecked ?? false;
+        RecordText.Text = isRecording ? "Recording..." : "Record";
     }
 }
