@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using Wpf.Ui.Controls;
 
 namespace ScreenLookup.src.controls;
 
@@ -57,7 +58,8 @@ public partial class ShortcutControl : UserControl
 
             isRecording = false;
             RecordingToggleButton.IsChecked = isRecording;
-            RecordText.Text = isRecording ? "Recording..." : "Record";
+            RecordText.Text = isRecording ? "Recording" : "Record";
+            recordIcon.Symbol = isRecording ? SymbolRegular.RecordStop24 : SymbolRegular.Record24;
         }
     }
 
@@ -238,6 +240,7 @@ public partial class ShortcutControl : UserControl
             return;
 
         isRecording = recordingToggleButton.IsChecked ?? false;
-        RecordText.Text = isRecording ? "Recording..." : "Record";
+        RecordText.Text = isRecording ? "Recording" : "Record";
+        recordIcon.Symbol = isRecording ? SymbolRegular.RecordStop24 : SymbolRegular.Record24;
     }
 }

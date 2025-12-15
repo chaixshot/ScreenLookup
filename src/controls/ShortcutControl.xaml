@@ -104,8 +104,12 @@
                     Margin="20,0,0,0"
                     Click="RecordingToggleButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Record24" />
-                        <TextBlock x:Name="RecordText"
+                        <ui:SymbolIcon
+                            x:Name="recordIcon"
+                            FontSize="20"
+                            Symbol="Record24" />
+                        <TextBlock
+                            x:Name="RecordText"
                             Margin="6,0,0,0"
                             VerticalAlignment="Center"
                             Text="Record" />
