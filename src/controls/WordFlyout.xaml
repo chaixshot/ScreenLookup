@@ -1,0 +1,128 @@
+﻿<UserControl
+    x:Class="ScreenLookup.src.controls.WordFlyout"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ScreenLookup.src.controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    mc:Ignorable="d">
+
+    <Controls:Flyout
+        x:Name="flayOut"
+        Padding="0"
+        IsOpen="False"
+        Placement="Top">
+        <Controls:Flyout.RenderTransform>
+            <MatrixTransform x:Name="mt" />
+        </Controls:Flyout.RenderTransform>
+        <StackPanel>
+            <StackPanel Margin="5" Orientation="Horizontal">
+                <Controls:Button
+                    x:Name="flayoutOriginalTSS"
+                    Width="20"
+                    Height="20"
+                    Padding="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Button_WordOriginalTTS"
+                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                            Filled=False}" />
+                <Controls:Button
+                    Width="{Binding Width, ElementName=flayoutOriginalTSS}"
+                    Height="{Binding Height, ElementName=flayoutOriginalTSS}"
+                    Margin="2,0,0,0"
+                    Padding="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Button_Copy"
+                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                            Filled=False}"
+                    Tag="{Binding Text, ElementName=definitionOriginal}"
+                    ToolTip="Copy" />
+
+                <Controls:TextBlock
+                    x:Name="originalWord"
+                    Margin="5,0,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Margin="5" Orientation="Horizontal">
+                <Controls:Button
+                    x:Name="flayoutTranslatedTSS"
+                    Width="20"
+                    Height="20"
+                    Padding="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Button_WordTranslatedTTS"
+                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                            Filled=False}" />
+                <Controls:Button
+                    Width="{Binding Width, ElementName=flayoutTranslatedTSS}"
+                    Height="{Binding Height, ElementName=flayoutTranslatedTSS}"
+                    Margin="2,0,0,0"
+                    Padding="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Button_Copy"
+                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                            Filled=False}"
+                    Tag="{Binding Text, ElementName=definitionTranslated}"
+                    ToolTip="Copy" />
+                <Controls:TextBlock
+                    x:Name="translatedWord"
+                    Margin="5,0,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+                <wpfui:ProgressRing
+                    x:Name="translatedWordLoading"
+                    Width="12"
+                    Height="12"
+                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                    IsIndeterminate="True" />
+            </StackPanel>
+            <Controls:Card
+                Margin="0,10,0,0"
+                Padding="5"
+                BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <Controls:Button
+                        x:Name="openBrowser"
+                        Width="20"
+                        Height="20"
+                        Padding="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="Button_OpenBrowser"
+                        Icon="{wpfui:SymbolIcon Symbol=Globe24,
+                                                Filled=False}" />
+                    <Controls:Button
+                        x:Name="wordSave"
+                        Width="20"
+                        Height="20"
+                        Margin="2,0,0,0"
+                        Padding="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="Button_WordSave"
+                        Icon="{wpfui:SymbolIcon Symbol=Star24,
+                                                Filled=False}" />
+                </StackPanel>
+            </Controls:Card>
+        </StackPanel>
+    </Controls:Flyout>
+</UserControl>

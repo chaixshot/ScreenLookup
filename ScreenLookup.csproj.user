@@ -7,6 +7,9 @@
     <Compile Update="src\controls\ShortcutControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="src\controls\WordFlyout.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="src\pages\HistoryPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
