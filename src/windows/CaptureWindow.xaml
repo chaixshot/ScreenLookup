@@ -27,12 +27,6 @@
     mc:Ignorable="d">
 
     <Grid Margin="10,5,10,5">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
         <Grid x:Name="configSection">
             <wpfui:DynamicScrollViewer Padding="15">
                 <StackPanel>
@@ -66,13 +60,13 @@
 
                     <Controls:Button
                         Margin="0,10,0,0"
-                        Click="Button_Click"
+                        Click="Submit_Click"
                         Content="Submit" />
                 </StackPanel>
             </wpfui:DynamicScrollViewer>
         </Grid>
 
-        <Grid x:Name="resultSection" Grid.Row="1">
+        <Grid x:Name="resultSection">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -87,21 +81,19 @@
                 <Controls:Image
                     x:Name="captureImage"
                     Source="/src/images/applicationIcon.ico"
-                    Stretch="None" />
+                    Stretch="Uniform" />
             </Controls:Card>
 
             <Controls:Card
                 x:Name="ocrCard"
                 Grid.Row="1"
                 Margin="0,3,0,0">
-                <Controls:DynamicScrollViewer IsScrollingVertically="True" VerticalScrollBarVisibility="Visible">
-                    <Controls:TextBlock
-                        x:Name="ocrText"
-                        Grid.Column="1"
-                        Margin="45,0,0,0"
-                        Text="ocrText"
-                        TextWrapping="Wrap" />
-                </Controls:DynamicScrollViewer>
+                <Controls:TextBlock
+                    x:Name="ocrText"
+                    Grid.Column="1"
+                    Margin="45,0,0,0"
+                    Text="ocrText"
+                    TextWrapping="Wrap" />
             </Controls:Card>
 
             <Controls:Card
@@ -114,6 +106,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
+
                     <Controls:Button
                         x:Name="originalTTS"
                         Width="20"
@@ -255,7 +248,7 @@
 
         <xControls:WordFlyout x:Name="flayOut" />
 
-        <Controls:SnackbarPresenter x:Name="snackbarHost" Grid.Row="2" />
+        <Controls:SnackbarPresenter x:Name="snackbarHost" />
 
     </Grid>
 </Controls:FluentWindow>

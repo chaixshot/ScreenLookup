@@ -242,9 +242,9 @@ namespace ScreenLookup.src.windows
             captureImage.Width = Math.Min(imgWidth, screenWidth);
             captureImage.Height = Math.Min(imgHeight, screenHeight / 2);
 
-            this.MaxWidth = screenWidth - 100;
-            this.MaxHeight = screenHeight - 100;
-            this.Width = captureImage.Width + (App.setting.FontSizeS * 10);
+            this.MaxWidth = screenWidth - 50;
+            this.MaxHeight = screenHeight - 50;
+            this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
 
             this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
             this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
@@ -389,7 +389,7 @@ namespace ScreenLookup.src.windows
             targetLanguageConfig.SelectedIndex = App.setting.targetLanguage;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Submit_Click(object sender, RoutedEventArgs e)
         {
             configDispatcher.Continue = false;
         }
