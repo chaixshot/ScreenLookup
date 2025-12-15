@@ -58,8 +58,12 @@ namespace ScreenLookup.src.pages
 
         private void LoadSourceLanguageItems()
         {
-            sourceLanguage.Items.Clear();
-            sourceLanguage.Items.Add("");
+            List<ComboBoxItem> items = [];
+            items.Add(new ComboBoxItem()
+            {
+                Content = "",
+                Tag = -1,
+            });
 
             for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
             {
@@ -67,14 +71,14 @@ namespace ScreenLookup.src.pages
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
 
-                ComboBoxItem item = new()
+                items.Add(new ComboBoxItem()
                 {
                     Content = $"{text}",
                     Tag = langID,
-                };
+                });
 
-                sourceLanguage.Items.Add(item);
             }
+            sourceLanguage.ItemsSource = items;
         }
 
         private void maxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -189,13 +193,10 @@ namespace ScreenLookup.src.pages
         {
             var comboBox = (sender as ComboBox);
             var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
-            if (comboBoxItem != null)
-            {
-                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                SearchSourceLanguage = searchSourceLanguage;
-            }
-            else
-                SearchSourceLanguage = -1;
+
+            int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+            SearchSourceLanguage = searchSourceLanguage;
+
             LoadHistoryLogger();
         }
 

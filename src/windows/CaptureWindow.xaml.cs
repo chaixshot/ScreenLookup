@@ -48,8 +48,8 @@ namespace ScreenLookup.src.windows
 
         public void LoadInstalledLanguage()
         {
-            sourceLanguageConfig.Items.Clear();
-            targetLanguageConfig.Items.Clear();
+            List<ComboBoxItem> sourceItems = [];
+            List<string> targetItems = [];
 
             for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
             {
@@ -57,18 +57,19 @@ namespace ScreenLookup.src.windows
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
 
-                // sourceLanguageConfig
                 if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
-                    sourceLanguageConfig.Items.Add(new ComboBoxItem
+                    sourceItems.Add(new ComboBoxItem
                     {
                         Content = $"{text}",
                         Tag = langID,
                     });
 
-                // targetLanguageConfig
-                targetLanguageConfig.Items.Add(text);
+                targetItems.Add(text);
             }
 
+            sourceLanguageConfig.ItemsSource = sourceItems;
+
+            targetLanguageConfig.ItemsSource = targetItems;
             targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
         }
 
