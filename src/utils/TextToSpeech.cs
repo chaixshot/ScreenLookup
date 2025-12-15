@@ -1,5 +1,4 @@
 ﻿using NAudio.Wave;
-using System.Diagnostics;
 using System.IO;
 using GLanguage = GTranslate.Language;
 
@@ -73,14 +72,11 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static void StartTTS(string Text, int langID)
+        public static void StartTTS(string Text, int langID, string window = "main")
         {
-            var methodInfo = new StackTrace().GetFrame(1).GetMethod();
-            bool isCaptureWindow = methodInfo.ReflectedType.Name == "CaptureWindow";
-
             StopTTS();
             CTS = new();
-            TextToSpeech.PlayTTS(Text, langID, isCaptureWindow, CTS);
+            TextToSpeech.PlayTTS(Text, langID, window == "capture", CTS);
         }
 
         public static void StopTTS()

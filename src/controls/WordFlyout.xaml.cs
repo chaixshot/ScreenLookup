@@ -15,12 +15,18 @@ namespace ScreenLookup.src.controls
     public partial class WordFlyout : UserControl
     {
         private readonly Dictionary<string, string> translatedCache = [];
+        bool isCaptureWindow;
 
         public WordFlyout()
         {
             InitializeComponent();
 
             flayOut.Opened += OnOpen;
+
+            this.Loaded += (s, e) =>
+            {
+                isCaptureWindow = this.Tag.ToString() == "CaptureWindow";
+            };
 
             this.Unloaded += (s, e) =>
             {
@@ -41,7 +47,7 @@ namespace ScreenLookup.src.controls
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            TextToSpeech.StartTTS(word, App.setting.SourceLanguage);
+            TextToSpeech.StartTTS(word, App.setting.SourceLanguage, isCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(word);
 
             if (!translatedCache.TryGetValue(word, out string translateResult))
@@ -81,12 +87,12 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(originalWord.Text, App.setting.SourceLanguage);
+            TextToSpeech.StartTTS(originalWord.Text, App.setting.SourceLanguage, isCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedWord.Text, App.setting.TargetLanguage);
+            TextToSpeech.StartTTS(translatedWord.Text, App.setting.TargetLanguage, isCaptureWindow ? "capture" : "main");
         }
 
         private async void SavedWordButtonStateChange(string word)

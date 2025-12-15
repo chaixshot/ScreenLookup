@@ -74,6 +74,8 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
+            <xControls:WordFlyout x:Name="flayOut" Tag="CaptureWindow" />
+
             <Controls:Card
                 x:Name="captureCard"
                 Grid.Row="0"
@@ -245,8 +247,6 @@
             </Controls:Card>
 
         </Grid>
-
-        <xControls:WordFlyout x:Name="flayOut" />
 
         <Controls:SnackbarPresenter x:Name="snackbarHost" />
 
