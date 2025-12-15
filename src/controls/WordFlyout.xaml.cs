@@ -81,6 +81,7 @@ namespace ScreenLookup.src.controls
             wordSave.Width = buttonWidth;
             wordSave.Height = buttonWidth;
 
+            translatedWord.Text = "";
             translatedWord.Visibility = Visibility.Collapsed;
             translatedWordLoading.Visibility = Visibility.Visible;
         }
@@ -104,23 +105,24 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(translatedWord.Text))
+            string originaWord = originalWord.Text;
+            string translatedWord = this.translatedWord.Text;
+
+            if (string.IsNullOrWhiteSpace(translatedWord) && !await SavedWordLogger.IsExist(originaWord))
             {
-                SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: "capture");
+                SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: isCaptureWindow ? "capture" : "main");
                 return;
             }
 
-            string word = originalWord.Text;
-
-            SavedWordLogger.ToggleSaved(word, translatedWord.Text, App.setting.SourceLanguage, App.setting.TargetLanguage);
-            SavedWordButtonStateChange(word);
+            SavedWordLogger.ToggleSaved(originaWord, translatedWord, App.setting.SourceLanguage, App.setting.TargetLanguage);
+            SavedWordButtonStateChange(originaWord);
         }
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
-            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: "capture");
+            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: isCaptureWindow ? "capture" : "main");
         }
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)

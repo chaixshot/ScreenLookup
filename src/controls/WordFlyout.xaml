@@ -43,7 +43,7 @@
                     Click="Button_Copy"
                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                             Filled=False}"
-                    Tag="{Binding Text, ElementName=definitionOriginal}"
+                    Tag="{Binding Text, ElementName=originalWord}"
                     ToolTip="Copy" />
 
                 <Controls:TextBlock
@@ -77,7 +77,7 @@
                     Click="Button_Copy"
                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                             Filled=False}"
-                    Tag="{Binding Text, ElementName=definitionTranslated}"
+                    Tag="{Binding Text, ElementName=translatedWord}"
                     ToolTip="Copy" />
                 <Controls:TextBlock
                     x:Name="translatedWord"
@@ -88,6 +88,7 @@
                     x:Name="translatedWordLoading"
                     Width="12"
                     Height="12"
+                    Margin="5,0,0,0"
                     Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                     IsIndeterminate="True" />
             </StackPanel>
