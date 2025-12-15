@@ -23,15 +23,23 @@ namespace ScreenLookup.src.pages
         public SavedPage()
         {
             InitializeComponent();
-            LoadSavedWord();
-            LoadSourceLanguageItems();
+
+            maxRow.SelectionChanged += maxRow_SelectionChanged;
+
+            Loaded += (s, e) =>
+            {
+                if (SavedDataGrid.ItemsSource == null)
+                {
+                    LoadSavedWord();
+                    LoadSourceLanguageItems();
+                }
+            };
 
             Unloaded += (s, e) =>
             {
                 TextToSpeech.StopTTS();
             };
 
-            maxRow.SelectionChanged += maxRow_SelectionChanged;
         }
 
         public void LoadSavedWord()

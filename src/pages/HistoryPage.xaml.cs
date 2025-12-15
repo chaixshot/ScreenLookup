@@ -28,16 +28,23 @@ namespace ScreenLookup.src.pages
         public HistoryPage()
         {
             InitializeComponent();
-            LoadHistoryLogger();
-            LoadSourceLanguageItems();
+
+            maxRow.SelectionChanged += maxRow_SelectionChanged;
+
+            Loaded += (s, e) =>
+            {
+                if (dataGrid.ItemsSource == null)
+                {
+                    LoadHistoryLogger();
+                    LoadSourceLanguageItems();
+                }
+            };
 
             Unloaded += (s, e) =>
             {
                 TextToSpeech.StopTTS();
                 translatedCache.Clear();
             };
-
-            maxRow.SelectionChanged += maxRow_SelectionChanged;
         }
 
         public void LoadHistoryLogger()
