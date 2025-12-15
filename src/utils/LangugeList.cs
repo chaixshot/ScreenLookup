@@ -6,6 +6,8 @@ namespace ScreenLookup.src.utils
 {
     internal class LanguageList
     {
+        private static Dictionary<string, string> displayNative = [];
+        private static Dictionary<string, string> displayName = [];
         public static readonly string[] LanguageTesseract = [
             "afr.traineddata",
             "amh.traineddata",
@@ -206,10 +208,32 @@ namespace ScreenLookup.src.utils
         {
             string tessLangTag = ClearTesseractTag(tesseractTag);
 
+            if (isNative)
+            {
+                if (displayNative.TryGetValue(tessLangTag, out string name))
+                {
+                    return name;
+                }
+            }
+            else
+            {
+                if (displayName.TryGetValue(tessLangTag, out string name))
+                {
+                    return name;
+                }
+            }
+
             try
             {
                 GLanguage languageData = GLanguage.GetLanguage(tessLangTag);
-                return isNative ? languageData.NativeName : languageData.Name;
+                string name = isNative ? languageData.NativeName : languageData.Name;
+
+                if (isNative)
+                    displayNative.TryAdd(tessLangTag, name);
+                else
+                    displayName.TryAdd(tessLangTag, name);
+
+                return name;
             }
             catch
             {
@@ -251,11 +275,25 @@ namespace ScreenLookup.src.utils
                 try
                 {
                     GLanguage languageData = GLanguage.GetLanguage(cultureInfo.DisplayName);
-                    return isNative ? $"{languageData.NativeName} {note}" : $"{languageData.Name} {note}";
+                    string name = isNative ? $"{languageData.NativeName} {note}" : $"{languageData.Name} {note}";
+
+                    if (isNative)
+                        displayNative.TryAdd(tessLangTag, name);
+                    else
+                        displayName.TryAdd(tessLangTag, name);
+
+                    return name;
                 }
                 catch
                 {
-                    return $"{cultureInfo.DisplayName} {note}";
+                    string name = $"{cultureInfo.DisplayName} {note}";
+
+                    if (isNative)
+                        displayNative.TryAdd(tessLangTag, name);
+                    else
+                        displayName.TryAdd(tessLangTag, name);
+
+                    return name;
                 }
             }
         }
