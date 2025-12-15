@@ -38,12 +38,18 @@ namespace ScreenLookup.src.pages
                     LoadHistoryLogger();
                     LoadSourceLanguageItems();
                 }
+
             };
 
             Unloaded += (s, e) =>
             {
                 TextToSpeech.StopTTS();
                 translatedCache.Clear();
+            };
+
+            SizeChanged += (s, e) =>
+            {
+                dataGrid.Height = App.mainWindow.ActualHeight - 202;
             };
         }
 

@@ -33,6 +33,7 @@ namespace ScreenLookup.src.pages
                     LoadSavedWord();
                     LoadSourceLanguageItems();
                 }
+
             };
 
             Unloaded += (s, e) =>
@@ -40,6 +41,10 @@ namespace ScreenLookup.src.pages
                 TextToSpeech.StopTTS();
             };
 
+            SizeChanged += (s, e) =>
+            {
+                SavedDataGrid.Height = App.mainWindow.ActualHeight - 202;
+            };
         }
 
         public void LoadSavedWord()
