@@ -12,273 +12,267 @@
     mc:Ignorable="d">
 
     <Grid Margin="20,12,40,40">
-        <Controls:DynamicScrollViewer>
-            <StackPanel Orientation="Vertical">
-                <TextBlock
-                    Margin="32,0,0,10"
-                    FontSize="25"
-                    FontWeight="SemiBold"
-                    Text="Settings" />
+        <StackPanel Orientation="Vertical">
+            <TextBlock
+                Margin="32,0,0,10"
+                FontSize="25"
+                FontWeight="SemiBold"
+                Text="Settings" />
 
-                <TextBlock
-                    Margin="5,0,0,5"
-                    FontWeight="SemiBold"
-                    Text="General" />
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="General" />
 
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=ClipboardTask24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Startup With Windows" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Auto start ScreenLookup when login" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <CheckBox Click="StartupWithWindows_Changed" IsChecked="{Binding StartupWithWindows}" />
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=SlideHide24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Start In Background" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Hide ScreenLook to tray after starting" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <CheckBox IsChecked="{Binding StartInBackground}" />
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Apps24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Minimize To Tray" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Allow ScreenLookup hide to tray when minimizing and closing" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <CheckBox IsChecked="{Binding MinimizeToTray}" />
-                </Controls:CardControl>
-
-                <TextBlock
-                    Margin="5,0,0,5"
-                    FontWeight="SemiBold"
-                    Text="Language" />
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Source Language" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Capture target language" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <Controls:Button
-                            x:Name="downloadTesseract"
-                            Margin="0,0,5,0"
-                            Click="DownloadTesseractButton_Click">
-                            <StackPanel>
-                                <wpfui:ProgressRing
-                                    x:Name="tesseractLoadingIcon"
-                                    Width="12"
-                                    Height="12"
-                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                                    IsIndeterminate="True" />
-                                <Controls:SymbolIcon
-                                    x:Name="tesseractLoadIcon"
-                                    Filled="True"
-                                    Symbol="ArrowDownload24" />
-                            </StackPanel>
-                        </Controls:Button>
-                        <ComboBox
-                            x:Name="sourceLanguageAccuracy"
-                            Width="146"
-                            SelectedIndex="{Binding SourceLanguageAccuracy}"
-                            SelectionChanged="SourceLanguageAccuracy_Changed" />
-                        <ComboBox
-                            x:Name="sourceLanguage"
-                            Width="200"
-                            Margin="5,0,0,0"
-                            SelectionChanged="SourceLanguage_Changed" />
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=ClipboardTask24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Startup With Windows" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Auto start ScreenLookup when login" />
                     </StackPanel>
-                </Controls:CardControl>
+                </Controls:CardControl.Header>
+                <CheckBox Click="StartupWithWindows_Changed" IsChecked="{Binding StartupWithWindows}" />
+            </Controls:CardControl>
 
-
-                <Controls:CardControl
-                    Margin="0,0,0,4"
-                    Padding="14,8,14,8"
-                    Icon="{wpfui:SymbolIcon Symbol=Checkmark24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Replace the words that are similar to recognized ones in dictionary" />
-                            <wpfui:HyperlinkButton
-                                Padding="0"
-                                Content="Read more"
-                                Icon="{wpfui:SymbolIcon Link24}"
-                                NavigateUri="https://hunspell.github.io/" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <Controls:Button
-                            x:Name="downloadHunspell"
-                            Margin="0,0,5,0"
-                            Click="DownloadHunspellButton_Click">
-                            <StackPanel>
-                                <wpfui:ProgressRing
-                                    x:Name="hunspellLoadingIcon"
-                                    Width="12"
-                                    Height="12"
-                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                                    IsIndeterminate="True" />
-                                <Controls:SymbolIcon
-                                    x:Name="hunspellLoadIcon"
-                                    Filled="True"
-                                    Symbol="ArrowDownload24" />
-                            </StackPanel>
-                        </Controls:Button>
-                        <CheckBox
-                            x:Name="hunspell"
-                            Click="HunSpell_Click"
-                            IsChecked="{Binding HunSpell}" />
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=SlideHide24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Start In Background" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Hide ScreenLook to tray after starting" />
                     </StackPanel>
-                </Controls:CardControl>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding StartInBackground}" />
+            </Controls:CardControl>
 
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Target Language" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Language for translating to you native language" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <ComboBox
-                        x:Name="targetLanguage"
-                        Width="200"
-                        SelectedIndex="{Binding TargetLanguage}" />
-                </Controls:CardControl>
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Apps24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Minimize To Tray" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Allow ScreenLookup hide to tray when minimizing and closing" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding MinimizeToTray}" />
+            </Controls:CardControl>
 
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Translate24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Translation Provider" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for translation service" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <ComboBox
-                        x:Name="translationProvider"
-                        Width="200"
-                        SelectedIndex="{Binding TranslationProvider}" />
-                </Controls:CardControl>
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Language" />
 
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=PersonVoice24}">
-                    <Controls:CardControl.Header>
-
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Text-To-Speech Provider" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for Text-To-Speech service" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <ComboBox
-                        x:Name="ttsProvider"
-                        Width="200"
-                        SelectedIndex="{Binding TTSProvider}" />
-                </Controls:CardControl>
-
-                <TextBlock
-                    Margin="5,0,0,5"
-                    FontWeight="SemiBold"
-                    Text="Lookup" />
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Keyboard24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Lookup Shortcut" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Hotkey for start Lookup the screen" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <xControls:ShortcutControl x:Name="captureShortcut" KeySetChanged="ShortcutControl_KeySetChanged" />
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Show Capture Image" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show Lookup's result capture image" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <CheckBox IsChecked="{Binding ShowImage}" />
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Highlight24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Show Word Highlight" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show Lookup's result source language words highlighting" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <CheckBox IsChecked="{Binding ShowHighlight}" />
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Window24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Close When Lost Focus" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Automatically close result window when losing focus" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <CheckBox IsChecked="{Binding CloseLostFocus}" />
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Font" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Lookup's result font style" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <ComboBox
-                        Width="200"
-                        FontFamily="{Binding FontFace}"
-                        IsEditable="True"
-                        ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
-                        Text="{Binding FontFace}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <Label Content="{Binding Source}" FontFamily="{Binding .}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </Controls:CardControl>
-
-                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
-                    <Controls:CardControl.Header>
-                        <StackPanel Margin="5,0,0,0">
-                            <Controls:TextBlock Text="Font Size" />
-                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Lookup's result font size" />
-                        </StackPanel>
-                    </Controls:CardControl.Header>
-                    <Controls:NumberBox
-                        Width="200"
-                        Maximum="100"
-                        Minimum="10"
-                        Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}" />
-                </Controls:CardControl>
-
-                <TextBlock
-                    Margin="5,0,0,5"
-                    FontWeight="SemiBold"
-                    Text="Reset" />
-
-                <Controls:Card Margin="0,0,0,4">
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Source Language" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Capture target language" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
                     <Controls:Button
+                        x:Name="downloadTesseract"
+                        Margin="0,0,5,0"
+                        Click="DownloadTesseractButton_Click">
+                        <StackPanel>
+                            <wpfui:ProgressRing
+                                x:Name="tesseractLoadingIcon"
+                                Width="12"
+                                Height="12"
+                                Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                IsIndeterminate="True" />
+                            <Controls:SymbolIcon
+                                x:Name="tesseractLoadIcon"
+                                Filled="True"
+                                Symbol="ArrowDownload24" />
+                        </StackPanel>
+                    </Controls:Button>
+                    <ComboBox
+                        x:Name="sourceLanguageAccuracy"
+                        Width="146"
+                        SelectedIndex="{Binding SourceLanguageAccuracy}"
+                        SelectionChanged="SourceLanguageAccuracy_Changed" />
+                    <ComboBox
+                        x:Name="sourceLanguage"
+                        Width="200"
                         Margin="5,0,0,0"
-                        HorizontalAlignment="Left"
-                        Click="ResetButton"
-                        Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
-                                                Filled=False}"
-                        ToolTip="Reset" />
-                </Controls:Card>
+                        SelectionChanged="SourceLanguage_Changed" />
+                </StackPanel>
+            </Controls:CardControl>
 
-            </StackPanel>
-        </Controls:DynamicScrollViewer>
-        <wpfui:HyperlinkButton
-            Margin="-250,919,0,0"
-            VerticalAlignment="Top"
-            Content="HyperlinkButton" />
+
+            <Controls:CardControl
+                Margin="0,0,0,4"
+                Padding="14,8,14,8"
+                Icon="{wpfui:SymbolIcon Symbol=Checkmark24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Replace the words that are similar to recognized ones in dictionary" />
+                        <wpfui:HyperlinkButton
+                            Padding="0"
+                            Content="Read more"
+                            Icon="{wpfui:SymbolIcon Link24}"
+                            NavigateUri="https://hunspell.github.io/" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <Controls:Button
+                        x:Name="downloadHunspell"
+                        Margin="0,0,5,0"
+                        Click="DownloadHunspellButton_Click">
+                        <StackPanel>
+                            <wpfui:ProgressRing
+                                x:Name="hunspellLoadingIcon"
+                                Width="12"
+                                Height="12"
+                                Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                IsIndeterminate="True" />
+                            <Controls:SymbolIcon
+                                x:Name="hunspellLoadIcon"
+                                Filled="True"
+                                Symbol="ArrowDownload24" />
+                        </StackPanel>
+                    </Controls:Button>
+                    <CheckBox
+                        x:Name="hunspell"
+                        Click="HunSpell_Click"
+                        IsChecked="{Binding HunSpell}" />
+                </StackPanel>
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Target Language" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Language for translating to you native language" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <ComboBox
+                    x:Name="targetLanguage"
+                    Width="200"
+                    SelectedIndex="{Binding TargetLanguage}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Translate24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Translation Provider" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for translation service" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <ComboBox
+                    x:Name="translationProvider"
+                    Width="200"
+                    SelectedIndex="{Binding TranslationProvider}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=PersonVoice24}">
+                <Controls:CardControl.Header>
+
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Text-To-Speech Provider" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for Text-To-Speech service" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <ComboBox
+                    x:Name="ttsProvider"
+                    Width="200"
+                    SelectedIndex="{Binding TTSProvider}" />
+            </Controls:CardControl>
+
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Lookup" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Keyboard24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Lookup Shortcut" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Hotkey for start Lookup the screen" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <xControls:ShortcutControl x:Name="captureShortcut" KeySetChanged="ShortcutControl_KeySetChanged" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Show Capture Image" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show Lookup's result capture image" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding ShowImage}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Highlight24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Show Word Highlight" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show Lookup's result source language words highlighting" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding ShowHighlight}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Window24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Close When Lost Focus" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Automatically close result window when losing focus" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding CloseLostFocus}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Font" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Lookup's result font style" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <ComboBox
+                    Width="200"
+                    FontFamily="{Binding FontFace}"
+                    IsEditable="True"
+                    ItemsSource="{Binding Source={x:Static Member=Fonts.SystemFontFamilies}}"
+                    Text="{Binding FontFace}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Label Content="{Binding Source}" FontFamily="{Binding .}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Font Size" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Lookup's result font size" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="100"
+                    Minimum="10"
+                    Value="{Binding FontSizeS, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Reset" />
+
+            <Controls:Card Margin="0,0,0,4">
+                <Controls:Button
+                    Margin="5,0,0,0"
+                    HorizontalAlignment="Left"
+                    Click="ResetButton"
+                    Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
+                                            Filled=False}"
+                    ToolTip="Reset" />
+            </Controls:Card>
+
+        </StackPanel>
     </Grid>
 </Page>

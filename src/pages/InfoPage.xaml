@@ -11,31 +11,29 @@
     mc:Ignorable="d">
 
     <Grid Margin="20,12,40,40">
-        <Controls:DynamicScrollViewer>
-            <StackPanel Grid.Column="0" Orientation="Vertical">
-                <TextBlock
-                    Margin="32,0,0,10"
-                    FontSize="25"
-                    FontWeight="SemiBold"
-                    Text="About" />
-                <TextBlock
-                    x:Name="VersionTextblock"
-                    Margin="5,0,0,5"
-                    FontWeight="SemiBold"
-                    Text="Version X.X" />
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Controls:Card />
+        <StackPanel Grid.Column="0" Orientation="Vertical">
+            <TextBlock
+                Margin="32,0,0,10"
+                FontSize="25"
+                FontWeight="SemiBold"
+                Text="About" />
+            <TextBlock
+                x:Name="VersionTextblock"
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Version X.X" />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Controls:Card />
 
-                    <Controls:Card Grid.Row="1" />
+                <Controls:Card Grid.Row="1" />
 
-                    <Controls:Card Grid.Row="2" />
-                </Grid>
-            </StackPanel>
-        </Controls:DynamicScrollViewer>
+                <Controls:Card Grid.Row="2" />
+            </Grid>
+        </StackPanel>
     </Grid>
 </Page>
