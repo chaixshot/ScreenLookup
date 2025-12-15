@@ -1,10 +1,8 @@
 ﻿using ScreenLookup.src.utils;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 
@@ -215,88 +213,21 @@ namespace ScreenLookup.src.pages
 
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            flayOut.IsOpen = false;
+            flayOut.flayOut.IsOpen = false;
 
-            var button = sender as Button;
+            Button? button = sender as Button;
             string word = button.Content.ToString();
             int sourceLanguage = Int32.Parse(button.ToolTip.ToString());
             int targetLanguage = Int32.Parse(button.Tag.ToString());
 
-            // Change flyout position follow cursor
-            var MousePos_Point = Mouse.GetPosition(dataGrid);
-            Matrix matrix = new Matrix();
-            matrix.Translate(MousePos_Point.X - 50, MousePos_Point.Y + 15);
-            mt.Matrix = matrix;
-            flayOut.LayoutTransform = Transform.Identity;
-
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.IsOpen = true;
+            flayOut.originalWord.Text = word;
+            flayOut.originalWord.Tag = sourceLanguage;
+            flayOut.translatedWord.Tag = targetLanguage;
 
-            definitionOriginal.Text = word;
-            definitionOriginal.Tag = sourceLanguage;
-
-            definitionTranslated.Text = "";
-            definitionTranslated.Tag = targetLanguage;
-            definitionTranslatedLoading.Visibility = Visibility.Visible;
-
-            TextToSpeech.StartTTS(word, sourceLanguage);
-            SavedWordButtonStateChange(word);
-
-            if (!translatedCache.TryGetValue(word, out string translateResult))
-            {
-                translateResult = await LanguageList.TranslatedText(word, targetLanguage);
-                translatedCache.TryAdd(word, translateResult);
-            }
-
-            definitionTranslated.Text = translateResult;
-            definitionTranslatedLoading.Visibility = Visibility.Collapsed;
-        }
-
-        private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
-        {
-            TextToSpeech.StartTTS(definitionOriginal.Text, App.setting.SourceLanguage);
-        }
-
-        private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
-        {
-            TextToSpeech.StartTTS(definitionTranslated.Text, App.setting.TargetLanguage);
-        }
-
-        private void Button_OpenBrowser(object sender, RoutedEventArgs e)
-        {
-            switch (App.setting.TranslationProvider)
-            {
-                case 4:
-                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={definitionOriginal.Text}") { UseShellExecute = true });
-
-                    break;
-                default:
-                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={definitionOriginal.Text}&op=translate") { UseShellExecute = true });
-                    break;
-            }
-        }
-
-        private async void SavedWordButtonStateChange(string word)
-        {
-            var saveButton = wordSave as Button;
-            var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
-            saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
-        }
-
-        private async void Button_WordSave(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(definitionTranslated.Text))
-            {
-                SnackbarHost.Show("Error", "Translation is not yet complete", "error");
-                return;
-            }
-
-            string word = definitionOriginal.Text;
-
-            SavedWordLogger.ToggleSaved(word, definitionTranslated.Text, Int32.Parse(definitionOriginal.Tag.ToString()), Int32.Parse(definitionTranslated.Tag.ToString()));
-            SavedWordButtonStateChange(word);
+            flayOut.flayOut.IsOpen = true;
         }
 
         private void Button_ParagraphTTS(object sender, RoutedEventArgs e)
