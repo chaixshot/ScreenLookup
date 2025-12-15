@@ -72,41 +72,24 @@ namespace ScreenLookup.src.pages
             int langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
 
+            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            {
+                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+                bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
+
+                items.Add(new ComboBoxItem
+                {
+                    Content = $"{text}",
+                    Tag = langID,
+                    FontWeight = isInstalled ? FontWeights.ExtraBold : FontWeights.Normal,
+                    Uid = (!isInstalled).ToString(),
+                });
+            }
+
             // sourceLanguage downloaded at top
-            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
-            {
-                string languageTesseract = LanguageList.LanguageTesseract[langID];
-                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
-
-                if (TesseractHelper.IsInstalled(langAcc, langID))
-                {
-                    items.Add(new ComboBoxItem
-                    {
-                        Content = $"{text}",
-                        Tag = langID,
-                        FontWeight = FontWeights.ExtraBold,
-                    });
-                }
-            }
-
-            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
-            {
-                string languageTesseract = LanguageList.LanguageTesseract[langID];
-                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
-
-                // sourceLanguage not download
-                if (!TesseractHelper.IsInstalled(langAcc, langID))
-                {
-                    items.Add(new ComboBoxItem
-                    {
-                        Content = $"{text}",
-                        Tag = langID,
-                    });
-                }
-            }
-
+            items = items.OrderBy(o => o.Uid).ToList();
             sourceLanguage.ItemsSource = items;
 
             SelectSourceLanguageComboBox();
