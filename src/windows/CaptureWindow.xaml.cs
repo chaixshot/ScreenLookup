@@ -166,7 +166,7 @@ namespace ScreenLookup.src.windows
 
                         // Original words card
                         List<CaptureWordsEntrySimplify> captureWords = await TesseractCaptureWordsySimplify(tesseract);
-                        originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, width: this.Width);
+                        originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
                         originalWordsLoading.Visibility = Visibility.Collapsed;
 
                         // Translate card
