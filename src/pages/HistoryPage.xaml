@@ -23,6 +23,7 @@
                 </Setter.Value>
             </Setter>
 
+            <Setter Property="Foreground" Value="{wpfui:ThemeResource TextFillColorPrimaryBrush}" />
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="{x:Null}" />
