@@ -47,12 +47,12 @@ namespace ScreenLookup.src.controls
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            TextToSpeech.StartTTS(word, App.setting.SourceLanguage, isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(word, Int32.Parse(originalWord.Tag.ToString()), isCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(word);
 
             if (!translatedCache.TryGetValue(word, out string translateResult))
             {
-                translateResult = await LanguageList.TranslatedText(word, App.setting.TargetLanguage);
+                translateResult = await LanguageList.TranslatedText(word, Int32.Parse(translatedWord.Tag.ToString()));
                 translatedCache.TryAdd(word, translateResult);
             }
 
@@ -88,12 +88,12 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(originalWord.Text, App.setting.SourceLanguage, isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(originalWord.Text, Int32.Parse(originalWord.Tag.ToString()), isCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedWord.Text, App.setting.TargetLanguage, isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translatedWord.Text, Int32.Parse(translatedWord.Tag.ToString()), isCaptureWindow ? "capture" : "main");
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -105,17 +105,17 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
         {
-            string originaWord = originalWord.Text;
-            string translatedWord = this.translatedWord.Text;
+            string original = originalWord.Text;
+            string translated = this.translatedWord.Text;
 
-            if (string.IsNullOrWhiteSpace(translatedWord) && !await SavedWordLogger.IsExist(originaWord))
+            if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(original))
             {
                 SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: isCaptureWindow ? "capture" : "main");
                 return;
             }
 
-            SavedWordLogger.ToggleSaved(originaWord, translatedWord, App.setting.SourceLanguage, App.setting.TargetLanguage);
-            SavedWordButtonStateChange(originaWord);
+            SavedWordLogger.ToggleSaved(original, translated, Int32.Parse(originalWord.Tag.ToString()), Int32.Parse(translatedWord.Tag.ToString()));
+            SavedWordButtonStateChange(original);
         }
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
@@ -130,11 +130,11 @@ namespace ScreenLookup.src.controls
             switch (App.setting.translationProvider)
             {
                 case 4:
-                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={originalWord.Text}") { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(Int32.Parse(originalWord.Tag.ToString()))}&target_lang={LanguageList.GetLanguageISO6391FromID(Int32.Parse(translatedWord.Tag.ToString()))}&text={originalWord.Text}") { UseShellExecute = true });
 
                     break;
                 default:
-                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(App.setting.SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(App.setting.TargetLanguage)}&text={originalWord.Text}&op=translate") { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Int32.Parse(originalWord.Tag.ToString()))}&tl={LanguageList.GetLanguageISO6391FromID(Int32.Parse(translatedWord.Tag.ToString()))}&text={originalWord.Text}&op=translate") { UseShellExecute = true });
                     break;
             }
         }
