@@ -53,6 +53,16 @@ class DownloadHelper
             return false;
         }
     }
+
+    public static void DeleteDownloadedAppData()
+    {
+        foreach (string folderName in new string[] { "hunspell", "tessdata", "tessdata_best", "tessdata_fast" })
+        {
+            DirectoryInfo Folder = new(Path.Combine(App.appDataFolder, folderName));
+            if (Folder.Exists)
+                Folder.Delete(true);
+        }
+    }
 }
 
 public class TesseractHelper
