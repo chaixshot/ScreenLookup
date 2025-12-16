@@ -210,6 +210,7 @@ namespace ScreenLookup.src.pages
         {
             var comboBox = (sender as ComboBox);
             var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+
             if (comboBoxItem != null)
             {
                 int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
@@ -217,6 +218,7 @@ namespace ScreenLookup.src.pages
             }
             else
                 SearchSourceLanguage = -1;
+
             LoadSavedWord();
         }
 

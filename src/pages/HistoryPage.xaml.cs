@@ -217,8 +217,13 @@ namespace ScreenLookup.src.pages
             var comboBox = (sender as ComboBox);
             var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
 
-            int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-            SearchSourceLanguage = searchSourceLanguage;
+            if (comboBoxItem != null)
+            {
+                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+                SearchSourceLanguage = searchSourceLanguage;
+            }
+            else
+                SearchSourceLanguage = -1;
 
             LoadHistoryLogger();
         }
