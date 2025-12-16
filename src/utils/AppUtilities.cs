@@ -27,7 +27,6 @@ namespace ScreenLookup.src.utils
                 return $"{version.Major}.{version.Minor}.{version.Build}" ?? "unknown error reading package version";
             }
 
-
             return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown error reading assembly version";
         }
 
