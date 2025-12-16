@@ -12,7 +12,7 @@ namespace ScreenLookup.src.pages
         {
             InitializeComponent();
 
-            VersionTextblock.Text = $"Version {AppUtilities.GetAppVersion()}";
+            VersionTextblock.Content = $"Version {AppUtilities.GetAppVersion()}";
         }
     }
 }
