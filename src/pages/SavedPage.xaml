@@ -38,11 +38,9 @@
                         Orientation="Horizontal">
                         <Controls:Button
                             x:Name="PageDown"
-                            Appearance="Transparent"
                             Click="PageDown_click"
                             Icon="{wpfui:SymbolIcon Symbol=chevronLeft12,
                                                     Filled=False}"
-                            MouseOverBackground="#07000000"
                             ToolTip="Previous " />
 
                         <Controls:TextBlock
@@ -54,11 +52,9 @@
 
                         <Controls:Button
                             x:Name="PageUp"
-                            Appearance="Transparent"
                             Click="PageUp_click"
                             Icon="{wpfui:SymbolIcon Symbol=chevronRight12,
                                                     Filled=False}"
-                            MouseOverBackground="#07000000"
                             ToolTip="Next Page" />
 
                         <ComboBox
@@ -85,32 +81,26 @@
                             x:Name="Export"
                             Margin="0,0,0,0"
                             HorizontalAlignment="Right"
-                            Appearance="Transparent"
                             Click="Export_click"
                             Icon="{wpfui:SymbolIcon Symbol=ArrowDown12,
                                                     Filled=False}"
-                            MouseOverBackground="#07000000"
                             ToolTip="Export" />
                         <Controls:Button
                             x:Name="Delete"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Right"
-                            Appearance="Transparent"
                             Click="Clear_click"
                             Icon="{wpfui:SymbolIcon Symbol=Delete12,
                                                     Filled=False}"
-                            MouseOverBackground="#07000000"
                             ToolTip="Delete All" />
 
                         <Controls:Button
                             x:Name="Refresh"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Right"
-                            Appearance="Transparent"
                             Click="Refresh_click"
                             Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise12,
                                                     Filled=False}"
-                            MouseOverBackground="#07000000"
                             ToolTip="Refresh" />
                     </StackPanel>
                 </Grid>
@@ -260,13 +250,11 @@
                                             Margin="0"
                                             Padding="0"
                                             HorizontalAlignment="Right"
-                                            Appearance="Transparent"
                                             Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
                                             BorderThickness="0"
                                             Click="Delete_click"
                                             Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
                                                                     Filled=False}"
-                                            MouseOverBackground="#07000000"
                                             Tag="{Binding Id}"
                                             ToolTip="Delete" />
                                     </DataTemplate>
