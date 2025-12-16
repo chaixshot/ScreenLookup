@@ -223,7 +223,7 @@ namespace ScreenLookup.src.pages
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            bool isYes = await DialogBox.Show($"Do you want to delete word \"{button.Tag.ToString()}\"?", "This operation cannot be undone!", 0);
+            bool isYes = await DialogBox.Show($"Do you want to delete word \"{button.Content.ToString()}\"?", "This operation cannot be undone!", 0);
 
             if (isYes)
             {

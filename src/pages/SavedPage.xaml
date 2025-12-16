@@ -255,6 +255,7 @@
                                             Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
                                             BorderThickness="0"
                                             Click="Delete_click"
+                                            Content="{Binding Original}"
                                             Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
                                                                     Filled=False}"
                                             Tag="{Binding Id}"
