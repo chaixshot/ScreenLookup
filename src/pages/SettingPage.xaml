@@ -142,7 +142,7 @@
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
                         <Controls:TextBlock Text="Target Language" />
-                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Language for translating to you native language" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Language for translating to your native language" />
                     </StackPanel>
                 </Controls:CardControl.Header>
                 <ComboBox
