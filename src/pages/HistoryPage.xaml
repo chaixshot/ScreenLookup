@@ -69,10 +69,12 @@
 
                         <Controls:TextBlock
                             x:Name="PageNumber"
+                            MinWidth="40"
                             Margin="10,0,10,0"
                             VerticalAlignment="Center"
                             FontSize="15"
-                            Text="1/1" />
+                            Text="1/1"
+                            TextAlignment="Right" />
 
                         <Controls:Button
                             x:Name="PageUp"
