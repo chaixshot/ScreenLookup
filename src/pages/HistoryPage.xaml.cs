@@ -38,7 +38,6 @@ namespace ScreenLookup.src.pages
                     LoadHistoryLogger();
                     LoadSourceLanguageItems();
                 }
-
             };
 
             Unloaded += (s, e) =>
@@ -57,6 +56,8 @@ namespace ScreenLookup.src.pages
         {
             ThreadPool.QueueUserWorkItem(_ =>
             {
+                Thread.Sleep(100);
+
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {

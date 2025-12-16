@@ -28,12 +28,11 @@ namespace ScreenLookup.src.pages
 
             Loaded += (s, e) =>
             {
-                if (SavedDataGrid.ItemsSource == null)
+                if (dataGrid.ItemsSource == null)
                 {
                     LoadSavedWord();
                     LoadSourceLanguageItems();
                 }
-
             };
 
             Unloaded += (s, e) =>
@@ -43,7 +42,7 @@ namespace ScreenLookup.src.pages
 
             SizeChanged += (s, e) =>
             {
-                SavedDataGrid.Height = App.mainWindow.ActualHeight - 202;
+                dataGrid.Height = App.mainWindow.ActualHeight - 202;
             };
         }
 
@@ -51,6 +50,8 @@ namespace ScreenLookup.src.pages
         {
             ThreadPool.QueueUserWorkItem(_ =>
             {
+                Thread.Sleep(100);
+
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
@@ -59,7 +60,7 @@ namespace ScreenLookup.src.pages
 
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
 
-                    SavedDataGrid.ItemsSource = saved;
+                    dataGrid.ItemsSource = saved;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
                 }));
             });
