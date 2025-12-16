@@ -61,11 +61,18 @@ namespace ScreenLookup.src.pages
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
+                start:
                     var data = await HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
 
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
                     dataGrid.ItemsSource = data.Item1;
+
+                    if (currentPage > maxPage)
+                    {
+                        currentPage = maxPage;
+                        goto start;
+                    }
                 }));
             });
         }
@@ -101,12 +108,6 @@ namespace ScreenLookup.src.pages
             maxRowPerPage = System.Convert.ToInt32(tag);
 
             LoadHistoryLogger();
-
-            if (currentPage > maxPage)
-            {
-                currentPage = maxPage;
-                LoadHistoryLogger();
-            }
         }
 
         private async void PageDown_click(object sender, RoutedEventArgs e)

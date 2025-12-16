@@ -55,6 +55,7 @@ namespace ScreenLookup.src.pages
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
+                start:
                     var data = await SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
                     List<SavedWordEntry> saved = data.Item1;
 
@@ -62,6 +63,12 @@ namespace ScreenLookup.src.pages
 
                     dataGrid.ItemsSource = saved;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
+
+                    if (currentPage > maxPage)
+                    {
+                        currentPage = maxPage;
+                        goto start;
+                    }
                 }));
             });
         }
@@ -96,12 +103,6 @@ namespace ScreenLookup.src.pages
             maxRowPerPage = Convert.ToInt32(tag);
 
             LoadSavedWord();
-
-            if (currentPage > maxPage)
-            {
-                currentPage = maxPage;
-                LoadSavedWord();
-            }
         }
 
         private async void PageDown_click(object sender, RoutedEventArgs e)
