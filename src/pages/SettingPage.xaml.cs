@@ -17,11 +17,7 @@ namespace ScreenLookup.src.pages
 
             LoadTargetLanguageContent();
             LoadSourceAccuracys();
-            //LoadTesseractContent();
             LoadProvidersContent();
-
-            //ButtonDownloadHunspellChanged();
-            //ButtonDownloadTesseracChanged();
 
             ApplyStartupWithWindows();
 

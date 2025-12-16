@@ -79,6 +79,7 @@ namespace ScreenLookup.src.pages
 
         private void LoadSourceLanguageItems()
         {
+            int langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
             items.Add(new ComboBoxItem()
             {
@@ -91,14 +92,20 @@ namespace ScreenLookup.src.pages
                 string languageTesseract = LanguageList.LanguageTesseract[langID];
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+                bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
 
                 items.Add(new ComboBoxItem()
                 {
                     Content = $"{text}",
                     Tag = langID,
+                    FontWeight = isInstalled ? FontWeights.ExtraBold : FontWeights.Normal,
+                    Uid = (!isInstalled).ToString(),
                 });
 
             }
+
+            // sourceLanguage downloaded at top
+            items = items.OrderBy(o => o.Uid).ToList();
             sourceLanguage.ItemsSource = items;
         }
 
@@ -139,6 +146,7 @@ namespace ScreenLookup.src.pages
         private void Refresh_click(object sender, RoutedEventArgs e)
         {
             LoadHistoryLogger();
+            LoadSourceLanguageItems();
         }
 
         private async void Export_click(object sender, RoutedEventArgs e)
