@@ -195,6 +195,7 @@
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
                                             <Controls:Button
+                                                Uid="{Binding Original}"
                                                 Width="20"
                                                 Height="20"
                                                 Padding="0"
@@ -205,7 +206,8 @@
                                                 Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                                         Filled=False}"
                                                 Tag="{Binding SourceLanguage}"
-                                                ToolTip="{Binding Original}" />
+                                                ToolTip="Speak" />
+
                                             <Controls:Button
                                                 Grid.Column="0"
                                                 Width="20"
@@ -220,6 +222,7 @@
                                                                         Filled=False}"
                                                 Tag="{Binding Original}"
                                                 ToolTip="Copy" />
+
                                             <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Original}" />
                                         </StackPanel>
                                     </DataTemplate>
@@ -231,6 +234,7 @@
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
                                             <Controls:Button
+                                                Uid="{Binding Translated}"
                                                 Width="20"
                                                 Height="20"
                                                 Padding="0"
@@ -241,7 +245,7 @@
                                                 Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                                         Filled=False}"
                                                 Tag="{Binding TargetLanguage}"
-                                                ToolTip="{Binding Translated}" />
+                                                ToolTip="Speak" />
                                             <Controls:Button
                                                 Grid.Column="0"
                                                 Width="20"

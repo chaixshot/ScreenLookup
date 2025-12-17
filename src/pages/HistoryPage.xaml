@@ -214,6 +214,7 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel>
                                                 <Controls:Button
+                                                    Uid="{Binding Original}"
                                                     Width="20"
                                                     Height="20"
                                                     Padding="0"
@@ -224,7 +225,7 @@
                                                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                                             Filled=False}"
                                                     Tag="{Binding SourceLanguage}"
-                                                    ToolTip="{Binding Original}" />
+                                                    ToolTip="Speak" />
                                                 <Controls:Button
                                                     Width="20"
                                                     Height="20"
@@ -255,6 +256,7 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Controls:Button
+                                                            Uid="{Binding SourceLanguage}"
                                                             Width="{Binding Width}"
                                                             Height="{Binding Height}"
                                                             Margin="0"
@@ -265,7 +267,7 @@
                                                             Click="Button_Word"
                                                             Content="{Binding Word}"
                                                             Tag="{Binding TargetLanguage}"
-                                                            ToolTip="{Binding SourceLanguage}" />
+                                                            ToolTip="{Binding Word}" />
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
@@ -291,6 +293,7 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel>
                                                 <Controls:Button
+                                                    Uid="{Binding Translated}"
                                                     Width="20"
                                                     Height="20"
                                                     Padding="0"
@@ -301,7 +304,7 @@
                                                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                                             Filled=False}"
                                                     Tag="{Binding TargetLanguage}"
-                                                    ToolTip="{Binding Translated}" />
+                                                    ToolTip="Speak" />
                                                 <Controls:Button
                                                     Width="20"
                                                     Height="20"

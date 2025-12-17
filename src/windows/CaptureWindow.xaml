@@ -119,7 +119,8 @@
                         VerticalContentAlignment="Center"
                         Click="Button_OriginalTTS"
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}" />
+                                                Filled=False}"
+                        ToolTip="Speak" />
                     <Controls:Button
                         Grid.Column="1"
                         Width="{Binding Width, ElementName=originalTTS}"
@@ -209,7 +210,8 @@
                         VerticalContentAlignment="Center"
                         Click="Button_TranslatedTTS"
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}" />
+                                                Filled=False}"
+                        ToolTip="Speak" />
                     <Controls:Button
                         Grid.Column="1"
                         Width="{Binding Width, ElementName=translatedTSS}"

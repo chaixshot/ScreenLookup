@@ -259,7 +259,7 @@ namespace ScreenLookup.src.pages
         {
             var button = sender as Button;
 
-            TextToSpeech.StartTTS(button.ToolTip.ToString(), Int32.Parse(button.Tag.ToString()));
+            TextToSpeech.StartTTS(button.Uid.ToString(), Int32.Parse(button.Tag.ToString()));
         }
 
         private void Button_WordCopy(object sender, RoutedEventArgs e)

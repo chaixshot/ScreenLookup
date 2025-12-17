@@ -265,8 +265,8 @@ namespace ScreenLookup.src.pages
             flayOut.flayOut.IsOpen = false;
 
             Button? button = sender as Button;
-            string word = button.Content.ToString();
-            int sourceLanguage = Int32.Parse(button.ToolTip.ToString());
+            string word = button.ToolTip.ToString();
+            int sourceLanguage = Int32.Parse(button.Uid.ToString());
             int targetLanguage = Int32.Parse(button.Tag.ToString());
 
             if (string.IsNullOrWhiteSpace(word))
@@ -282,7 +282,7 @@ namespace ScreenLookup.src.pages
         private void Button_ParagraphTTS(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            TextToSpeech.StartTTS(button.ToolTip.ToString(), Int32.Parse(button.Tag.ToString()));
+            TextToSpeech.StartTTS(button.Uid.ToString(), Int32.Parse(button.Tag.ToString()));
         }
 
         private void Button_ParagraphCopy(object sender, RoutedEventArgs e)

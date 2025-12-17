@@ -30,7 +30,8 @@
                     VerticalContentAlignment="Center"
                     Click="Button_WordOriginalTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                            Filled=False}" />
+                                            Filled=False}"
+                    ToolTip="Speak" />
                 <Controls:Button
                     Width="{Binding Width, ElementName=flayoutOriginalTSS}"
                     Height="{Binding Height, ElementName=flayoutOriginalTSS}"
@@ -64,7 +65,8 @@
                     VerticalContentAlignment="Center"
                     Click="Button_WordTranslatedTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                            Filled=False}" />
+                                            Filled=False}"
+                    ToolTip="Speak" />
                 <Controls:Button
                     Width="{Binding Width, ElementName=flayoutTranslatedTSS}"
                     Height="{Binding Height, ElementName=flayoutTranslatedTSS}"
@@ -108,7 +110,8 @@
                         VerticalContentAlignment="Center"
                         Click="Button_OpenBrowser"
                         Icon="{wpfui:SymbolIcon Symbol=Globe24,
-                                                Filled=False}" />
+                                                Filled=False}"
+                        ToolTip="Open Browser" />
                     <Controls:Button
                         x:Name="wordSave"
                         Width="20"
@@ -121,7 +124,8 @@
                         VerticalContentAlignment="Center"
                         Click="Button_WordSave"
                         Icon="{wpfui:SymbolIcon Symbol=Star24,
-                                                Filled=False}" />
+                                                Filled=False}"
+                        ToolTip="Saved" />
                 </StackPanel>
             </Controls:Card>
         </StackPanel>
