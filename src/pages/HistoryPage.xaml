@@ -177,6 +177,7 @@
                         EnableRowVirtualization="True"
                         GridLinesVisibility="Horizontal"
                         IsReadOnly="True"
+                        ItemsSource="{Binding HistoryItems, IsAsync=True, Mode=OneWay}"
                         ScrollViewer.CanContentScroll="False"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.IsVirtualizingWhenGrouping="False"

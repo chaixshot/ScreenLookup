@@ -1,5 +1,7 @@
-﻿using ScreenLookup.src.utils;
+﻿using ScreenLookup.src.models;
+using ScreenLookup.src.utils;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,7 +13,7 @@ namespace ScreenLookup.src.pages
     /// <summary>
     /// Interaction logic for HistoryPage.xaml
     /// </summary>
-    public partial class HistoryPage : Page
+    public partial class HistoryPage : Page, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -25,8 +27,11 @@ namespace ScreenLookup.src.pages
 
         private readonly Dictionary<string, string> translatedCache = [];
 
+        public List<HistoryLoggerPageEntry> historyItems;
+
         public HistoryPage()
         {
+            DataContext = this;
             InitializeComponent();
 
             maxRow.SelectionChanged += maxRow_SelectionChanged;
@@ -52,6 +57,21 @@ namespace ScreenLookup.src.pages
             };
         }
 
+        public void OnPropertyChanged([CallerMemberName] string? propName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
+
+        public List<HistoryLoggerPageEntry> HistoryItems
+        {
+            get { return historyItems; }
+            set
+            {
+                historyItems = value;
+                OnPropertyChanged();
+            }
+        }
+
         public void LoadHistoryLogger()
         {
             ThreadPool.QueueUserWorkItem(_ =>
@@ -64,9 +84,9 @@ namespace ScreenLookup.src.pages
                 start:
                     var data = await HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
 
+                    HistoryItems = data.Item1;
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
-                    dataGrid.ItemsSource = data.Item1;
 
                     if (currentPage > maxPage)
                     {

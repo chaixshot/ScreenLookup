@@ -1,5 +1,7 @@
 ﻿using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using Wpf.Ui.Controls;
@@ -10,8 +12,10 @@ namespace ScreenLookup.src.pages
     /// <summary>
     /// Interaction logic for SavedPage.xaml
     /// </summary>
-    public partial class SavedPage : Page
+    public partial class SavedPage : Page, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private int currentPage = 1;
         private int searchPage = 1;
         private int maxPage = 1;
@@ -20,8 +24,11 @@ namespace ScreenLookup.src.pages
         public string SearchText { get; set; } = string.Empty;
         public int SearchSourceLanguage = -1;
 
+        public List<SavedWordEntry> savedItems;
+
         public SavedPage()
         {
+            DataContext = this;
             InitializeComponent();
 
             maxRow.SelectionChanged += maxRow_SelectionChanged;
@@ -46,6 +53,21 @@ namespace ScreenLookup.src.pages
             };
         }
 
+        public void OnPropertyChanged([CallerMemberName] string? propName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
+
+        public List<SavedWordEntry> SavedItems
+        {
+            get { return savedItems; }
+            set
+            {
+                savedItems = value;
+                OnPropertyChanged();
+            }
+        }
+
         public void LoadSavedWord()
         {
             ThreadPool.QueueUserWorkItem(_ =>
@@ -57,11 +79,9 @@ namespace ScreenLookup.src.pages
                 {
                 start:
                     var data = await SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
-                    List<SavedWordEntry> saved = data.Item1;
 
+                    SavedItems = data.Item1;
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-
-                    dataGrid.ItemsSource = saved;
                     PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
 
                     if (currentPage > maxPage)

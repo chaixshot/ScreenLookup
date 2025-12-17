@@ -148,6 +148,7 @@
                         BorderThickness="0,0,0,0"
                         GridLinesVisibility="Horizontal"
                         IsReadOnly="True"
+                        ItemsSource="{Binding SavedItems, IsAsync=True, Mode=OneWay}"
                         ScrollViewer.CanContentScroll="False"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.IsVirtualizingWhenGrouping="False"
