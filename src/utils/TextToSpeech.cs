@@ -74,9 +74,12 @@ namespace ScreenLookup.src.utils
 
         public static void StartTTS(string Text, int langID, string window = "main")
         {
-            StopTTS();
-            CTS = new();
-            TextToSpeech.PlayTTS(Text, langID, window == "capture", CTS);
+            Task.Run(() =>
+            {
+                StopTTS();
+                CTS = new();
+                TextToSpeech.PlayTTS(Text, langID, window == "capture", CTS);
+            });
         }
 
         public static void StopTTS()
