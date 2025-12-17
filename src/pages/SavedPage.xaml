@@ -172,6 +172,24 @@
                             </LinearGradientBrush>
                         </Controls:DataGrid.BorderBrush>
                         <Controls:DataGrid.Columns>
+
+                            <DataGridTemplateColumn Width="0.15*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Controls:Button
+                                            Uid="{Binding TargetLanguage}"
+                                            Width="20"
+                                            Height="20"
+                                            Padding="0"
+                                            Click="Button_OpenBrowser"
+                                            Icon="{wpfui:SymbolIcon Symbol=Globe24,
+                                                                    Filled=False}"
+                                            Tag="{Binding SourceLanguage}"
+                                            ToolTip="{Binding Original}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <DataGridTemplateColumn Width="*" Header="Original">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -244,7 +262,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Width="0.2*">
+                            <DataGridTemplateColumn Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Controls:Button

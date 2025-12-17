@@ -1,6 +1,7 @@
 ﻿using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -267,6 +268,22 @@ namespace ScreenLookup.src.pages
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
+        }
+
+        private void Button_OpenBrowser(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+
+            switch (App.setting.translationProvider)
+            {
+                case 4:
+                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Tag.ToString()))}&target_lang={LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Uid.ToString()))}&text={button.ToolTip}") { UseShellExecute = true });
+
+                    break;
+                default:
+                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Tag.ToString()))}&tl={LanguageList.GetLanguageISO6391FromID(Int32.Parse(button.Uid.ToString()))}&text={button.ToolTip}&op=translate") { UseShellExecute = true });
+                    break;
+            }
         }
     }
 }
