@@ -2,6 +2,7 @@
 using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,6 +13,7 @@ namespace ScreenLookup.src.windows
     /// </summary>
     public partial class TrayIcon : Window
     {
+        HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
         private Hotkey hotkey;
 
         public TrayIcon()
@@ -25,9 +27,17 @@ namespace ScreenLookup.src.windows
             };
         }
 
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (hotkey != null)
+                hotkeyManager.TryRemoveHotkey(hotkey);
+
+            base.OnClosing(e);
+        }
+
         public void SetupHoykey()
         {
-            HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
+
             ShortcutKeySet shortcutKey = App.setting.ShortcutKey;
             ModifierKeys modifierKey = ModifierKeys.None;
             trayCapture.Header = "Lookup".PadRight(20);
