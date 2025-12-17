@@ -22,6 +22,7 @@ namespace ScreenLookup.src.controls
             InitializeComponent();
 
             flayOut.Opened += OnOpen;
+            flayOut.Closed += OnClose;
 
             this.Loaded += (s, e) =>
             {
@@ -59,6 +60,11 @@ namespace ScreenLookup.src.controls
             translatedWord.Text = translateResult;
             translatedWord.Visibility = Visibility.Visible;
             translatedWordLoading.Visibility = Visibility.Collapsed;
+        }
+
+        private void OnClose(Flyout sender, RoutedEventArgs args)
+        {
+            TextToSpeech.StopTTS();
         }
 
         private void Reset()
