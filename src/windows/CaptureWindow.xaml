@@ -139,7 +139,7 @@
                         Grid.Column="2"
                         IsScrollingVertically="True"
                         VerticalScrollBarVisibility="Visible">
-                        <Grid>
+                        <Grid Margin="5,0,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -152,7 +152,7 @@
                                 Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                                 IsIndeterminate="True" />
 
-                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                            <StackPanel Grid.Column="1">
                                 <ItemsControl Name="originalWords">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -229,18 +229,18 @@
                         Grid.Column="2"
                         IsScrollingVertically="True"
                         VerticalScrollBarVisibility="Visible">
-                        <WrapPanel Orientation="Horizontal">
-                            <Controls:TextBlock
-                                x:Name="translatedText"
-                                Grid.Column="1"
-                                Margin="5,0,0,0"
-                                TextWrapping="Wrap" />
+                        <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
                             <wpfui:ProgressRing
                                 x:Name="translatedTextLoading"
                                 Width="12"
                                 Height="12"
                                 Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                                 IsIndeterminate="True" />
+                            <Controls:TextBlock
+                                x:Name="translatedText"
+                                Grid.Column="1"
+                                TextWrapping="Wrap" />
+
                         </WrapPanel>
                     </Controls:DynamicScrollViewer>
                 </Grid>

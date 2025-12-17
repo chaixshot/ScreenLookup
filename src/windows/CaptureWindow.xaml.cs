@@ -42,7 +42,9 @@ namespace ScreenLookup.src.windows
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape)
+                {
                     HideWindow();
+                }
             };
         }
 
@@ -75,6 +77,7 @@ namespace ScreenLookup.src.windows
 
         private void HideWindow()
         {
+            IsCapturing = false;
             this.Hide();
             translatedCache.Clear();
             TextToSpeech.StopTTS();
@@ -124,9 +127,9 @@ namespace ScreenLookup.src.windows
             // Screenshot
             IsCapturing = true;
             (Bitmap? image, bool isRightMouse) = ScreenGrabber.CaptureDialog(false);
-            IsCapturing = false;
             if (image == null)
             {
+                IsCapturing = false;
                 return;
             }
 
@@ -152,31 +155,42 @@ namespace ScreenLookup.src.windows
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractOCR.Page tesseract = await GetTesseractPageFromBitmap(image);
+                    TesseractOCR.Page tesseract = await Task.Run(() => GetTesseractPageFromBitmap(image));
 
-                    if (string.IsNullOrWhiteSpace(tesseract.Text))
+                    if (IsCapturing)
                     {
-                        originalCard.Visibility = Visibility.Collapsed;
-                        translatedCard.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        // Original full paragraph
-                        ocrText.Text = tesseract.Text;
+                        if (string.IsNullOrWhiteSpace(tesseract.Text))
+                        {
+                            originalCard.Visibility = Visibility.Collapsed;
+                            translatedCard.Visibility = Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            // Original full paragraph
+                            ocrText.Text = tesseract.Text;
 
-                        // Original words card
-                        List<CaptureWordsEntrySimplify> captureWords = await TesseractCaptureWordsySimplify(tesseract);
-                        originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
-                        originalWordsLoading.Visibility = Visibility.Collapsed;
+                            // Original words card
+                            List<CaptureWordsEntrySimplify> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(tesseract));
+                            if (IsCapturing)
+                            {
+                                originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
+                                originalWordsLoading.Visibility = Visibility.Collapsed;
 
-                        // Translate card
-                        string translateResult = await LanguageList.TranslatedText(tesseract.Text, App.setting.TargetLanguage);
-                        translatedText.Text = translateResult;
-                        translatedTextLoading.Visibility = Visibility.Collapsed;
+                                // Translate card
+                                string translateResult = await LanguageList.TranslatedText(tesseract.Text, App.setting.TargetLanguage);
+                                translatedText.Text = translateResult;
+                                translatedTextLoading.Visibility = Visibility.Collapsed;
 
-                        await AddToHistory(ocrText.Text, captureWords, translateResult);
+                                if (IsCapturing)
+                                {
+                                    await AddToHistory(ocrText.Text, captureWords, translateResult);
 
-                        CenterWindowOnScreen(image.Width, image.Height);
+                                    CenterWindowOnScreen(image.Width, image.Height);
+                                }
+                            }
+                        }
+
+                        IsCapturing = false;
                     }
                 }));
             });
@@ -265,7 +279,7 @@ namespace ScreenLookup.src.windows
             return engine.Process(img);
         }
 
-        private static async Task<List<CaptureWordsEntrySimplify>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
+        private async Task<List<CaptureWordsEntrySimplify>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
         {
             List<CaptureWordsEntrySimplify> items = [];
             foreach (var block in page.Layout)
@@ -278,8 +292,10 @@ namespace ScreenLookup.src.windows
                         {
                             if (!string.IsNullOrWhiteSpace(word.Text))
                             {
-                                string text = word.Text;
+                                if (!IsCapturing)
+                                    goto skip;
 
+                                string text = word.Text;
                                 if (App.setting.HunSpell)
                                 {
                                     string DisplayName = LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, false);
@@ -299,6 +315,7 @@ namespace ScreenLookup.src.windows
                                         SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\" dosen't support Hunspell", "error", windows: "capture");
                                     }
                                 }
+
                                 items.Add(new CaptureWordsEntrySimplify() { Word = text, Stop = 0 });
                             }
                         }
@@ -308,6 +325,8 @@ namespace ScreenLookup.src.windows
                 }
                 items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 3 });
             }
+
+        skip:
 
             return items;
         }
