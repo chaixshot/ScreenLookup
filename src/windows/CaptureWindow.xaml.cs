@@ -26,6 +26,7 @@ namespace ScreenLookup.src.windows
         private readonly Dictionary<string, string> translatedCache = [];
         private DispatcherFrame configDispatcher;
         private readonly Engine TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
+        private TesseractOCR.Page TesseractPage;
 
         public CaptureWindow()
         {
@@ -156,11 +157,11 @@ namespace ScreenLookup.src.windows
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractOCR.Page tesseract = await Task.Run(() => GetTesseractPageFromBitmap(image));
+                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image));
 
                     if (IsCapturing)
                     {
-                        if (string.IsNullOrWhiteSpace(tesseract.Text))
+                        if (string.IsNullOrWhiteSpace(TesseractPage.Text))
                         {
                             originalCard.Visibility = Visibility.Collapsed;
                             translatedCard.Visibility = Visibility.Collapsed;
@@ -168,17 +169,17 @@ namespace ScreenLookup.src.windows
                         else
                         {
                             // Original full paragraph
-                            ocrText.Text = tesseract.Text;
+                            ocrText.Text = TesseractPage.Text;
 
                             // Original words card
-                            List<CaptureWordsEntrySimplify> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(tesseract));
+                            List<CaptureWordsEntrySimplify> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage));
                             if (IsCapturing)
                             {
                                 originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
 
                                 // Translate card
-                                string translateResult = await LanguageList.TranslatedText(tesseract.Text, App.setting.TargetLanguage);
+                                string translateResult = await LanguageList.TranslatedText(TesseractPage.Text, App.setting.TargetLanguage);
                                 translatedText.Text = translateResult;
                                 translatedTextLoading.Visibility = Visibility.Collapsed;
 
@@ -229,6 +230,8 @@ namespace ScreenLookup.src.windows
             translatedScrollViewer.ScrollToTop();
 
             this.Topmost = App.setting.Topmost;
+
+            TesseractPage?.Dispose();
         }
 
         private async void Button_Word(object sender, RoutedEventArgs e)
