@@ -25,6 +25,7 @@ namespace ScreenLookup.src.windows
         private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
         private DispatcherFrame configDispatcher;
+        private readonly Engine TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
 
         public CaptureWindow()
         {
@@ -265,7 +266,7 @@ namespace ScreenLookup.src.windows
             this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
         }
 
-        private static async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
+        private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
         {
             // Image
             MemoryStream ms = new();
@@ -273,10 +274,9 @@ namespace ScreenLookup.src.windows
             byte[] fileBytes = ms.ToArray();
 
             // TesseractOCR
-            var engine = new Engine(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
 
-            return engine.Process(img);
+            return TesseractEngine.Process(img);
         }
 
         private async Task<List<CaptureWordsEntrySimplify>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
