@@ -26,6 +26,7 @@ namespace ScreenLookup
             else
             {
                 mainWindow.Show();
+                mainWindow.Activate();
             }
 
             base.OnStartup(e);
