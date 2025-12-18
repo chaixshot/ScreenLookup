@@ -115,7 +115,10 @@
 
                 <Controls:NavigationView.ContentOverlay>
                     <Grid>
-                        <Controls:SnackbarPresenter x:Name="snackbarHost" />
+                        <Controls:SnackbarPresenter
+                            x:Name="snackbarHost"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom" />
                     </Grid>
                 </Controls:NavigationView.ContentOverlay>
             </Controls:NavigationView>
