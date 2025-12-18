@@ -114,7 +114,7 @@ namespace ScreenLookup.src.windows
                 {
                     captureCard.Visibility = Visibility.Visible;
                     captureCardButton.Visibility = Visibility.Visible;
-                    imageTranslatedCard.Visibility = Visibility.Visible;
+                    imageTranslatedExpander.Visibility = Visibility.Visible;
                     originalCard.Visibility = Visibility.Collapsed;
                     translatedCard.Visibility = Visibility.Collapsed;
                 }
@@ -125,7 +125,7 @@ namespace ScreenLookup.src.windows
                     else
                         captureCard.Visibility = Visibility.Collapsed;
                     captureCardButton.Visibility = Visibility.Collapsed;
-                    imageTranslatedCard.Visibility = Visibility.Collapsed;
+                    imageTranslatedExpander.Visibility = Visibility.Collapsed;
                     originalCard.Visibility = Visibility.Visible;
                     translatedCard.Visibility = Visibility.Visible;
                 }
@@ -187,9 +187,8 @@ namespace ScreenLookup.src.windows
                     {
                         if (string.IsNullOrWhiteSpace(TesseractPage.Text))
                         {
-                            captureCardButton.Visibility = Visibility.Collapsed;
-                            originalCard.Visibility = Visibility.Collapsed;
-                            translatedCard.Visibility = Visibility.Collapsed;
+                            ResetDefaultState();
+                            captureCard.Visibility = Visibility.Visible;
                         }
                         else
                         {
@@ -201,7 +200,7 @@ namespace ScreenLookup.src.windows
                             if (IsCapturing)
                             {
                                 if (App.setting.LookupOnImage)
-                                    TesseractAltoText(TesseractPage.AltoText);
+                                    TesseractAltoText(TesseractPage);
                                 else
                                 {
                                     originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
@@ -237,19 +236,30 @@ namespace ScreenLookup.src.windows
             });
         }
 
-        private async void TesseractAltoText(string text)
+        private async void TesseractAltoText(TesseractOCR.Page page)
         {
-            List<CaptureAltoEntry> items = [];
-
             XmlDocument xmlDoc = new();
-            xmlDoc.LoadXml(text);
+            xmlDoc.LoadXml(page.AltoText);
+
+            List<CaptureAltoEntry> items = [];
 
             foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
             {
+                string fullTextBlock = "";
+
                 foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
                 {
                     foreach (XmlElement data in textLine.GetElementsByTagName("String"))
                     {
+                        fullTextBlock += data.GetAttribute("CONTENT") + " ";
+                    }
+                }
+
+                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
+                {
+                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
+                    {
+                        string test = fullTextBlock;
                         string Word = data.GetAttribute("CONTENT");
                         if (App.setting.HunSpell)
                             Word = HunspellHelper.CorrectionWord(Word, App.setting.SourceLanguage);
@@ -263,6 +273,7 @@ namespace ScreenLookup.src.windows
                             Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 3,
                             SourceLanguage = App.setting.sourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
+                            Uid = fullTextBlock,
                         });
                     }
                 }
@@ -289,6 +300,7 @@ namespace ScreenLookup.src.windows
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
             captureCardButton.Visibility = Visibility.Collapsed;
+            imageTranslatedExpander.Visibility = Visibility.Collapsed;
             originalCard.Visibility = Visibility.Collapsed;
             translatedCard.Visibility = Visibility.Collapsed;
 
@@ -423,6 +435,24 @@ namespace ScreenLookup.src.windows
 
             Button? button = sender as Button;
             string word = button.ToolTip.ToString();
+            int sourceLanguage = Int32.Parse(button.Tag.ToString());
+
+            if (string.IsNullOrWhiteSpace(word))
+                return;
+
+            flayOut.originalWord.Text = word;
+            flayOut.originalWord.Tag = sourceLanguage;
+            flayOut.translatedWord.Tag = App.setting.TargetLanguage;
+
+            flayOut.flayOut.IsOpen = true;
+        }
+
+        private void Button_Paragraph(object sender, MouseButtonEventArgs e)
+        {
+            flayOut.flayOut.IsOpen = false;
+
+            Button? button = sender as Button;
+            string word = button.Uid.ToString();
             int sourceLanguage = Int32.Parse(button.Tag.ToString());
 
             if (string.IsNullOrWhiteSpace(word))

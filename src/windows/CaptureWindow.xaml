@@ -160,11 +160,13 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Controls:Button
+                                    Uid="{Binding Uid}"
                                     Width="{Binding Width}"
                                     Height="{Binding Height}"
                                     Padding="0"
                                     Background="{wpfui:ThemeResource SystemAccentColorPrimaryBrush}"
                                     Click="Button_Word"
+                                    MouseRightButtonUp="Button_Paragraph"
                                     Opacity="0.15"
                                     Tag="{Binding SourceLanguage}"
                                     ToolTip="{Binding Word}" />
@@ -181,14 +183,14 @@
                     </ItemsControl>
 
                     <wpfui:CardExpander
-                        x:Name="imageTranslatedCard"
+                        x:Name="imageTranslatedExpander"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                         BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
                         ContentPadding="0"
                         CornerRadius="0,0,0,8"
-                        Header="Translated">
+                        Header="Translation">
 
                         <Border
                             Padding="14,16,14,16"

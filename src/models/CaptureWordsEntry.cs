@@ -24,6 +24,7 @@ namespace ScreenLookup.src.models
     public class CaptureAltoEntry
     {
         public required string Word { get; set; }
+        public required string Uid { get; set; }
         public required int SourceLanguage { get; set; }
         public required int TargetLanguage { get; set; }
         public required double X { get; set; }
