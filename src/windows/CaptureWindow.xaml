@@ -30,44 +30,65 @@
         <Grid x:Name="configSection">
             <wpfui:DynamicScrollViewer Padding="15">
                 <StackPanel>
-                    <Grid>
+                    <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
+
                         <ComboBox x:Name="sourceLanguageConfig" SelectionChanged="SourceLanguageConfig_SelectionChanged" />
+
                         <Controls:SymbolIcon Grid.Column="1" Symbol="ChevronRight24" />
+
                         <ComboBox
                             x:Name="targetLanguageConfig"
                             Grid.Column="2"
                             SelectionChanged="TargetLanguageConfig_SelectionChanged" />
                     </Grid>
 
-                    <Grid Margin="0,10,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <Controls:Card Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
-                        <Controls:ToggleSwitch
-                            x:Name="hunSpell"
-                            Grid.Column="1"
-                            Click="ToggleSwitch_Click"
-                            IsChecked="{Binding HunSpell}" />
-                    </Grid>
+                            <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
 
-                    <Controls:Button
-                        Margin="0,10,0,0"
-                        Click="Submit_Click"
-                        Content="Submit" />
+                            <Controls:ToggleSwitch
+                                x:Name="hunSpell"
+                                Grid.Column="1"
+                                Click="ConfigSwitch_Toggle"
+                                IsChecked="{Binding HunSpell}" />
+                        </Grid>
+                    </Controls:Card>
+
+                    <Controls:Card Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Controls:TextBlock Text="Show Capture Image" />
+
+                            <Controls:ToggleSwitch
+                                x:Name="showImage"
+                                Grid.Column="1"
+                                Click="ConfigSwitch_Toggle"
+                                IsChecked="{Binding ShowImage}" />
+                        </Grid>
+                    </Controls:Card>
+
+                    <Controls:Button Click="ConfigSubmit_Click" Content="Submit" />
                 </StackPanel>
             </wpfui:DynamicScrollViewer>
         </Grid>
 
         <Grid x:Name="resultSection">
             <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
@@ -78,17 +99,93 @@
 
             <Controls:Card
                 x:Name="captureCard"
-                Grid.Row="0"
+                Grid.Row="1"
                 Padding="0">
-                <Controls:Image
-                    x:Name="captureImage"
-                    Source="/src/images/applicationIcon.ico"
-                    Stretch="Uniform" />
+                <Grid>
+                    <StackPanel
+                        x:Name="captureCardButton"
+                        Margin="14,16,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal">
+
+                        <Controls:Button
+                            Width="{Binding Width, ElementName=originalTTS}"
+                            Height="{Binding Height, ElementName=originalTTS}"
+                            Padding="0"
+                            VerticalAlignment="Top"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Click="Button_OriginalTTS"
+                            Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                    Filled=False}"
+                            ToolTip="Speak" />
+
+                        <Controls:Button
+                            Width="{Binding Width, ElementName=originalTTS}"
+                            Height="{Binding Height, ElementName=originalTTS}"
+                            Margin="2,0,0,0"
+                            Padding="0"
+                            VerticalAlignment="Top"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Click="Button_Copy"
+                            Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                                    Filled=False}"
+                            Tag="{Binding Text, ElementName=ocrText}"
+                            ToolTip="Copy" />
+                    </StackPanel>
+
+                    <Controls:Image
+                        x:Name="captureImage"
+                        Source="/src/images/applicationIcon.ico"
+                        Stretch="Uniform" />
+
+                    <ItemsControl
+                        Name="AltoText"
+                        Width="{Binding Width, ElementName=captureImage}"
+                        Height="{Binding Height, ElementName=captureImage}"
+                        MinWidth="{Binding MinWidth, ElementName=captureImage}"
+                        MinHeight="{Binding MinHeight, ElementName=captureImage}"
+                        MaxWidth="{Binding MaxWidth, ElementName=captureImage}"
+                        MaxHeight="{Binding MaxHeight, ElementName=captureImage}"
+                        BorderBrush="Red"
+                        BorderThickness="1">
+
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Controls:Button
+                                    Width="{Binding Width}"
+                                    Height="{Binding Height}"
+                                    Padding="0"
+                                    Background="{wpfui:ThemeResource SystemAccentColorPrimaryBrush}"
+                                    Click="Button_Word"
+                                    Opacity="0.15"
+                                    Tag="{Binding SourceLanguage}"
+                                    ToolTip="{Binding Word}" />
+
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                </Grid>
             </Controls:Card>
 
             <Controls:Card
                 x:Name="ocrCard"
-                Grid.Row="1"
+                Grid.Row="2"
                 Margin="0,3,0,0">
                 <Controls:TextBlock
                     x:Name="ocrText"
@@ -100,7 +197,7 @@
 
             <Controls:Card
                 x:Name="originalCard"
-                Grid.Row="2"
+                Grid.Row="3"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -121,6 +218,7 @@
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                 Filled=False}"
                         ToolTip="Speak" />
+
                     <Controls:Button
                         Grid.Column="1"
                         Width="{Binding Width, ElementName=originalTTS}"
@@ -135,6 +233,7 @@
                                                 Filled=False}"
                         Tag="{Binding Text, ElementName=ocrText}"
                         ToolTip="Copy" />
+
                     <Controls:DynamicScrollViewer
                         x:Name="originalScrollView"
                         Grid.Column="2"
@@ -174,6 +273,7 @@
                                                 Click="Button_Word"
                                                 Tag="{Binding SourceLanguage}"
                                                 ToolTip="{Binding Word}">
+
                                                 <Controls:Button.Content>
                                                     <wpfui:TextBlock
                                                         FontFamily="{Binding FontFace}"
@@ -192,7 +292,7 @@
 
             <Controls:Card
                 x:Name="translatedCard"
-                Grid.Row="3"
+                Grid.Row="4"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -200,6 +300,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
+
                     <Controls:Button
                         x:Name="translatedTSS"
                         Width="20"
@@ -212,6 +313,7 @@
                         Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                 Filled=False}"
                         ToolTip="Speak" />
+
                     <Controls:Button
                         Grid.Column="1"
                         Width="{Binding Width, ElementName=translatedTSS}"
@@ -226,6 +328,7 @@
                                                 Filled=False}"
                         Tag="{Binding Text, ElementName=translatedText}"
                         ToolTip="Copy" />
+
                     <Controls:DynamicScrollViewer
                         x:Name="translatedScrollViewer"
                         Grid.Column="2"
@@ -247,10 +350,12 @@
                     </Controls:DynamicScrollViewer>
                 </Grid>
             </Controls:Card>
-
         </Grid>
 
-        <Controls:SnackbarPresenter x:Name="snackbarHost" />
+        <Controls:SnackbarPresenter
+            x:Name="snackbarHost"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom" />
 
     </Grid>
 </Controls:FluentWindow>

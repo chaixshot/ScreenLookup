@@ -20,4 +20,15 @@ namespace ScreenLookup.src.models
         public required string Word { get; set; }
         public required int Stop { get; set; }
     }
+
+    public class CaptureAltoEntry
+    {
+        public required string Word { get; set; }
+        public required int SourceLanguage { get; set; }
+        public required int TargetLanguage { get; set; }
+        public required double X { get; set; }
+        public required double Y { get; set; }
+        public required double Width { get; set; }
+        public required double Height { get; set; }
+    }
 }

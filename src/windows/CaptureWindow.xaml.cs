@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Xml;
 using TesseractOCR;
 using TesseractOCR.Enums;
 using Wpf.Ui.Appearance;
@@ -24,7 +25,7 @@ namespace ScreenLookup.src.windows
     {
         private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
-        private DispatcherFrame configDispatcher;
+        private DispatcherFrame ConfigDispatcher;
         private readonly Engine TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
         private TesseractOCR.Page TesseractPage;
 
@@ -79,8 +80,10 @@ namespace ScreenLookup.src.windows
 
         private void HideWindow()
         {
-            IsCapturing = false;
             this.Hide();
+
+            IsCapturing = false;
+            ConfigDispatcher?.Continue = false;
             translatedCache.Clear();
             TextToSpeech.StopTTS();
         }
@@ -139,13 +142,14 @@ namespace ScreenLookup.src.windows
 
             if (isRightMouse)
             {
-                configDispatcher = new DispatcherFrame();
+                ConfigDispatcher = new DispatcherFrame();
 
                 SelectSourceLanguageComboBox();
                 ShowWindow();
                 ToggleConfigMenu(true);
 
-                Dispatcher.PushFrame(configDispatcher);
+                Dispatcher.PushFrame(ConfigDispatcher);
+                ResetDefaultState();
             }
 
             ToggleConfigMenu(false);
@@ -163,6 +167,7 @@ namespace ScreenLookup.src.windows
                     {
                         if (string.IsNullOrWhiteSpace(TesseractPage.Text))
                         {
+                            captureCardButton.Visibility = Visibility.Collapsed;
                             originalCard.Visibility = Visibility.Collapsed;
                             translatedCard.Visibility = Visibility.Collapsed;
                         }
@@ -177,6 +182,8 @@ namespace ScreenLookup.src.windows
                             {
                                 originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
+
+                                TesseractAltoText(TesseractPage.AltoText);
 
                                 // Translate card
                                 string translateResult = await LanguageList.TranslatedText(TesseractPage.Text, App.setting.TargetLanguage);
@@ -200,6 +207,36 @@ namespace ScreenLookup.src.windows
             ShowWindow();
         }
 
+        private async void TesseractAltoText(string text)
+        {
+            List<CaptureAltoEntry> items = [];
+
+            XmlDocument xmlDoc = new();
+            xmlDoc.LoadXml(text);
+
+            foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
+            {
+                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
+                {
+                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
+                    {
+                        items.Add(new CaptureAltoEntry
+                        {
+                            Word = data.GetAttribute("CONTENT"),
+                            X = Int32.Parse(data.GetAttribute("HPOS")),
+                            Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
+                            Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
+                            Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 3,
+                            SourceLanguage = App.setting.sourceLanguage,
+                            TargetLanguage = App.setting.TargetLanguage,
+                        });
+                    }
+                }
+            }
+
+            AltoText.ItemsSource = items;
+        }
+
         private void ResetDefaultState()
         {
             int buttonWidth = App.setting.FontSizeS + 10;
@@ -215,12 +252,22 @@ namespace ScreenLookup.src.windows
             translatedTSS.Width = buttonWidth;
             translatedTSS.Height = buttonWidth;
 
-            captureCard.Visibility = App.setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
+            if (App.setting.ShowImage)
+            {
+                captureCard.Visibility = Visibility.Visible;
+                captureCardButton.Visibility = Visibility.Visible;
+                originalCard.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                originalCard.Visibility = Visibility.Visible;
+                captureCard.Visibility = Visibility.Collapsed;
+            }
+
 
             translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
 
-            originalCard.Visibility = Visibility.Visible;
             translatedCard.Visibility = Visibility.Visible;
 
             originalWords.ItemsSource = null;
@@ -229,28 +276,11 @@ namespace ScreenLookup.src.windows
             originalScrollView.ScrollToTop();
             translatedScrollViewer.ScrollToTop();
 
+            AltoText.ItemsSource = null;
+
             this.Topmost = App.setting.Topmost;
 
             TesseractPage?.Dispose();
-        }
-
-        private async void Button_Word(object sender, RoutedEventArgs e)
-        {
-
-            flayOut.flayOut.IsOpen = false;
-
-            Button? button = sender as Button;
-            string word = button.ToolTip.ToString();
-            int sourceLanguage = Int32.Parse(button.Tag.ToString());
-
-            if (string.IsNullOrWhiteSpace(word))
-                return;
-
-            flayOut.originalWord.Text = word;
-            flayOut.originalWord.Tag = sourceLanguage;
-            flayOut.translatedWord.Tag = App.setting.TargetLanguage;
-
-            flayOut.flayOut.IsOpen = true;
         }
 
         private void CenterWindowOnScreen(double imgWidth, double imgHeight)
@@ -354,7 +384,45 @@ namespace ScreenLookup.src.windows
             finally { DeleteObject(handle); }
         }
 
-        // Paragraph
+        private void App_Deactivated(object sender, EventArgs e)
+        {
+            if (App.setting.CloseLostFocus)
+                HideWindow();
+        }
+
+        public void SelectSourceLanguageComboBox()
+        {
+            foreach (ComboBoxItem item in sourceLanguageConfig.Items)
+            {
+                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
+                {
+                    sourceLanguageConfig.SelectedItem = item;
+                    break;
+                }
+            }
+
+            targetLanguageConfig.SelectedIndex = App.setting.targetLanguage;
+        }
+
+        #region button
+        private async void Button_Word(object sender, RoutedEventArgs e)
+        {
+            flayOut.flayOut.IsOpen = false;
+
+            Button? button = sender as Button;
+            string word = button.ToolTip.ToString();
+            int sourceLanguage = Int32.Parse(button.Tag.ToString());
+
+            if (string.IsNullOrWhiteSpace(word))
+                return;
+
+            flayOut.originalWord.Text = word;
+            flayOut.originalWord.Tag = sourceLanguage;
+            flayOut.translatedWord.Tag = App.setting.TargetLanguage;
+
+            flayOut.flayOut.IsOpen = true;
+        }
+
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
             TextToSpeech.StartTTS(ocrText.Text, App.setting.SourceLanguage, "capture");
@@ -365,12 +433,6 @@ namespace ScreenLookup.src.windows
             TextToSpeech.StartTTS(translatedText.Text, App.setting.TargetLanguage, "capture");
         }
 
-        // Utility
-        private void App_Deactivated(object sender, EventArgs e)
-        {
-            if (App.setting.CloseLostFocus)
-                HideWindow();
-        }
 
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
@@ -379,7 +441,9 @@ namespace ScreenLookup.src.windows
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: "capture");
         }
+        #endregion
 
+        #region configSection
         private void SourceLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var comboBox = sender as ComboBox;
@@ -397,30 +461,18 @@ namespace ScreenLookup.src.windows
             if (selectedItem != null)
                 App.setting.TargetLanguage = Int32.Parse(selectedItem.Tag.ToString());
         }
-
-        public void SelectSourceLanguageComboBox()
+        private void ConfigSubmit_Click(object sender, RoutedEventArgs e)
         {
-            foreach (ComboBoxItem item in sourceLanguageConfig.Items)
-            {
-                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
-                {
-                    sourceLanguageConfig.SelectedItem = item;
-                    break;
-                }
-            }
-
-            targetLanguageConfig.SelectedIndex = App.setting.targetLanguage;
+            ConfigDispatcher.Continue = false;
         }
 
-        private void Submit_Click(object sender, RoutedEventArgs e)
+        private void ConfigSwitch_Toggle(object sender, RoutedEventArgs e)
         {
-            configDispatcher.Continue = false;
+            ToggleSwitch switchs = (ToggleSwitch)sender;
+            if (switchs.Name == "hunSpell")
+                if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
+                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error", windows: "capture");
         }
-
-        private void ToggleSwitch_Click(object sender, RoutedEventArgs e)
-        {
-            if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
-                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error", windows: "capture");
-        }
+        #endregion
     }
 }
