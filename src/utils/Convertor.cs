@@ -5,7 +5,7 @@ namespace ScreenLookup.src.utils
 {
     class Convertor
     {
-        public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsEntrySimplify> data, int sourceLanguage, int targetLanguage, double width)
+        public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsSimplifiedEntry> data, int sourceLanguage, int targetLanguage, double width)
         {
             List<CaptureWordsEntry> itemsForCard = [];
             bool isFirstLine = true;

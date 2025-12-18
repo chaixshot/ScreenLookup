@@ -15,7 +15,7 @@ namespace ScreenLookup.src.models
         public int TargetLanguage { get; set; }
     }
 
-    public class CaptureWordsEntrySimplify
+    public class CaptureWordsSimplifiedEntry
     {
         public required string Word { get; set; }
         public required int Stop { get; set; }

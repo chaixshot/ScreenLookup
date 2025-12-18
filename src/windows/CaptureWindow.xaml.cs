@@ -172,7 +172,7 @@ namespace ScreenLookup.src.windows
                             ocrText.Text = TesseractPage.Text;
 
                             // Original words card
-                            List<CaptureWordsEntrySimplify> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage));
+                            List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage));
                             if (IsCapturing)
                             {
                                 originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
@@ -282,9 +282,9 @@ namespace ScreenLookup.src.windows
             return TesseractEngine.Process(img);
         }
 
-        private async Task<List<CaptureWordsEntrySimplify>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
+        private async Task<List<CaptureWordsSimplifiedEntry>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
         {
-            List<CaptureWordsEntrySimplify> items = [];
+            List<CaptureWordsSimplifiedEntry> items = [];
             foreach (var block in page.Layout)
             {
                 foreach (var paragraph in block.Paragraphs)
@@ -319,14 +319,14 @@ namespace ScreenLookup.src.windows
                                     }
                                 }
 
-                                items.Add(new CaptureWordsEntrySimplify() { Word = text, Stop = 0 });
+                                items.Add(new CaptureWordsSimplifiedEntry() { Word = text, Stop = 0 });
                             }
                         }
-                        items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 1 });
+                        items.Add(new CaptureWordsSimplifiedEntry() { Word = "", Stop = 1 });
                     }
-                    items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 2 });
+                    items.Add(new CaptureWordsSimplifiedEntry() { Word = "", Stop = 2 });
                 }
-                items.Add(new CaptureWordsEntrySimplify() { Word = "", Stop = 3 });
+                items.Add(new CaptureWordsSimplifiedEntry() { Word = "", Stop = 3 });
             }
 
         skip:
@@ -334,7 +334,7 @@ namespace ScreenLookup.src.windows
             return items;
         }
 
-        private async Task AddToHistory(string original, List<CaptureWordsEntrySimplify> originalWords, string translated)
+        private async Task AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords, string translated)
         {
             await HistoryLogger.Add(original, originalWords, translated, App.setting.SourceLanguage, App.setting.TargetLanguage);
         }

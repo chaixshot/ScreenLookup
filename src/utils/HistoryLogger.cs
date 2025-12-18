@@ -64,7 +64,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static async Task Add(string originalWord, List<CaptureWordsEntrySimplify> originalWords, string translatedWord, int sourceLanguage, int sargetLanguage, CancellationToken token = default)
+        public static async Task Add(string originalWord, List<CaptureWordsSimplifiedEntry> originalWords, string translatedWord, int sourceLanguage, int sargetLanguage, CancellationToken token = default)
         {
             var originalWordsJson = JsonSerializer.Serialize(originalWords);
 
@@ -145,7 +145,7 @@ namespace ScreenLookup.src.utils
                     string originalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
                     string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
                     string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
-                    List<CaptureWordsEntrySimplify> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsEntrySimplify>>(originalWords);
+                    List<CaptureWordsSimplifiedEntry> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsSimplifiedEntry>>(originalWords);
                     List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage), App.mainWindow.Width);
 
                     history.Add(new HistoryLoggerPageEntry
