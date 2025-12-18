@@ -14,31 +14,41 @@
         Padding="0"
         IsOpen="False"
         Placement="Top">
+
         <Controls:Flyout.RenderTransform>
             <MatrixTransform x:Name="mt" />
         </Controls:Flyout.RenderTransform>
-        <StackPanel>
-            <StackPanel Margin="5" Orientation="Horizontal">
+
+        <StackPanel MaxWidth="700">
+            <Grid Margin="10,10,10,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
                 <Controls:Button
                     x:Name="flayoutOriginalTSS"
                     Width="20"
                     Height="20"
                     Padding="0"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Top"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     Click="Button_WordOriginalTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                             Filled=False}"
                     ToolTip="Speak" />
+
                 <Controls:Button
+                    Grid.Column="1"
                     Width="{Binding Width, ElementName=flayoutOriginalTSS}"
                     Height="{Binding Height, ElementName=flayoutOriginalTSS}"
                     Margin="2,0,0,0"
                     Padding="0"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Top"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     Click="Button_Copy"
@@ -47,33 +57,50 @@
                     Tag="{Binding Text, ElementName=originalWord}"
                     ToolTip="Copy" />
 
-                <Controls:TextBlock
-                    x:Name="originalWord"
-                    Margin="5,0,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center" />
-            </StackPanel>
-            <StackPanel Margin="5" Orientation="Horizontal">
+                <Controls:DynamicScrollViewer
+                    Grid.Column="2"
+                    IsScrollingVertically="True"
+                    VerticalScrollBarVisibility="Visible">
+
+                    <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
+                        <Controls:TextBlock
+                            x:Name="originalWord"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextWrapping="Wrap" />
+                    </WrapPanel>
+                </Controls:DynamicScrollViewer>
+            </Grid>
+
+            <Grid Margin="10,10,10,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
                 <Controls:Button
                     x:Name="flayoutTranslatedTSS"
                     Width="20"
                     Height="20"
                     Padding="0"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Top"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     Click="Button_WordTranslatedTTS"
                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                             Filled=False}"
                     ToolTip="Speak" />
+
                 <Controls:Button
+                    Grid.Column="1"
                     Width="{Binding Width, ElementName=flayoutTranslatedTSS}"
                     Height="{Binding Height, ElementName=flayoutTranslatedTSS}"
                     Margin="2,0,0,0"
                     Padding="0"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Top"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     Click="Button_Copy"
@@ -81,23 +108,33 @@
                                             Filled=False}"
                     Tag="{Binding Text, ElementName=translatedWord}"
                     ToolTip="Copy" />
-                <Controls:TextBlock
-                    x:Name="translatedWord"
-                    Margin="5,0,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center" />
-                <wpfui:ProgressRing
-                    x:Name="translatedWordLoading"
-                    Width="12"
-                    Height="12"
-                    Margin="5,0,0,0"
-                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                    IsIndeterminate="True" />
-            </StackPanel>
+
+                <Controls:DynamicScrollViewer
+                    Grid.Column="2"
+                    IsScrollingVertically="True"
+                    VerticalScrollBarVisibility="Visible">
+
+                    <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
+                        <Controls:TextBlock
+                            x:Name="translatedWord"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextWrapping="Wrap" />
+                        <wpfui:ProgressRing
+                            x:Name="translatedWordLoading"
+                            Width="12"
+                            Height="12"
+                            Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                            IsIndeterminate="True" />
+                    </WrapPanel>
+                </Controls:DynamicScrollViewer>
+            </Grid>
+
             <Controls:Card
                 Margin="0,10,0,0"
                 Padding="5"
                 BorderThickness="0,1,0,0">
+
                 <StackPanel Orientation="Horizontal">
                     <Controls:Button
                         x:Name="openBrowser"
@@ -112,6 +149,7 @@
                         Icon="{wpfui:SymbolIcon Symbol=Globe24,
                                                 Filled=False}"
                         ToolTip="Open Browser" />
+
                     <Controls:Button
                         x:Name="wordSave"
                         Width="20"
