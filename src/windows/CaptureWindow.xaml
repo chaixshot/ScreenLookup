@@ -27,67 +27,9 @@
     mc:Ignorable="d">
 
     <Grid Margin="10,5,10,5">
-        <Grid x:Name="configSection">
-            <wpfui:DynamicScrollViewer Padding="15">
-                <StackPanel>
-                    <Grid Margin="0,0,0,4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <ComboBox x:Name="sourceLanguageConfig" SelectionChanged="SourceLanguageConfig_SelectionChanged" />
-
-                        <Controls:SymbolIcon Grid.Column="1" Symbol="ChevronRight24" />
-
-                        <ComboBox
-                            x:Name="targetLanguageConfig"
-                            Grid.Column="2"
-                            SelectionChanged="TargetLanguageConfig_SelectionChanged" />
-                    </Grid>
-
-                    <Controls:Card Margin="0,0,0,4">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
-
-                            <Controls:ToggleSwitch
-                                x:Name="hunSpell"
-                                Grid.Column="1"
-                                Click="ConfigSwitch_Toggle"
-                                IsChecked="{Binding HunSpell}" />
-                        </Grid>
-                    </Controls:Card>
-
-                    <Controls:Card Margin="0,0,0,4">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Controls:TextBlock Text="Show Capture Image" />
-
-                            <Controls:ToggleSwitch
-                                x:Name="showImage"
-                                Grid.Column="1"
-                                Click="ConfigSwitch_Toggle"
-                                IsChecked="{Binding ShowImage}" />
-                        </Grid>
-                    </Controls:Card>
-
-                    <Controls:Button Click="ConfigSubmit_Click" Content="Submit" />
-                </StackPanel>
-            </wpfui:DynamicScrollViewer>
-        </Grid>
-
-        <Grid x:Name="resultSection">
+        <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -97,9 +39,68 @@
 
             <xControls:WordFlyout x:Name="flayOut" Tag="CaptureWindow" />
 
+            <Grid x:Name="configMenu" Grid.Row="1">
+                <wpfui:DynamicScrollViewer Padding="15">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox x:Name="sourceLanguageConfig" SelectionChanged="SourceLanguageConfig_SelectionChanged" />
+
+                            <Controls:SymbolIcon Grid.Column="1" Symbol="ChevronRight24" />
+
+                            <ComboBox
+                                x:Name="targetLanguageConfig"
+                                Grid.Column="2"
+                                SelectionChanged="TargetLanguageConfig_SelectionChanged" />
+                        </Grid>
+
+                        <Controls:Card Margin="0,0,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
+
+                                <Controls:ToggleSwitch
+                                    x:Name="hunSpell"
+                                    Grid.Column="1"
+                                    Click="ConfigSwitch_Toggle"
+                                    IsChecked="{Binding HunSpell}" />
+                            </Grid>
+                        </Controls:Card>
+
+                        <Controls:Card Margin="0,0,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Controls:TextBlock Text="Show Capture Image" />
+
+                                <Controls:ToggleSwitch
+                                    x:Name="showImage"
+                                    Grid.Column="1"
+                                    Click="ConfigSwitch_Toggle"
+                                    IsChecked="{Binding ShowImage}" />
+                            </Grid>
+                        </Controls:Card>
+
+                        <Controls:Button Click="ConfigSubmit_Click" Content="Submit" />
+                    </StackPanel>
+                </wpfui:DynamicScrollViewer>
+            </Grid>
+
             <Controls:Card
                 x:Name="captureCard"
-                Grid.Row="1"
+                Grid.Row="2"
                 Padding="0">
                 <Grid>
                     <StackPanel
@@ -148,9 +149,7 @@
                         MinWidth="{Binding MinWidth, ElementName=captureImage}"
                         MinHeight="{Binding MinHeight, ElementName=captureImage}"
                         MaxWidth="{Binding MaxWidth, ElementName=captureImage}"
-                        MaxHeight="{Binding MaxHeight, ElementName=captureImage}"
-                        BorderBrush="Red"
-                        BorderThickness="1">
+                        MaxHeight="{Binding MaxHeight, ElementName=captureImage}">
 
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -180,16 +179,86 @@
                             </Style>
                         </ItemsControl.ItemContainerStyle>
                     </ItemsControl>
+
+                    <wpfui:CardExpander
+                        x:Name="imageTranslatedCard"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
+                        BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
+                        ContentPadding="0"
+                        CornerRadius="0,0,0,8"
+                        Header="Translated">
+
+                        <Border
+                            Padding="14,16,14,16"
+                            Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
+                            CornerRadius="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Controls:Button
+                                    Width="{Binding Width, ElementName=translatedTSS}"
+                                    Height="{Binding Height, ElementName=translatedTSS}"
+                                    Padding="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Click="Button_TranslatedTTS"
+                                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
+                                                            Filled=False}"
+                                    ToolTip="Speak" />
+
+                                <Controls:Button
+                                    Grid.Column="1"
+                                    Width="{Binding Width, ElementName=translatedTSS}"
+                                    Height="{Binding Height, ElementName=translatedTSS}"
+                                    Margin="2,0,0,0"
+                                    Padding="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Click="Button_Copy"
+                                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
+                                                            Filled=False}"
+                                    Tag="{Binding Text, ElementName=translatedText}"
+                                    ToolTip="Copy" />
+
+                                <Controls:DynamicScrollViewer
+                                    x:Name="imageTranslatedScrollViewer"
+                                    Grid.Column="2"
+                                    IsScrollingVertically="True"
+                                    VerticalScrollBarVisibility="Visible">
+
+                                    <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
+                                        <wpfui:ProgressRing
+                                            x:Name="imageTranslatedTextLoading"
+                                            Width="12"
+                                            Height="12"
+                                            Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                            IsIndeterminate="True" />
+
+                                        <Controls:TextBlock x:Name="imageTranslatedText" TextWrapping="Wrap" />
+                                    </WrapPanel>
+                                </Controls:DynamicScrollViewer>
+                            </Grid>
+                        </Border>
+                    </wpfui:CardExpander>
                 </Grid>
             </Controls:Card>
 
             <Controls:Card
                 x:Name="ocrCard"
-                Grid.Row="2"
+                Grid.Row="3"
                 Margin="0,3,0,0">
                 <Controls:TextBlock
                     x:Name="ocrText"
-                    Grid.Column="1"
                     Margin="45,0,0,0"
                     Text="ocrText"
                     TextWrapping="Wrap" />
@@ -197,7 +266,7 @@
 
             <Controls:Card
                 x:Name="originalCard"
-                Grid.Row="3"
+                Grid.Row="4"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -292,7 +361,7 @@
 
             <Controls:Card
                 x:Name="translatedCard"
-                Grid.Row="4"
+                Grid.Row="5"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -306,6 +375,7 @@
                         Width="20"
                         Height="20"
                         Padding="0"
+                        HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
@@ -320,6 +390,7 @@
                         Height="{Binding Height, ElementName=translatedTSS}"
                         Margin="2,0,0,0"
                         Padding="0"
+                        HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
@@ -341,10 +412,7 @@
                                 Height="12"
                                 Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                                 IsIndeterminate="True" />
-                            <Controls:TextBlock
-                                x:Name="translatedText"
-                                Grid.Column="1"
-                                TextWrapping="Wrap" />
+                            <Controls:TextBlock x:Name="translatedText" TextWrapping="Wrap" />
 
                         </WrapPanel>
                     </Controls:DynamicScrollViewer>

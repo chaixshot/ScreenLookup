@@ -26,8 +26,7 @@ namespace ScreenLookup.src.windows
         private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
         private DispatcherFrame ConfigDispatcher;
-        private readonly Engine TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
-        private TesseractOCR.Page TesseractPage;
+        private Engine TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
 
         public CaptureWindow()
         {
@@ -80,41 +79,62 @@ namespace ScreenLookup.src.windows
 
         private void HideWindow()
         {
-            this.Hide();
-
             IsCapturing = false;
             ConfigDispatcher?.Continue = false;
             translatedCache.Clear();
             TextToSpeech.StopTTS();
+
+            this.Hide();
         }
 
-        private void ShowWindow()
+        private void ShowWindow(bool IsConfig)
         {
             this.Show();
-            this.Activate();
-        }
 
-        private void ToggleConfigMenu(bool show)
-        {
-            if (show)
+            if (IsConfig)
             {
-                configSection.Visibility = Visibility.Visible;
-                resultSection.Visibility = Visibility.Collapsed;
+                configMenu.Visibility = Visibility.Visible;
+
+                captureCard.Visibility = Visibility.Collapsed;
+                originalCard.Visibility = Visibility.Collapsed;
+                translatedCard.Visibility = Visibility.Collapsed;
 
                 System.Drawing.Point point = System.Windows.Forms.Control.MousePosition;
                 var transform = PresentationSource.FromVisual(this).CompositionTarget.TransformFromDevice;
                 var mouse = transform.Transform(new System.Windows.Point(point.X, point.Y));
 
+                this.Width = 0;
                 this.Left = mouse.X - (this.ActualWidth / 2);
                 this.Top = mouse.Y - (this.ActualHeight / 2);
-                this.Width = 0;
             }
             else
             {
-                configSection.Visibility = Visibility.Collapsed;
-                resultSection.Visibility = Visibility.Visible;
+                configMenu.Visibility = Visibility.Collapsed;
+
+                if (App.setting.LookupOnImage)
+                {
+                    captureCard.Visibility = Visibility.Visible;
+                    captureCardButton.Visibility = Visibility.Visible;
+                    imageTranslatedCard.Visibility = Visibility.Visible;
+                    originalCard.Visibility = Visibility.Collapsed;
+                    translatedCard.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    if (App.setting.ShowImage)
+                        captureCard.Visibility = Visibility.Visible;
+                    else
+                        captureCard.Visibility = Visibility.Collapsed;
+                    captureCardButton.Visibility = Visibility.Collapsed;
+                    imageTranslatedCard.Visibility = Visibility.Collapsed;
+                    originalCard.Visibility = Visibility.Visible;
+                    translatedCard.Visibility = Visibility.Visible;
+                }
             }
+
+            this.Activate();
         }
+
 
         public async void StartCaptureScreen()
         {
@@ -129,8 +149,11 @@ namespace ScreenLookup.src.windows
                 return;
             }
 
-            // Screenshot
             IsCapturing = true;
+            ResetDefaultState();
+
+
+            // Screenshot
             (Bitmap? image, bool isRightMouse) = ScreenGrabber.CaptureDialog(false);
             if (image == null)
             {
@@ -138,30 +161,28 @@ namespace ScreenLookup.src.windows
                 return;
             }
 
-            ResetDefaultState();
-
             if (isRightMouse)
             {
                 ConfigDispatcher = new DispatcherFrame();
 
                 SelectSourceLanguageComboBox();
-                ShowWindow();
-                ToggleConfigMenu(true);
-
+                ShowWindow(true);
                 Dispatcher.PushFrame(ConfigDispatcher);
-                ResetDefaultState();
+
+                if (!IsCapturing)
+                    return;
             }
 
-            ToggleConfigMenu(false);
+            ShowWindow(false);
             ChangeCaptureImage(image);
-            CenterWindowOnScreen(image.Width, image.Height);
+            CenterWindowOnScreen();
 
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image));
+                    TesseractOCR.Page TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image));
 
                     if (IsCapturing)
                     {
@@ -180,21 +201,35 @@ namespace ScreenLookup.src.windows
                             List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage));
                             if (IsCapturing)
                             {
-                                originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
-                                originalWordsLoading.Visibility = Visibility.Collapsed;
 
-                                TesseractAltoText(TesseractPage.AltoText);
+
+                                if (App.setting.LookupOnImage)
+                                    TesseractAltoText(TesseractPage.AltoText);
+                                else
+                                {
+                                    originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
+                                    originalWordsLoading.Visibility = Visibility.Collapsed;
+                                }
 
                                 // Translate card
                                 string translateResult = await LanguageList.TranslatedText(TesseractPage.Text, App.setting.TargetLanguage);
-                                translatedText.Text = translateResult;
-                                translatedTextLoading.Visibility = Visibility.Collapsed;
+
+                                if (App.setting.LookupOnImage)
+                                {
+                                    imageTranslatedText.Text = translateResult;
+                                    imageTranslatedTextLoading.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    translatedText.Text = translateResult;
+                                    translatedTextLoading.Visibility = Visibility.Collapsed;
+                                }
 
                                 if (IsCapturing)
                                 {
                                     await AddToHistory(ocrText.Text, captureWords, translateResult);
 
-                                    CenterWindowOnScreen(image.Width, image.Height);
+                                    CenterWindowOnScreen();
                                 }
                             }
                         }
@@ -203,8 +238,6 @@ namespace ScreenLookup.src.windows
                     }
                 }));
             });
-
-            ShowWindow();
         }
 
         private async void TesseractAltoText(string text)
@@ -252,44 +285,37 @@ namespace ScreenLookup.src.windows
             translatedTSS.Width = buttonWidth;
             translatedTSS.Height = buttonWidth;
 
-            if (App.setting.ShowImage)
-            {
-                captureCard.Visibility = Visibility.Visible;
-                captureCardButton.Visibility = Visibility.Visible;
-                originalCard.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                originalCard.Visibility = Visibility.Visible;
-                captureCard.Visibility = Visibility.Collapsed;
-            }
-
+            configMenu.Visibility = Visibility.Collapsed;
+            captureCard.Visibility = Visibility.Collapsed;
+            captureCardButton.Visibility = Visibility.Collapsed;
+            originalCard.Visibility = Visibility.Collapsed;
+            translatedCard.Visibility = Visibility.Collapsed;
 
             translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
-
-            translatedCard.Visibility = Visibility.Visible;
 
             originalWords.ItemsSource = null;
             translatedText.Text = "";
 
             originalScrollView.ScrollToTop();
             translatedScrollViewer.ScrollToTop();
+            imageTranslatedScrollViewer.ScrollToTop();
 
             AltoText.ItemsSource = null;
 
             this.Topmost = App.setting.Topmost;
-
-            TesseractPage?.Dispose();
         }
 
-        private void CenterWindowOnScreen(double imgWidth, double imgHeight)
+        private void CenterWindowOnScreen()
         {
             double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
             double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
 
-            captureImage.Width = Math.Min(imgWidth, screenWidth);
-            captureImage.Height = Math.Min(imgHeight, screenHeight / 2);
+            if (!App.setting.LookupOnImage)
+            {
+                captureImage.Width = Math.Min(captureImage.Width, screenWidth);
+                captureImage.Height = Math.Min(captureImage.Height, screenHeight / 2);
+            }
 
             this.MaxWidth = screenWidth - 50;
             this.MaxHeight = screenHeight - 50;
@@ -308,7 +334,7 @@ namespace ScreenLookup.src.windows
 
             // TesseractOCR
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
-
+            TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
             return TesseractEngine.Process(img);
         }
 
@@ -380,13 +406,15 @@ namespace ScreenLookup.src.windows
             try
             {
                 captureImage.Source = Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                captureImage.Width = bmp.Width;
+                captureImage.Height = bmp.Height;
             }
             finally { DeleteObject(handle); }
         }
 
         private void App_Deactivated(object sender, EventArgs e)
         {
-            if (App.setting.CloseLostFocus)
+            if (App.setting.CloseLostFocus || configMenu.IsVisible)
                 HideWindow();
         }
 

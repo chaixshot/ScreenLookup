@@ -193,6 +193,20 @@
                 <xControls:ShortcutControl x:Name="captureShortcut" KeySetChanged="ShortcutControl_KeySetChanged" />
             </Controls:CardControl>
 
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=DrawImage24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Lookup Method" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="How does the result show after Lookup" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <wpfui:ToggleSwitch
+                    Grid.Column="0"
+                    IsChecked="{Binding LookupOnImage}"
+                    OffContent="On Line"
+                    OnContent="On Image" />
+            </Controls:CardControl>
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
