@@ -104,9 +104,9 @@ namespace ScreenLookup.src.pages
                 Tag = -1,
             });
 
-            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
-                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string languageTesseract = TesseractHelper.LangList[langID];
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
                 bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);

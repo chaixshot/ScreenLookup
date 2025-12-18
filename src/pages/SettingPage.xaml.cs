@@ -52,9 +52,9 @@ namespace ScreenLookup.src.pages
         private void LoadTargetLanguageContent()
         {
             List<string> items = [];
-            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
-                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string languageTesseract = TesseractHelper.LangList[langID];
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
 
@@ -68,9 +68,9 @@ namespace ScreenLookup.src.pages
             int langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
 
-            for (int langID = 0; langID < LanguageList.LanguageTesseract.Length - 1; langID++)
+            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
-                string languageTesseract = LanguageList.LanguageTesseract[langID];
+                string languageTesseract = TesseractHelper.LangList[langID];
                 string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
                 bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
@@ -144,7 +144,7 @@ namespace ScreenLookup.src.pages
             int langID = App.setting.SourceLanguage;
             int accID = App.setting.SourceLanguageAccuracy;
 
-            string? pickedLanguageFile = LanguageList.LanguageTesseract[langID];
+            string? pickedLanguageFile = TesseractHelper.LangList[langID];
             if (isLoadingTesseract || string.IsNullOrWhiteSpace(pickedLanguageFile))
                 return;
 
@@ -175,9 +175,9 @@ namespace ScreenLookup.src.pages
         private async void DownloadHunspellButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = App.setting.SourceLanguage;
-            string DisplayName = LanguageList.GetDisplayNameFromID(langID, false);
+            string tessTag = LanguageList.GetTesseractTagFromID(langID);
 
-            if (!HunspellHelper.FileNames.TryGetValue(DisplayName, out string? fileName))
+            if (!HunspellHelper.LangList.TryGetValue(tessTag, out string? fileName))
             {
                 SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error");
                 return;
