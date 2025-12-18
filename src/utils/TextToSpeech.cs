@@ -6,11 +6,11 @@ namespace ScreenLookup.src.utils
 {
     class TextToSpeech
     {
-        public static CancellationTokenSource CTS = new();
-        public static readonly Dictionary<string, Stream> audioStreamCache = [];
-        public static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
+        private static CancellationTokenSource CTS;
+        private static readonly Dictionary<string, Stream> audioStreamCache = [];
+        private static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
 
-        public static async void PlayTTS(string Text, int langID, bool isCaptureWindow, CancellationTokenSource token)
+        private static async Task<string> PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
             var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
             var translator = LanguageList.GetTranslatorService(App.setting.TTSProvider);
@@ -62,29 +62,36 @@ namespace ScreenLookup.src.utils
                     await Task.Delay(100);
                 }
                 waveOut.Dispose();
+
+                return null;
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("Language not supported"))
-                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: "error", windows: isCaptureWindow ? "capture" : "main");
-                else
-                    SnackbarHost.Show("Error", ex.Message, type: "error", windows: isCaptureWindow ? "capture" : "main");
+                return ex.Message;
             }
         }
 
-        public static void StartTTS(string Text, int langID, string window = "main")
+        public static async void StartTTS(string Text, int langID, string window = "main")
         {
-            Task.Run(() =>
+            StopTTS();
+            CTS = new();
+
+            var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
+            string errorMsg = await Task.Run(() => PlayTTS(Text, langID, CTS));
+
+            if (!string.IsNullOrEmpty(errorMsg))
             {
-                StopTTS();
-                CTS = new();
-                TextToSpeech.PlayTTS(Text, langID, window == "capture", CTS);
-            });
+                bool isCaptureWindow = window == "capture";
+                if (errorMsg.Contains("Language not supported"))
+                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: "error", windows: isCaptureWindow ? "capture" : "main");
+                else
+                    SnackbarHost.Show("Error", errorMsg, type: "error", windows: isCaptureWindow ? "capture" : "main");
+            }
         }
 
         public static void StopTTS()
         {
-            CTS.Cancel();
+            CTS?.Cancel();
         }
     }
 }
