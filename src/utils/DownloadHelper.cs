@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using HunspellSharp;
+using Microsoft.Win32;
 using ScreenLookup;
 using ScreenLookup.src.utils;
 using System.IO;
@@ -96,6 +97,7 @@ public class TesseractHelper
 internal class HunspellHelper
 {
     public static string FilePath = Path.Combine(App.appDataFolder, "hunspell");
+    public static Dictionary<int, Hunspell> HunspellEngine = [];
 
     public static Dictionary<string, string> FileNames = new Dictionary<string, string> {
         {"Afrikaans", "af_ZA/af_ZA"},
@@ -159,5 +161,33 @@ internal class HunspellHelper
     public static void SaveInstalled(int langID)
     {
         App.setting.RegLoadedHunspell.SetValue(langID.ToString(), true);
+    }
+
+    public static string CorrectionWord(string word, int sourceLanguage)
+    {
+        string DisplayName = LanguageList.GetDisplayNameFromID(sourceLanguage, false);
+        if (FileNames.TryGetValue(DisplayName, out string? fileName))
+        {
+            string nameTag = fileName.Split('/')[1];
+
+            if (!HunspellEngine.TryGetValue(sourceLanguage, out Hunspell hunspell))
+            {
+                hunspell = new Hunspell($"{FilePath}\\{nameTag}.aff", $"{FilePath}\\{nameTag}.dic");
+                HunspellEngine.TryAdd(sourceLanguage, hunspell);
+            }
+
+            if (!hunspell.Spell(word))
+            {
+                List<string> suggestions = hunspell.Suggest(word);
+                if (suggestions.Count != 0)
+                    word = suggestions[0];
+            }
+        }
+        else
+        {
+            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(sourceLanguage, true)}\" dosen't support Hunspell", "error", windows: "capture");
+        }
+
+        return word;
     }
 }

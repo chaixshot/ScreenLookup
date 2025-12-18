@@ -1,5 +1,4 @@
-﻿using HunspellSharp;
-using ScreenGrab;
+﻿using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.Drawing;
@@ -201,8 +200,6 @@ namespace ScreenLookup.src.windows
                             List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage));
                             if (IsCapturing)
                             {
-
-
                                 if (App.setting.LookupOnImage)
                                     TesseractAltoText(TesseractPage.AltoText);
                                 else
@@ -253,9 +250,13 @@ namespace ScreenLookup.src.windows
                 {
                     foreach (XmlElement data in textLine.GetElementsByTagName("String"))
                     {
+                        string Word = data.GetAttribute("CONTENT");
+                        if (App.setting.HunSpell)
+                            Word = HunspellHelper.CorrectionWord(Word, App.setting.SourceLanguage);
+
                         items.Add(new CaptureAltoEntry
                         {
-                            Word = data.GetAttribute("CONTENT"),
+                            Word = Word,
                             X = Int32.Parse(data.GetAttribute("HPOS")),
                             Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
                             Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
@@ -356,24 +357,7 @@ namespace ScreenLookup.src.windows
 
                                 string text = word.Text;
                                 if (App.setting.HunSpell)
-                                {
-                                    string DisplayName = LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, false);
-                                    if (HunspellHelper.FileNames.TryGetValue(DisplayName, out string? fileName))
-                                    {
-                                        string nameTag = fileName.Split('/')[1];
-                                        var hunspell = new Hunspell($"{HunspellHelper.FilePath}\\{nameTag}.aff", $"{HunspellHelper.FilePath}\\{nameTag}.dic");
-                                        if (!hunspell.Spell(word.Text))
-                                        {
-                                            List<string> suggestions = hunspell.Suggest(word.Text);
-                                            if (suggestions.Count != 0)
-                                                text = suggestions[0];
-                                        }
-                                    }
-                                    else
-                                    {
-                                        SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\" dosen't support Hunspell", "error", windows: "capture");
-                                    }
-                                }
+                                    text = HunspellHelper.CorrectionWord(text, App.setting.SourceLanguage);
 
                                 items.Add(new CaptureWordsSimplifiedEntry() { Word = text, Stop = 0 });
                             }
