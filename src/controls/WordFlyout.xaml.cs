@@ -108,13 +108,7 @@ namespace ScreenLookup.src.controls
         private async void OnOpen(Flyout sender, RoutedEventArgs args)
         {
             Reset();
-
-            // Change flyout position follow cursor
-            var MousePos_Point = Mouse.GetPosition(this);
-            Matrix matrix = new();
-            matrix.Translate(MousePos_Point.X - 50, MousePos_Point.Y - 40);
-            mt.Matrix = matrix;
-            flayOut.LayoutTransform = Transform.Identity;
+            FollowMouse();
 
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(OriginalWord);
@@ -128,11 +122,22 @@ namespace ScreenLookup.src.controls
             translatedWord.Text = translateResult;
             translatedWord.Visibility = Visibility.Visible;
             translatedWordLoading.Visibility = Visibility.Collapsed;
+
+            FollowMouse();
         }
 
         private void OnClose(Flyout sender, RoutedEventArgs args)
         {
             TextToSpeech.StopTTS();
+        }
+
+        private void FollowMouse()
+        {
+            var MousePos_Point = Mouse.GetPosition(this);
+            Matrix matrix = new();
+            matrix.Translate(MousePos_Point.X - 50, MousePos_Point.Y - 40);
+            mt.Matrix = matrix;
+            flayOut.LayoutTransform = Transform.Identity;
         }
 
         private void Reset()
