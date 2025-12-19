@@ -45,19 +45,19 @@ namespace ScreenLookup.src.controls
         }
 
         public static readonly DependencyProperty SourceLanguageProperty =
-            DependencyProperty.Register("SourceLanguage", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
+            DependencyProperty.Register("SourceLanguage_OpenBrowserButton", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
 
         public static readonly DependencyProperty TargetLanguageProperty =
-            DependencyProperty.Register("TargetLanguage", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
+            DependencyProperty.Register("TargetLanguage_OpenBrowserButton", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
 
         public static readonly DependencyProperty OriginalWordProperty =
-            DependencyProperty.Register("OriginalWord", typeof(string), typeof(OpenBrowserButton), new PropertyMetadata(""));
+            DependencyProperty.Register("OriginalWord_OpenBrowserButton", typeof(string), typeof(OpenBrowserButton), new PropertyMetadata(""));
 
         public static readonly DependencyProperty WidthProperty =
-            DependencyProperty.Register("Width", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(10));
+            DependencyProperty.Register("Width_OpenBrowserButton", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(10));
 
         public static readonly DependencyProperty HeightProperty =
-            DependencyProperty.Register("Height", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(10));
+            DependencyProperty.Register("Height_OpenBrowserButton", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(10));
 
         public OpenBrowserButton()
         {

@@ -272,9 +272,9 @@ namespace ScreenLookup.src.pages
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.originalWord.Text = word;
-            flayOut.originalWord.Tag = sourceLanguage;
-            flayOut.translatedWord.Tag = targetLanguage;
+            flayOut.OriginalWord = word;
+            flayOut.SourceLanguage = sourceLanguage;
+            flayOut.TargetLanguage = targetLanguage;
 
             flayOut.flayOut.IsOpen = true;
         }

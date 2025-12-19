@@ -65,6 +65,7 @@
                     <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
                         <Controls:TextBlock
                             x:Name="originalWord"
+                            Text="{Binding OriginalWord}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             TextWrapping="Wrap" />

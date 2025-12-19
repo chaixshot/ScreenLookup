@@ -1,4 +1,6 @@
 ﻿using ScreenLookup.src.utils;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,13 +13,35 @@ namespace ScreenLookup.src.controls
     /// <summary>
     /// Interaction logic for WordFlyout.xaml
     /// </summary>
-    public partial class WordFlyout : UserControl
+    public partial class WordFlyout : UserControl, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
         private readonly Dictionary<string, string> translatedCache = [];
         bool isCaptureWindow;
 
+        public int SourceLanguage
+        {
+            get { return (int)GetValue(SourceLanguageProperty); }
+            set { SetValue(SourceLanguageProperty, value); }
+        }
+        public int TargetLanguage
+        {
+            get { return (int)GetValue(TargetLanguageProperty); }
+            set { SetValue(TargetLanguageProperty, value); }
+        }
+        public string OriginalWord
+        {
+            get { return (string)GetValue(OriginalWordProperty); }
+            set
+            {
+                SetValue(OriginalWordProperty, value);
+                OnPropertyChanged();
+            }
+        }
+
         public WordFlyout()
         {
+            DataContext = this;
             InitializeComponent();
 
             flayOut.Opened += OnOpen;
@@ -34,11 +58,23 @@ namespace ScreenLookup.src.controls
             };
         }
 
+        public static readonly DependencyProperty SourceLanguageProperty =
+            DependencyProperty.Register("SourceLanguage_WordFlyout", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
+
+        public static readonly DependencyProperty TargetLanguageProperty =
+            DependencyProperty.Register("TargetLanguage_WordFlyout", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
+
+        public static readonly DependencyProperty OriginalWordProperty =
+            DependencyProperty.Register("OriginalWord_WordFlyout", typeof(string), typeof(OpenBrowserButton), new PropertyMetadata(""));
+
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private async void OnOpen(Flyout sender, RoutedEventArgs args)
         {
             Reset();
-
-            string word = originalWord.Text;
 
             // Change flyout position follow cursor
             var MousePos_Point = Mouse.GetPosition(this);
@@ -47,13 +83,13 @@ namespace ScreenLookup.src.controls
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            TextToSpeech.StartTTS(word, Int32.Parse(originalWord.Tag.ToString()), isCaptureWindow ? "capture" : "main");
-            SavedWordButtonStateChange(word);
+            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, isCaptureWindow ? "capture" : "main");
+            SavedWordButtonStateChange(OriginalWord);
 
-            if (!translatedCache.TryGetValue(word, out string translateResult))
+            if (!translatedCache.TryGetValue(OriginalWord, out string translateResult))
             {
-                translateResult = await LanguageList.TranslatedText(word, Int32.Parse(translatedWord.Tag.ToString()));
-                translatedCache.TryAdd(word, translateResult);
+                translateResult = await LanguageList.TranslatedText(OriginalWord, TargetLanguage);
+                translatedCache.TryAdd(OriginalWord, translateResult);
             }
 
             translatedWord.Text = translateResult;
@@ -93,12 +129,12 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(originalWord.Text, Int32.Parse(originalWord.Tag.ToString()), isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, isCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedWord.Text, Int32.Parse(translatedWord.Tag.ToString()), isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translatedWord.Text, TargetLanguage, isCaptureWindow ? "capture" : "main");
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -110,17 +146,16 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
         {
-            string original = originalWord.Text;
             string translated = this.translatedWord.Text;
 
-            if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(original))
+            if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
             {
                 SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: isCaptureWindow ? "capture" : "main");
                 return;
             }
 
-            SavedWordLogger.ToggleSaved(original, translated, Int32.Parse(originalWord.Tag.ToString()), Int32.Parse(translatedWord.Tag.ToString()));
-            SavedWordButtonStateChange(original);
+            SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
+            SavedWordButtonStateChange(OriginalWord);
         }
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
