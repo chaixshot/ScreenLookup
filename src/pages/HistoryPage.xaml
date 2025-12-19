@@ -160,7 +160,7 @@
                     </StackPanel>
                 </Grid>
 
-                <xControls:WordFlyout x:Name="flayOut" Tag="HistoryPge" />
+                <xControls:WordFlyout x:Name="flayOut" IsCaptureWindow="False" />
 
                 <Controls:Card
                     Grid.Row="2"

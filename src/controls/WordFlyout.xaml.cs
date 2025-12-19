@@ -17,27 +17,10 @@ namespace ScreenLookup.src.controls
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private readonly Dictionary<string, string> translatedCache = [];
-        bool isCaptureWindow;
 
-        public int SourceLanguage
-        {
-            get { return (int)GetValue(SourceLanguageProperty); }
-            set { SetValue(SourceLanguageProperty, value); }
-        }
-        public int TargetLanguage
-        {
-            get { return (int)GetValue(TargetLanguageProperty); }
-            set { SetValue(TargetLanguageProperty, value); }
-        }
-        public string OriginalWord
-        {
-            get { return (string)GetValue(OriginalWordProperty); }
-            set
-            {
-                SetValue(OriginalWordProperty, value);
-                OnPropertyChanged();
-            }
-        }
+        public int sourceLanguage = 1;
+        public int targetLanguage = 1;
+        public string originalWord = "";
 
         public WordFlyout()
         {
@@ -47,30 +30,58 @@ namespace ScreenLookup.src.controls
             flayOut.Opened += OnOpen;
             flayOut.Closed += OnClose;
 
-            this.Loaded += (s, e) =>
-            {
-                isCaptureWindow = this.Tag.ToString() == "CaptureWindow";
-            };
-
             this.Unloaded += (s, e) =>
             {
                 translatedCache.Clear();
             };
         }
 
-        public static readonly DependencyProperty SourceLanguageProperty =
-            DependencyProperty.Register("SourceLanguage_WordFlyout", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
+        public bool IsCaptureWindow
+        {
+            get { return (bool)GetValue(IsCaptureWindowProperty); }
+            set { SetValue(IsCaptureWindowProperty, value); }
+        }
 
-        public static readonly DependencyProperty TargetLanguageProperty =
-            DependencyProperty.Register("TargetLanguage_WordFlyout", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(1));
+        public int SourceLanguage
+        {
+            get { return sourceLanguage; }
+            set
+            {
+                sourceLanguage = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public static readonly DependencyProperty OriginalWordProperty =
-            DependencyProperty.Register("OriginalWord_WordFlyout", typeof(string), typeof(OpenBrowserButton), new PropertyMetadata(""));
+        public int TargetLanguage
+        {
+            get { return targetLanguage; }
+            set
+            {
+                targetLanguage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string OriginalWord
+        {
+            get { return originalWord; }
+            set
+            {
+                originalWord = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public static double FontSizeS => App.setting.FontSizeS;
+        public static FontFamily FontFace => new(App.setting.FontFace);
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public static readonly DependencyProperty IsCaptureWindowProperty =
+            DependencyProperty.Register("IsCapture", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(false));
 
         private async void OnOpen(Flyout sender, RoutedEventArgs args)
         {
@@ -83,7 +94,7 @@ namespace ScreenLookup.src.controls
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
 
-            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(OriginalWord);
 
             if (!translatedCache.TryGetValue(OriginalWord, out string translateResult))
@@ -106,12 +117,6 @@ namespace ScreenLookup.src.controls
         {
             int buttonWidth = App.setting.FontSizeS + 10;
 
-            originalWord.FontSize = App.setting.FontSizeS;
-            originalWord.FontFamily = new FontFamily(App.setting.FontFace);
-
-            translatedWord.FontSize = App.setting.FontSizeS;
-            translatedWord.FontFamily = new FontFamily(App.setting.FontFace);
-
             flayoutOriginalTSS.Width = buttonWidth;
             flayoutOriginalTSS.Height = buttonWidth;
             flayoutTranslatedTSS.Width = buttonWidth;
@@ -129,12 +134,12 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedWord.Text, TargetLanguage, isCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translatedWord.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -150,19 +155,20 @@ namespace ScreenLookup.src.controls
 
             if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
             {
-                SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: isCaptureWindow ? "capture" : "main");
+                SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: IsCaptureWindow ? "capture" : "main");
                 return;
             }
 
             SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
             SavedWordButtonStateChange(OriginalWord);
         }
+
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
-            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: isCaptureWindow ? "capture" : "main");
+            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: IsCaptureWindow ? "capture" : "main");
         }
     }
 }

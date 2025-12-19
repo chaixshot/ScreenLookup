@@ -443,9 +443,9 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.originalWord.Text = word;
-            flayOut.originalWord.Tag = sourceLanguage;
-            flayOut.translatedWord.Tag = App.setting.TargetLanguage;
+            flayOut.OriginalWord = word;
+            flayOut.SourceLanguage = sourceLanguage;
+            flayOut.TargetLanguage = App.setting.TargetLanguage;
 
             flayOut.flayOut.IsOpen = true;
         }
@@ -461,9 +461,9 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.originalWord.Text = word;
-            flayOut.originalWord.Tag = sourceLanguage;
-            flayOut.translatedWord.Tag = App.setting.TargetLanguage;
+            flayOut.OriginalWord = word;
+            flayOut.SourceLanguage = sourceLanguage;
+            flayOut.TargetLanguage = App.setting.TargetLanguage;
 
             flayOut.flayOut.IsOpen = true;
         }

@@ -64,10 +64,11 @@
 
                     <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
                         <Controls:TextBlock
-                            x:Name="originalWord"
-                            Text="{Binding OriginalWord}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
+                            FontFamily="{Binding FontFace}"
+                            FontSize="{Binding FontSizeS}"
+                            Text="{Binding OriginalWord}"
                             TextWrapping="Wrap" />
                     </WrapPanel>
                 </Controls:DynamicScrollViewer>
@@ -120,6 +121,8 @@
                             x:Name="translatedWord"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
+                            FontFamily="{Binding FontFace}"
+                            FontSize="{Binding FontSizeS}"
                             TextWrapping="Wrap" />
                         <wpfui:ProgressRing
                             x:Name="translatedWordLoading"
@@ -145,9 +148,9 @@
                         VerticalAlignment="Center"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
-                        OriginalWord="{Binding Text, ElementName=originalWord}"
-                        SourceLanguage="{Binding Tag, ElementName=originalWord}"
-                        TargetLanguage="{Binding Tag, ElementName=translatedWord}" />
+                        OriginalWord="{Binding OriginalWord}"
+                        SourceLanguage="{Binding SourceLanguage}"
+                        TargetLanguage="{Binding TargetLanguage}" />
 
                     <Controls:Button
                         x:Name="wordSave"

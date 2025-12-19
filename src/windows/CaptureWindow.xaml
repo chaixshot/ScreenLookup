@@ -39,7 +39,7 @@
             <xControls:WordFlyout
                 x:Name="flayOut"
                 Grid.Row="5"
-                Tag="CaptureWindow" />
+                IsCaptureWindow="True" />
 
             <Grid x:Name="configMenu">
                 <StackPanel Margin="15">
