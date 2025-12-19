@@ -136,7 +136,7 @@
 
             <Controls:Card
                 Margin="0,10,0,0"
-                Padding="5"
+                Padding="10,5,10,5"
                 BorderThickness="0,1,0,0">
 
                 <StackPanel Orientation="Horizontal">
