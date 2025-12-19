@@ -25,18 +25,18 @@ namespace ScreenLookup.src.controls
             get { return (string)GetValue(OriginalWordProperty); }
             set { SetValue(OriginalWordProperty, value); }
         }
-        public int Width
+        public double Width
         {
-            get { return (int)GetValue(WidthProperty); }
+            get { return (double)GetValue(WidthProperty); }
             set
             {
                 SetValue(WidthProperty, value);
                 openBrowser.Width = value;
             }
         }
-        public int Height
+        public double Height
         {
-            get { return (int)GetValue(HeightProperty); }
+            get { return (double)GetValue(HeightProperty); }
             set
             {
                 SetValue(HeightProperty, value);
@@ -54,10 +54,10 @@ namespace ScreenLookup.src.controls
             DependencyProperty.Register("OriginalWord", typeof(string), typeof(OpenBrowserButton), new PropertyMetadata(""));
 
         public static readonly DependencyProperty WidthProperty =
-            DependencyProperty.Register("Width", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(10));
+            DependencyProperty.Register("Width", typeof(double), typeof(OpenBrowserButton), new PropertyMetadata(10));
 
         public static readonly DependencyProperty HeightProperty =
-            DependencyProperty.Register("Height", typeof(int), typeof(OpenBrowserButton), new PropertyMetadata(10));
+            DependencyProperty.Register("Height", typeof(double), typeof(OpenBrowserButton), new PropertyMetadata(10));
 
         public OpenBrowserButton()
         {
