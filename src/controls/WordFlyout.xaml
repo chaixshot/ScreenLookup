@@ -136,19 +136,17 @@
                 BorderThickness="0,1,0,0">
 
                 <StackPanel Orientation="Horizontal">
-                    <Controls:Button
+                    <local:OpenBrowserButton
                         x:Name="openBrowser"
                         Width="20"
                         Height="20"
-                        Padding="0"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
-                        Click="Button_OpenBrowser"
-                        Icon="{wpfui:SymbolIcon Symbol=Globe24,
-                                                Filled=False}"
-                        ToolTip="Open Browser" />
+                        OriginalWord="{Binding Text, ElementName=originalWord}"
+                        SourceLanguage="{Binding Tag, ElementName=originalWord}"
+                        TargetLanguage="{Binding Tag, ElementName=translatedWord}" />
 
                     <Controls:Button
                         x:Name="wordSave"

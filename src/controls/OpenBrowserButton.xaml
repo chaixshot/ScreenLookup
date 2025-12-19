@@ -1,0 +1,19 @@
+﻿<UserControl
+    x:Class="ScreenLookup.src.controls.OpenBrowserButton"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ScreenLookup.src.controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    mc:Ignorable="d">
+
+    <Controls:Button
+        x:Name="openBrowser"
+        Padding="0"
+        Click="Button_OpenBrowser"
+        Icon="{wpfui:SymbolIcon Symbol=Globe24,
+                                Filled=False}"
+        ToolTip="Open Browser" />
+</UserControl>

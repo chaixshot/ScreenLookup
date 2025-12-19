@@ -1,5 +1,4 @@
 ﻿using ScreenLookup.src.utils;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -129,20 +128,6 @@ namespace ScreenLookup.src.controls
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: isCaptureWindow ? "capture" : "main");
-        }
-
-        private void Button_OpenBrowser(object sender, RoutedEventArgs e)
-        {
-            switch (App.setting.translationProvider)
-            {
-                case 4:
-                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(Int32.Parse(originalWord.Tag.ToString()))}&target_lang={LanguageList.GetLanguageISO6391FromID(Int32.Parse(translatedWord.Tag.ToString()))}&text={originalWord.Text}") { UseShellExecute = true });
-
-                    break;
-                default:
-                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(Int32.Parse(originalWord.Tag.ToString()))}&tl={LanguageList.GetLanguageISO6391FromID(Int32.Parse(translatedWord.Tag.ToString()))}&text={originalWord.Text}&op=translate") { UseShellExecute = true });
-                    break;
-            }
         }
     }
 }
