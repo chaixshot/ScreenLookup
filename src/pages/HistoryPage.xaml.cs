@@ -55,6 +55,15 @@ namespace ScreenLookup.src.pages
             {
                 dataGrid.Height = App.mainWindow.ActualHeight - 202;
             };
+
+            PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Escape)
+                {
+                    if (flayOut.IsOpen)
+                        flayOut.IsOpen = false;
+                }
+            };
         }
 
         public void OnPropertyChanged([CallerMemberName] string? propName = null)

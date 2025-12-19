@@ -44,7 +44,12 @@ namespace ScreenLookup.src.windows
             {
                 if (e.Key == Key.Escape)
                 {
-                    HideWindow();
+                    if (flayOut.IsOpen)
+                    {
+                        flayOut.IsOpen = false;
+                    }
+                    else
+                        HideWindow();
                 }
             };
         }
