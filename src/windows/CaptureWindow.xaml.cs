@@ -288,6 +288,9 @@ namespace ScreenLookup.src.windows
             ocrText.Text = "";
             ocrCard.Visibility = Visibility.Collapsed;
 
+            imageTranslatedText.FontSize = App.setting.FontSizeS;
+            imageTranslatedText.FontFamily = new FontFamily(App.setting.FontFace);
+
             translatedText.FontSize = App.setting.FontSizeS;
             translatedText.FontFamily = new FontFamily(App.setting.FontFace);
 

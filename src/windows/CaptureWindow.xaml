@@ -26,10 +26,9 @@
     WindowStyle="None"
     mc:Ignorable="d">
 
-    <Grid Margin="10,5,10,5">
+    <Grid Margin="15,15,15,0">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -37,70 +36,71 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <xControls:WordFlyout x:Name="flayOut" Tag="CaptureWindow" />
+            <xControls:WordFlyout
+                x:Name="flayOut"
+                Grid.Row="5"
+                Tag="CaptureWindow" />
 
-            <Grid x:Name="configMenu" Grid.Row="1">
-                <wpfui:DynamicScrollViewer Padding="15">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,4">
+            <Grid x:Name="configMenu">
+                <StackPanel Margin="15">
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox x:Name="sourceLanguageConfig" SelectionChanged="SourceLanguageConfig_SelectionChanged" />
+
+                        <Controls:SymbolIcon Grid.Column="1" Symbol="ChevronRight24" />
+
+                        <ComboBox
+                            x:Name="targetLanguageConfig"
+                            Grid.Column="2"
+                            SelectionChanged="TargetLanguageConfig_SelectionChanged" />
+                    </Grid>
+
+                    <Controls:Card Margin="0,0,0,4">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <ComboBox x:Name="sourceLanguageConfig" SelectionChanged="SourceLanguageConfig_SelectionChanged" />
+                            <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
 
-                            <Controls:SymbolIcon Grid.Column="1" Symbol="ChevronRight24" />
-
-                            <ComboBox
-                                x:Name="targetLanguageConfig"
-                                Grid.Column="2"
-                                SelectionChanged="TargetLanguageConfig_SelectionChanged" />
+                            <Controls:ToggleSwitch
+                                x:Name="hunSpell"
+                                Grid.Column="1"
+                                Click="ConfigSwitch_Toggle"
+                                IsChecked="{Binding HunSpell}" />
                         </Grid>
+                    </Controls:Card>
 
-                        <Controls:Card Margin="0,0,0,4">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                    <Controls:Card Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                                <Controls:TextBlock Text="Source Language Correction (Hunspell)" />
+                            <Controls:TextBlock Text="Show Capture Image" />
 
-                                <Controls:ToggleSwitch
-                                    x:Name="hunSpell"
-                                    Grid.Column="1"
-                                    Click="ConfigSwitch_Toggle"
-                                    IsChecked="{Binding HunSpell}" />
-                            </Grid>
-                        </Controls:Card>
+                            <Controls:ToggleSwitch
+                                x:Name="showImage"
+                                Grid.Column="1"
+                                Click="ConfigSwitch_Toggle"
+                                IsChecked="{Binding ShowImage}" />
+                        </Grid>
+                    </Controls:Card>
 
-                        <Controls:Card Margin="0,0,0,4">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Controls:TextBlock Text="Show Capture Image" />
-
-                                <Controls:ToggleSwitch
-                                    x:Name="showImage"
-                                    Grid.Column="1"
-                                    Click="ConfigSwitch_Toggle"
-                                    IsChecked="{Binding ShowImage}" />
-                            </Grid>
-                        </Controls:Card>
-
-                        <Controls:Button Click="ConfigSubmit_Click" Content="Submit" />
-                    </StackPanel>
-                </wpfui:DynamicScrollViewer>
+                    <Controls:Button Click="ConfigSubmit_Click" Content="Submit" />
+                </StackPanel>
             </Grid>
 
             <Controls:Card
                 x:Name="captureCard"
-                Grid.Row="2"
+                Grid.Row="1"
                 Padding="0">
                 <Grid>
                     <StackPanel
@@ -139,6 +139,7 @@
 
                     <Controls:Image
                         x:Name="captureImage"
+                        VerticalAlignment="Top"
                         Source="/src/images/applicationIcon.ico"
                         Stretch="Uniform" />
 
@@ -149,7 +150,8 @@
                         MinWidth="{Binding MinWidth, ElementName=captureImage}"
                         MinHeight="{Binding MinHeight, ElementName=captureImage}"
                         MaxWidth="{Binding MaxWidth, ElementName=captureImage}"
-                        MaxHeight="{Binding MaxHeight, ElementName=captureImage}">
+                        MaxHeight="{Binding MaxHeight, ElementName=captureImage}"
+                        VerticalAlignment="Top">
 
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -193,6 +195,7 @@
                         Header="Translation">
 
                         <Border
+                            MaxHeight="{Binding Height, ElementName=captureImage}"
                             Padding="14,16,14,16"
                             Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                             CornerRadius="0,0,0,8">
@@ -257,7 +260,7 @@
 
             <Controls:Card
                 x:Name="ocrCard"
-                Grid.Row="3"
+                Grid.Row="2"
                 Margin="0,3,0,0">
                 <Controls:TextBlock
                     x:Name="ocrText"
@@ -268,7 +271,7 @@
 
             <Controls:Card
                 x:Name="originalCard"
-                Grid.Row="4"
+                Grid.Row="3"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -363,7 +366,7 @@
 
             <Controls:Card
                 x:Name="translatedCard"
-                Grid.Row="5"
+                Grid.Row="4"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -424,6 +427,7 @@
 
         <Controls:SnackbarPresenter
             x:Name="snackbarHost"
+            Grid.Row="5"
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom" />
 
