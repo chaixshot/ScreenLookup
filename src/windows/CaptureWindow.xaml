@@ -188,6 +188,7 @@
 
                     <wpfui:CardExpander
                         x:Name="imageTranslatedExpander"
+                        Padding="5,16,5,16"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
