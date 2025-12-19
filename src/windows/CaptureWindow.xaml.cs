@@ -80,6 +80,7 @@ namespace ScreenLookup.src.windows
         {
             IsCapturing = false;
             ConfigDispatcher?.Continue = false;
+            flayOut.IsOpen = false;
             translatedCache.Clear();
             TextToSpeech.StopTTS();
 
@@ -446,7 +447,7 @@ namespace ScreenLookup.src.windows
         #region button
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            flayOut.flayOut.IsOpen = false;
+            flayOut.IsOpen = false;
 
             Button? button = sender as Button;
             string word = button.ToolTip.ToString();
@@ -459,12 +460,12 @@ namespace ScreenLookup.src.windows
             flayOut.SourceLanguage = sourceLanguage;
             flayOut.TargetLanguage = App.setting.TargetLanguage;
 
-            flayOut.flayOut.IsOpen = true;
+            flayOut.IsOpen = true;
         }
 
         private void Button_Paragraph(object sender, MouseButtonEventArgs e)
         {
-            flayOut.flayOut.IsOpen = false;
+            flayOut.IsOpen = false;
 
             Button? button = sender as Button;
             string word = button.Uid.ToString();
@@ -477,7 +478,7 @@ namespace ScreenLookup.src.windows
             flayOut.SourceLanguage = sourceLanguage;
             flayOut.TargetLanguage = App.setting.TargetLanguage;
 
-            flayOut.flayOut.IsOpen = true;
+            flayOut.IsOpen = true;
         }
 
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)

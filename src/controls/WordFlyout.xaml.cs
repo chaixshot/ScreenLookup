@@ -21,6 +21,7 @@ namespace ScreenLookup.src.controls
         public int sourceLanguage = 1;
         public int targetLanguage = 1;
         public string originalWord = "";
+        public bool isOpen = false;
 
         public WordFlyout()
         {
@@ -68,6 +69,16 @@ namespace ScreenLookup.src.controls
             set
             {
                 originalWord = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsOpen
+        {
+            get { return isOpen; }
+            set
+            {
+                isOpen = value;
                 OnPropertyChanged();
             }
         }

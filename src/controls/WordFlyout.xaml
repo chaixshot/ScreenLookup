@@ -12,7 +12,7 @@
     <Controls:Flyout
         x:Name="flayOut"
         Padding="0"
-        IsOpen="False"
+        IsOpen="{Binding IsOpen}"
         Placement="Top">
 
         <Controls:Flyout.RenderTransform>
