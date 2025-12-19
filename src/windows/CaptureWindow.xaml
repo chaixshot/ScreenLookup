@@ -166,7 +166,7 @@
                                     Width="{Binding Width}"
                                     Height="{Binding Height}"
                                     Padding="0"
-                                    Background="{wpfui:ThemeResource SystemAccentColorPrimaryBrush}"
+                                    Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
                                     Click="Button_Word"
                                     MouseRightButtonUp="Button_Paragraph"
                                     Opacity="0.15"
