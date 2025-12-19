@@ -327,6 +327,7 @@ namespace ScreenLookup.src.windows
             originalScrollView.ScrollToTop();
             translatedScrollViewer.ScrollToTop();
             imageTranslatedScrollViewer.ScrollToTop();
+            imageTranslatedExpander.IsExpanded = false;
 
             AltoText.ItemsSource = null;
 

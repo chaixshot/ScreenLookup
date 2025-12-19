@@ -26,7 +26,7 @@
     WindowStyle="None"
     mc:Ignorable="d">
 
-    <Grid Margin="15,15,15,0">
+    <Grid Margin="15,35,15,20">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -104,10 +104,14 @@
                 Grid.Row="1"
                 Padding="0">
                 <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
                     <StackPanel
                         x:Name="captureCardButton"
-                        Margin="14,16,0,0"
-                        HorizontalAlignment="Left"
+                        Margin="14,67,0,0"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
 
@@ -138,70 +142,74 @@
                             ToolTip="Copy" />
                     </StackPanel>
 
-                    <Controls:Image
-                        x:Name="captureImage"
-                        VerticalAlignment="Top"
-                        Source="/src/images/applicationIcon.ico"
-                        Stretch="Uniform" />
-
-                    <ItemsControl
-                        Name="AltoText"
-                        Width="{Binding Width, ElementName=captureImage}"
-                        Height="{Binding Height, ElementName=captureImage}"
-                        MinWidth="{Binding MinWidth, ElementName=captureImage}"
-                        MinHeight="{Binding MinHeight, ElementName=captureImage}"
-                        MaxWidth="{Binding MaxWidth, ElementName=captureImage}"
-                        MaxHeight="{Binding MaxHeight, ElementName=captureImage}"
+                    <Grid
+                        Grid.Column="1"
+                        Margin="5,0,0,0"
                         VerticalAlignment="Top">
+                        <Controls:Image
+                            x:Name="captureImage"
+                            Source="/src/images/applicationIcon.ico"
+                            Stretch="Uniform" />
 
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                        <ItemsControl
+                            Name="AltoText"
+                            Grid.Column="1"
+                            Width="{Binding Width, ElementName=captureImage}"
+                            Height="{Binding Height, ElementName=captureImage}"
+                            MinWidth="{Binding MinWidth, ElementName=captureImage}"
+                            MinHeight="{Binding MinHeight, ElementName=captureImage}"
+                            MaxWidth="{Binding MaxWidth, ElementName=captureImage}"
+                            MaxHeight="{Binding MaxHeight, ElementName=captureImage}">
 
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Controls:Button
-                                    Uid="{Binding Uid}"
-                                    Width="{Binding Width}"
-                                    Height="{Binding Height}"
-                                    Padding="0"
-                                    Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Click="Button_Word"
-                                    MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
-                                    MouseRightButtonUp="Button_Paragraph"
-                                    Opacity="0.15"
-                                    Tag="{Binding SourceLanguage}"
-                                    ToolTip="{Binding Word}" />
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
 
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Controls:Button
+                                        Uid="{Binding Uid}"
+                                        Width="{Binding Width}"
+                                        Height="{Binding Height}"
+                                        Padding="0"
+                                        Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        Click="Button_Word"
+                                        MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
+                                        MouseRightButtonUp="Button_Paragraph"
+                                        Opacity="0.2"
+                                        Tag="{Binding SourceLanguage}"
+                                        ToolTip="{Binding Word}" />
 
-                        <ItemsControl.ItemContainerStyle>
-                            <Style>
-                                <Setter Property="Canvas.Left" Value="{Binding X}" />
-                                <Setter Property="Canvas.Top" Value="{Binding Y}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                    </ItemsControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+
+                            <ItemsControl.ItemContainerStyle>
+                                <Style>
+                                    <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                        </ItemsControl>
+                    </Grid>
 
                     <wpfui:CardExpander
                         x:Name="imageTranslatedExpander"
-                        Padding="5,16,5,16"
-                        HorizontalAlignment="Right"
+                        Grid.ColumnSpan="2"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                         BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
                         ContentPadding="0"
-                        CornerRadius="0,0,0,8"
+                        CornerRadius="0,0,8,0"
                         Header="Translation">
 
                         <Border
                             MaxHeight="{Binding Height, ElementName=captureImage}"
                             Padding="14,16,14,16"
                             Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
-                            CornerRadius="0,0,0,8">
+                            CornerRadius="0,0,8,0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -241,10 +249,11 @@
                                 <Controls:DynamicScrollViewer
                                     x:Name="imageTranslatedScrollViewer"
                                     Grid.Column="2"
+                                    Margin="5,0,0,0"
                                     IsScrollingVertically="True"
                                     VerticalScrollBarVisibility="Visible">
 
-                                    <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
+                                    <WrapPanel Margin="0,0,15,0" Orientation="Horizontal">
                                         <wpfui:ProgressRing
                                             x:Name="imageTranslatedTextLoading"
                                             Width="12"
