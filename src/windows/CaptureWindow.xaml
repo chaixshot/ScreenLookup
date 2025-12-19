@@ -168,6 +168,7 @@
                                     Padding="0"
                                     Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
                                     Click="Button_Word"
+                                    MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
                                     MouseRightButtonUp="Button_Paragraph"
                                     Opacity="0.15"
                                     Tag="{Binding SourceLanguage}"
