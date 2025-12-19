@@ -54,7 +54,7 @@
                     Click="Button_Copy"
                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                             Filled=False}"
-                    Tag="{Binding Text, ElementName=originalWord}"
+                    Tag="{Binding OriginalWord}"
                     ToolTip="Copy" />
 
                 <Controls:DynamicScrollViewer
