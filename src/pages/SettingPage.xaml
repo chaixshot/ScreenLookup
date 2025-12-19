@@ -200,11 +200,17 @@
                         <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="How does the result show after Lookup" />
                     </StackPanel>
                 </Controls:CardControl.Header>
-                <wpfui:ToggleSwitch
-                    Grid.Column="0"
-                    IsChecked="{Binding LookupOnImage}"
-                    OffContent="On Line"
-                    OnContent="On Image" />
+
+                <StackPanel Orientation="Horizontal">
+                    <Controls:TextBlock Text="On Line" />
+
+                    <wpfui:ToggleSwitch
+                        Grid.Column="0"
+                        Margin="10,0"
+                        IsChecked="{Binding LookupOnImage}" />
+
+                    <Controls:TextBlock Text="On Image" />
+                </StackPanel>
             </Controls:CardControl>
 
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
