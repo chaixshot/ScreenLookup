@@ -21,6 +21,7 @@ namespace ScreenLookup.src.controls
         public int sourceLanguage = 1;
         public int targetLanguage = 1;
         public string originalWord = "";
+        public double width = double.NaN;
         public bool isOpen = false;
 
         public WordFlyout()
@@ -69,6 +70,16 @@ namespace ScreenLookup.src.controls
             set
             {
                 originalWord = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double WidthX
+        {
+            get { return width; }
+            set
+            {
+                width = value;
                 OnPropertyChanged();
             }
         }

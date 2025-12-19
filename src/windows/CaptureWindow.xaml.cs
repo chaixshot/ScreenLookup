@@ -482,6 +482,7 @@ namespace ScreenLookup.src.windows
             flayOut.OriginalWord = word;
             flayOut.SourceLanguage = sourceLanguage;
             flayOut.TargetLanguage = App.setting.TargetLanguage;
+            flayOut.WidthX = captureImage.Width;
 
             flayOut.IsOpen = true;
         }

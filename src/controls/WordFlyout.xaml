@@ -19,7 +19,7 @@
             <MatrixTransform x:Name="mt" />
         </Controls:Flyout.RenderTransform>
 
-        <StackPanel MaxWidth="700">
+        <StackPanel MaxWidth="{Binding WidthX}">
             <Grid Margin="10,10,10,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
