@@ -115,15 +115,21 @@ namespace ScreenLookup.src.controls
 
         private void Reset()
         {
-            int buttonWidth = App.setting.FontSizeS + 10;
+            double buttonWidth = App.setting.FontSizeS + 10;
+            double loadingWidth = App.setting.FontSizeS + 5;
 
             flayoutOriginalTSS.Width = buttonWidth;
             flayoutOriginalTSS.Height = buttonWidth;
+
+            translatedWordLoading.Width = loadingWidth;
+            translatedWordLoading.Height = loadingWidth;
+
             flayoutTranslatedTSS.Width = buttonWidth;
             flayoutTranslatedTSS.Height = buttonWidth;
 
             openBrowser.Width = buttonWidth;
             openBrowser.Height = buttonWidth;
+
             wordSave.Width = buttonWidth;
             wordSave.Height = buttonWidth;
 

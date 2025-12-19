@@ -284,21 +284,32 @@ namespace ScreenLookup.src.windows
 
         private void ResetDefaultState()
         {
-            int buttonWidth = App.setting.FontSizeS + 10;
+            double buttonWidth = App.setting.FontSizeS + 10;
+            double loadingWidth = App.setting.FontSizeS + 5;
+
             ocrText.Text = "";
             ocrCard.Visibility = Visibility.Collapsed;
+
+            imageTranslatedTextLoading.Width = loadingWidth;
+            imageTranslatedTextLoading.Height = loadingWidth;
 
             imageTranslatedText.FontSize = App.setting.FontSizeS;
             imageTranslatedText.FontFamily = new FontFamily(App.setting.FontFace);
 
-            translatedText.FontSize = App.setting.FontSizeS;
-            translatedText.FontFamily = new FontFamily(App.setting.FontFace);
-
             originalTTS.Width = buttonWidth;
             originalTTS.Height = buttonWidth;
 
+            originalWordsLoading.Width = loadingWidth;
+            originalWordsLoading.Height = loadingWidth;
+
             translatedTSS.Width = buttonWidth;
             translatedTSS.Height = buttonWidth;
+
+            translatedTextLoading.Width = loadingWidth;
+            translatedTextLoading.Height = loadingWidth;
+
+            translatedText.FontSize = App.setting.FontSizeS;
+            translatedText.FontFamily = new FontFamily(App.setting.FontFace);
 
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
