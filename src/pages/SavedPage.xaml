@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:xControls="clr-namespace:ScreenLookup.src.controls"
     Title="Saved"
     mc:Ignorable="d">
 
@@ -176,16 +177,12 @@
                             <DataGridTemplateColumn Width="0.15*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Controls:Button
-                                            Uid="{Binding TargetLanguage}"
+                                        <xControls:OpenBrowserButton
                                             Width="20"
                                             Height="20"
-                                            Padding="0"
-                                            Click="Button_OpenBrowser"
-                                            Icon="{wpfui:SymbolIcon Symbol=Globe24,
-                                                                    Filled=False}"
-                                            Tag="{Binding SourceLanguage}"
-                                            ToolTip="{Binding Original}" />
+                                            OriginalWord="{Binding Original}"
+                                            SourceLanguage="{Binding SourceLanguage}"
+                                            TargetLanguage="{Binding TargetLanguage}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
