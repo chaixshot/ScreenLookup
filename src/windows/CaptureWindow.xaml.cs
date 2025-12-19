@@ -208,7 +208,7 @@ namespace ScreenLookup.src.windows
                                 }
 
                                 // Translate card
-                                string translateResult = await LanguageList.TranslatedText(TesseractPage.Text, App.setting.TargetLanguage);
+                                string translateResult = await Task.Run(() => LanguageList.TranslatedText(TesseractPage.Text, App.setting.TargetLanguage));
 
                                 if (App.setting.LookupOnImage)
                                 {

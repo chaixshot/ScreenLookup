@@ -99,7 +99,7 @@ namespace ScreenLookup.src.controls
 
             if (!translatedCache.TryGetValue(OriginalWord, out string translateResult))
             {
-                translateResult = await LanguageList.TranslatedText(OriginalWord, TargetLanguage);
+                translateResult = await Task.Run(() => LanguageList.TranslatedText(OriginalWord, TargetLanguage));
                 translatedCache.TryAdd(OriginalWord, translateResult);
             }
 
