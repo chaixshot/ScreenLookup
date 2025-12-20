@@ -271,21 +271,15 @@ namespace ScreenLookup.src.pages
 
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            flayOut.IsOpen = false;
-
             Button? button = sender as Button;
             string word = button.ToolTip.ToString();
-            int sourceLanguage = Int32.Parse(button.Uid.ToString());
-            int targetLanguage = Int32.Parse(button.Tag.ToString());
+            int sourceLang = Int32.Parse(button.Uid.ToString());
+            int targetLang = Int32.Parse(button.Tag.ToString());
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.OriginalWord = word;
-            flayOut.SourceLanguage = sourceLanguage;
-            flayOut.TargetLanguage = targetLanguage;
-
-            flayOut.IsOpen = true;
+            flayOut.Show(word, sourceLang, targetLang);
         }
 
         private void Button_ParagraphTTS(object sender, RoutedEventArgs e)

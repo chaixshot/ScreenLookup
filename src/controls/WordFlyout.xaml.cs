@@ -38,6 +38,7 @@ namespace ScreenLookup.src.controls
             };
         }
 
+        #region
         public bool IsCaptureWindow
         {
             get { return (bool)GetValue(IsCaptureWindowProperty); }
@@ -104,10 +105,22 @@ namespace ScreenLookup.src.controls
 
         public static readonly DependencyProperty IsCaptureWindowProperty =
             DependencyProperty.Register("IsCapture", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(false));
+        #endregion
+
+        public void Show(string word, int sourceLang, int targetLang)
+        {
+            flayOut.IsOpen = false;
+
+            OriginalWord = word;
+            SourceLanguage = sourceLang;
+            TargetLanguage = targetLang;
+
+            flayOut.IsOpen = true;
+        }
 
         private async void OnOpen(Flyout sender, RoutedEventArgs args)
         {
-            Reset();
+            ResetDefaultState();
             FollowMouse();
 
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
@@ -140,7 +153,7 @@ namespace ScreenLookup.src.controls
             flayOut.LayoutTransform = Transform.Identity;
         }
 
-        private void Reset()
+        private void ResetDefaultState()
         {
             double buttonWidth = App.setting.FontSizeS + 10;
             double loadingWidth = App.setting.FontSizeS + 5;
@@ -165,6 +178,14 @@ namespace ScreenLookup.src.controls
             translatedWordLoading.Visibility = Visibility.Visible;
         }
 
+        private async void SavedWordButtonStateChange(string word)
+        {
+            var saveButton = wordSave as Button;
+            var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
+            saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
+        }
+
+        #region Button Click
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
@@ -173,13 +194,6 @@ namespace ScreenLookup.src.controls
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
             TextToSpeech.StartTTS(translatedWord.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
-        }
-
-        private async void SavedWordButtonStateChange(string word)
-        {
-            var saveButton = wordSave as Button;
-            var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
-            saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
@@ -203,5 +217,6 @@ namespace ScreenLookup.src.controls
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: IsCaptureWindow ? "capture" : "main");
         }
+        #endregion
     }
 }

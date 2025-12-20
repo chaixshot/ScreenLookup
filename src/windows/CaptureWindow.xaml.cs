@@ -157,7 +157,6 @@ namespace ScreenLookup.src.windows
             IsCapturing = true;
             ResetDefaultState();
 
-
             // Screenshot
             (Bitmap? image, bool isRightMouse) = ScreenGrabber.CaptureDialog(false);
             if (image == null)
@@ -452,20 +451,14 @@ namespace ScreenLookup.src.windows
         #region button
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
-            flayOut.IsOpen = false;
-
             Button? button = sender as Button;
             string word = button.ToolTip.ToString();
-            int sourceLanguage = Int32.Parse(button.Tag.ToString());
+            int sourceLang = Int32.Parse(button.Tag.ToString());
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.OriginalWord = word;
-            flayOut.SourceLanguage = sourceLanguage;
-            flayOut.TargetLanguage = App.setting.TargetLanguage;
-
-            flayOut.IsOpen = true;
+            flayOut.Show(word, sourceLang, App.setting.TargetLanguage);
         }
 
         private void Button_Paragraph(object sender, MouseButtonEventArgs e)
