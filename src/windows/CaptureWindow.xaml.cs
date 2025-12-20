@@ -241,52 +241,6 @@ namespace ScreenLookup.src.windows
             });
         }
 
-        private async void TesseractAltoText(TesseractOCR.Page page)
-        {
-            XmlDocument xmlDoc = new();
-            xmlDoc.LoadXml(page.AltoText);
-
-            List<CaptureAltoEntry> items = [];
-
-            foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
-            {
-                string fullTextBlock = "";
-
-                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
-                {
-                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
-                    {
-                        fullTextBlock += data.GetAttribute("CONTENT") + " ";
-                    }
-                }
-
-                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
-                {
-                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
-                    {
-                        string test = fullTextBlock;
-                        string Word = data.GetAttribute("CONTENT");
-                        if (App.setting.HunSpell)
-                            Word = HunspellHelper.CorrectionWord(Word, App.setting.SourceLanguage);
-
-                        items.Add(new CaptureAltoEntry
-                        {
-                            Word = Word,
-                            X = Int32.Parse(data.GetAttribute("HPOS")),
-                            Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
-                            Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
-                            Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 3,
-                            SourceLanguage = App.setting.sourceLanguage,
-                            TargetLanguage = App.setting.TargetLanguage,
-                            Uid = fullTextBlock,
-                        });
-                    }
-                }
-            }
-
-            AltoText.ItemsSource = items;
-        }
-
         private void ResetDefaultState()
         {
             double buttonWidth = App.setting.FontSizeS + 10;
@@ -406,6 +360,59 @@ namespace ScreenLookup.src.windows
             return items;
         }
 
+        private async void TesseractAltoText(TesseractOCR.Page page)
+        {
+            XmlDocument xmlDoc = new();
+            xmlDoc.LoadXml(page.AltoText);
+
+            List<CaptureAltoEntry> items = [];
+
+            foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
+            {
+                string fullTextBlock = "";
+
+                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
+                {
+                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
+                    {
+                        if (!IsCapturing)
+                            goto skip;
+
+                        fullTextBlock += data.GetAttribute("CONTENT") + " ";
+                    }
+                }
+
+                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
+                {
+                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
+                    {
+                        if (!IsCapturing)
+                            goto skip;
+
+                        string Word = data.GetAttribute("CONTENT");
+                        if (App.setting.HunSpell)
+                            Word = HunspellHelper.CorrectionWord(Word, App.setting.SourceLanguage);
+
+                        items.Add(new CaptureAltoEntry
+                        {
+                            Word = Word,
+                            X = Int32.Parse(data.GetAttribute("HPOS")),
+                            Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
+                            Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
+                            Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 3,
+                            SourceLanguage = App.setting.sourceLanguage,
+                            TargetLanguage = App.setting.TargetLanguage,
+                            Uid = fullTextBlock,
+                        });
+                    }
+                }
+            }
+
+        skip:
+
+            AltoText.ItemsSource = items;
+        }
+
         private async Task AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords, string translated)
         {
             await HistoryLogger.Add(original, originalWords, translated, App.setting.SourceLanguage, App.setting.TargetLanguage);
@@ -458,26 +465,20 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, sourceLang, App.setting.TargetLanguage);
+            flayOut.Show(word, "", sourceLang, App.setting.TargetLanguage);
         }
 
-        private void Button_Paragraph(object sender, MouseButtonEventArgs e)
+        private void Button_Paragraph(object sender, RoutedEventArgs e)
         {
-            flayOut.IsOpen = false;
-
             Button? button = sender as Button;
-            string word = button.Uid.ToString();
-            int sourceLanguage = Int32.Parse(button.Tag.ToString());
+            string word = button.ToolTip.ToString();
+            string paragraph = button.Uid.ToString();
+            int sourceLang = Int32.Parse(button.Tag.ToString());
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.OriginalWord = word;
-            flayOut.SourceLanguage = sourceLanguage;
-            flayOut.TargetLanguage = App.setting.TargetLanguage;
-            flayOut.WidthX = captureImage.Width;
-
-            flayOut.IsOpen = true;
+            flayOut.Show(word, paragraph, sourceLang, App.setting.TargetLanguage);
         }
 
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)

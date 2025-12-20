@@ -175,9 +175,8 @@
                                         Height="{Binding Height}"
                                         Padding="0"
                                         Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
-                                        Click="Button_Word"
+                                        Click="Button_Paragraph"
                                         MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
-                                        MouseRightButtonUp="Button_Paragraph"
                                         Opacity="0.2"
                                         Tag="{Binding SourceLanguage}"
                                         ToolTip="{Binding Word}" />

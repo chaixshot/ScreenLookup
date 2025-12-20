@@ -279,7 +279,7 @@ namespace ScreenLookup.src.pages
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, sourceLang, targetLang);
+            flayOut.Show(word, "", sourceLang, targetLang);
         }
 
         private void Button_ParagraphTTS(object sender, RoutedEventArgs e)

@@ -21,6 +21,7 @@ namespace ScreenLookup.src.controls
         public int sourceLanguage = 1;
         public int targetLanguage = 1;
         public string originalWord = "";
+        public string originalParagraph = "";
         public double width = double.NaN;
         public bool isOpen = false;
 
@@ -75,6 +76,16 @@ namespace ScreenLookup.src.controls
             }
         }
 
+        public string OriginalParagraph
+        {
+            get { return originalParagraph; }
+            set
+            {
+                originalParagraph = value;
+                OnPropertyChanged();
+            }
+        }
+
         public double WidthX
         {
             get { return width; }
@@ -107,18 +118,19 @@ namespace ScreenLookup.src.controls
             DependencyProperty.Register("IsCapture", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(false));
         #endregion
 
-        public void Show(string word, int sourceLang, int targetLang)
+        public void Show(string word, string paragraph, int sourceLang, int targetLang)
         {
-            flayOut.IsOpen = false;
+            IsOpen = false;
 
             OriginalWord = word;
+            OriginalParagraph = paragraph;
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
-            flayOut.IsOpen = true;
+            IsOpen = true;
         }
 
-        private async void OnOpen(Flyout sender, RoutedEventArgs args)
+        private void OnOpen(Flyout sender, RoutedEventArgs args)
         {
             ResetDefaultState();
             FollowMouse();
@@ -126,17 +138,46 @@ namespace ScreenLookup.src.controls
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(OriginalWord);
 
-            if (!translatedCache.TryGetValue(OriginalWord, out string translateResult))
+            // Word
+            ThreadPool.QueueUserWorkItem(_ =>
             {
-                translateResult = await Task.Run(() => LanguageList.TranslatedText(OriginalWord, TargetLanguage));
-                translatedCache.TryAdd(OriginalWord, translateResult);
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
+                    {
+                        translateWord = await LanguageList.TranslatedText(OriginalWord, TargetLanguage);
+                        translatedCache.TryAdd(OriginalWord, translateWord);
+                    }
+
+                    translatedWord.Text = translateWord;
+                    translatedWord.Visibility = Visibility.Visible;
+                    translatedWordLoading.Visibility = Visibility.Collapsed;
+                    FollowMouse();
+                }));
+            });
+
+            // Paragraph
+            if (!string.IsNullOrEmpty(OriginalParagraph))
+            {
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    Dispatcher.BeginInvoke(new Action(async () =>
+                    {
+
+                        if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
+                        {
+                            translateParagraph = await LanguageList.TranslatedText(OriginalParagraph, TargetLanguage);
+                            translatedCache.TryAdd(OriginalParagraph, translateParagraph);
+                        }
+
+                        translatedParagraph.Text = translateParagraph;
+                        translatedParagraph.Visibility = Visibility.Visible;
+                        translatedParagraphLoading.Visibility = Visibility.Collapsed;
+
+                        FollowMouse();
+                    }));
+                });
             }
-
-            translatedWord.Text = translateResult;
-            translatedWord.Visibility = Visibility.Visible;
-            translatedWordLoading.Visibility = Visibility.Collapsed;
-
-            FollowMouse();
         }
 
         private void OnClose(Flyout sender, RoutedEventArgs args)
@@ -164,9 +205,6 @@ namespace ScreenLookup.src.controls
             translatedWordLoading.Width = loadingWidth;
             translatedWordLoading.Height = loadingWidth;
 
-            flayoutTranslatedTSS.Width = buttonWidth;
-            flayoutTranslatedTSS.Height = buttonWidth;
-
             openBrowser.Width = buttonWidth;
             openBrowser.Height = buttonWidth;
 
@@ -176,6 +214,15 @@ namespace ScreenLookup.src.controls
             translatedWord.Text = "";
             translatedWord.Visibility = Visibility.Collapsed;
             translatedWordLoading.Visibility = Visibility.Visible;
+
+            translatedParagraph.Text = "";
+            translatedParagraph.Visibility = Visibility.Collapsed;
+            translatedParagraphLoading.Visibility = Visibility.Visible;
+
+            if (string.IsNullOrEmpty(OriginalParagraph))
+                paragraphSection.Visibility = Visibility.Collapsed;
+            else
+                paragraphSection.Visibility = Visibility.Visible;
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -194,6 +241,16 @@ namespace ScreenLookup.src.controls
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
             TextToSpeech.StartTTS(translatedWord.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+        }
+
+        private async void Button_ParagraphOriginalTTS(object sender, RoutedEventArgs e)
+        {
+            TextToSpeech.StartTTS(OriginalParagraph, SourceLanguage, IsCaptureWindow ? "capture" : "main");
+        }
+
+        private async void Button_ParagraphTranslatedTTS(object sender, RoutedEventArgs e)
+        {
+            TextToSpeech.StartTTS(translatedParagraph.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
