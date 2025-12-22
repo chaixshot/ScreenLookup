@@ -13,6 +13,7 @@ namespace ScreenLookup.src.pages
             InitializeComponent();
 
             VersionTextblock.Content = $"Version {AppUtilities.GetAppVersion()}";
+            captureShortcut.KeySet = App.setting.ShortcutKey;
         }
     }
 }

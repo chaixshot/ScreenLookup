@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:ScreenLookup.src.pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:xControls="clr-namespace:ScreenLookup.src.controls"
     Title="Info"
     mc:Ignorable="d">
 
@@ -31,20 +32,26 @@
                         Hi, thanks for using ScreenLookup!
                         I'm developing this application with the goal of learning languages from within my VR headset desktop overlay. It will retrieve text from the screen, translate it, and learn how to pronounce it.<LineBreak />
                         If you find any errors or want to add new features, please report the issue on GitHub.</TextBlock>
-                    <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontWeight="DemiBold"
+                        TextWrapping="Wrap">
+                        Lookup is Capture > Recognize > Translate > Learn > Remember
+                    </TextBlock>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <Controls:Image
                             Height="25"
-                            Margin="2,0,0,0"
                             CornerRadius="2"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/src/images/H@mer.jpg" />
                         <TextBlock
-                            Margin="5,12,0,12"
+                            Margin="5,0,0,0"
                             HorizontalAlignment="Left"
                             FontSize="20"
                             Text="H@mer" />
                     </StackPanel>
                     <wpfui:HyperlinkButton
+                        Margin="0,10,0,0"
                         Padding="0"
                         Content="Report Issue"
                         Icon="{wpfui:SymbolIcon Symbol=Globe24}"
@@ -59,22 +66,24 @@
 
             <Controls:Card>
                 <StackPanel>
-                    <FlowDocumentScrollViewer IsHitTestVisible="False">
+                    <FlowDocumentScrollViewer
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        IsHitTestVisible="False">
                         <FlowDocument>
-                            <Paragraph FontFamily="Segoe UI">
-                                Lookup is Capture > Recognize > Translate > Learn > Remember
-                            </Paragraph>
-
                             <List
                                 Padding="5,Auto,Auto,Auto"
                                 FontFamily="Segoe UI"
                                 FontSize="14"
-                                MarkerStyle="Decimal">
+                                MarkerStyle="Decimal"
+                                TextAlignment="Left">
+
                                 <ListItem>
                                     <Paragraph>
                                         In the Settings page, change the Source Language and accuracy level, then press the download button to begin.
                                     </Paragraph>
-                                    <List FontFamily="Segoe UI" FontSize="14">
+
+                                    <List>
                                         <ListItem>
                                             <Paragraph>
                                                 The higher the accuracy, the longer the screen scanning time will be for a very large paragraph.
@@ -82,11 +91,13 @@
                                         </ListItem>
                                     </List>
                                 </ListItem>
+
                                 <ListItem>
                                     <Paragraph>
                                         Additionally, for spell correction (Hunspell), sometime recognization word from image is not perfect and Hunspell can fix that. You can download and enable Hunspell if the Source Language is supported.
                                     </Paragraph>
-                                    <List FontFamily="Segoe UI" FontSize="14">
+
+                                    <List>
                                         <ListItem>
                                             <Paragraph>
                                                 Enabling Hunspell will make Lookup process take longer for very large paragraphs.
@@ -94,31 +105,59 @@
                                         </ListItem>
                                     </List>
                                 </ListItem>
+
                                 <ListItem>
                                     <Paragraph>
                                         Change the Target Language to your native language for translating and speaking, then change the Translation and Text-To-Speech Provider as you prefer.
                                     </Paragraph>
                                 </ListItem>
+
                                 <ListItem>
                                     <Paragraph>
-                                        Begin Lookup the Windows screen by pressing followed the Lookup Shortcut or left click at the tray icon or select Lookup in tray right click menu.
+                                        Lookup Method means how the Lookup shows in the result window.
                                     </Paragraph>
-                                    <List FontFamily="Segoe UI" FontSize="14">
+                                    <List>
+                                        <ListItem>
+                                            <Paragraph>
+                                                <Controls:TextBlock Text="On Image - Place words on top of the image" />
+                                                <Controls:Image Source="/src/images/OnImage.png" />
+                                            </Paragraph>
+                                        </ListItem>
+
+                                        <ListItem>
+                                            <Paragraph>
+                                                <Controls:TextBlock Text="On Line - Place all words into the box" />
+                                                <Controls:Image Source="/src/images/OnLine.png" />
+                                            </Paragraph>
+                                        </ListItem>
+                                    </List>
+                                </ListItem>
+
+                                <ListItem>
+                                    <Paragraph>
+                                        Begin Lookup the Windows screen by pressing followed the Lookup Shortcut
+                                        <xControls:ShortcutControl x:Name="captureShortcut" ShowRecord="False" />
+                                        or click at the tray icon or select Lookup in tray right click menu.
+                                    </Paragraph>
+                                    <List>
                                         <ListItem>
                                             <Paragraph>
                                                 Lookup options can be seen at the bottom left corner of the screen after Lookup started.
                                             </Paragraph>
                                         </ListItem>
+
                                         <ListItem>
                                             <Paragraph>
                                                 Fullscreen window games might have an issue with Lookup, change to Window for Windows Borderless mode to fix.
                                             </Paragraph>
                                         </ListItem>
+
                                         <ListItem>
                                             <Paragraph>
                                                 Every Lookup paragraph will be saved to the History page.
                                             </Paragraph>
                                         </ListItem>
+
                                         <ListItem>
                                             <Paragraph>
                                                 Each word can be clicked to pop up a flyout for saving the word to the Saved page or learn the word's definition and pronunciation.
