@@ -145,7 +145,7 @@ namespace ScreenLookup.src.controls
                 {
                     if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
                     {
-                        translateWord = await LanguageList.TranslatedText(OriginalWord, TargetLanguage);
+                        translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
                         translatedCache.TryAdd(OriginalWord, translateWord);
                     }
 
@@ -166,7 +166,7 @@ namespace ScreenLookup.src.controls
 
                         if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
                         {
-                            translateParagraph = await LanguageList.TranslatedText(OriginalParagraph, TargetLanguage);
+                            translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
                             translatedCache.TryAdd(OriginalParagraph, translateParagraph);
                         }
 
