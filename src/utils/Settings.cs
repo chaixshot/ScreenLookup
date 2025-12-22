@@ -67,6 +67,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("SourceLanguageAccuracy", value.ToString());
 
                 App.captureWindow.LoadInstalledLanguage();
+                App.captureWindow.CreateTesseractEngine();
 
                 OnPropertyChanged();
             }
@@ -84,6 +85,8 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("SourceLanguage", value.ToString());
+
+                App.captureWindow.CreateTesseractEngine();
 
                 OnPropertyChanged();
             }

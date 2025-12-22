@@ -25,7 +25,8 @@ namespace ScreenLookup.src.windows
         private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
         private DispatcherFrame ConfigDispatcher;
-        private Engine TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
+        private Engine TesseractEngine;
+        private TesseractOCR.Page TesseractPage;
 
         public CaptureWindow()
         {
@@ -81,6 +82,12 @@ namespace ScreenLookup.src.windows
             targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
         }
 
+        public void CreateTesseractEngine()
+        {
+            TesseractEngine?.Dispose();
+            TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
+        }
+
         private void HideWindow()
         {
             IsCapturing = false;
@@ -88,6 +95,7 @@ namespace ScreenLookup.src.windows
             flayOut.IsOpen = false;
             translatedCache.Clear();
             TextToSpeech.StopTTS();
+            TesseractPage?.Dispose();
 
             this.Hide();
         }
@@ -186,7 +194,7 @@ namespace ScreenLookup.src.windows
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractOCR.Page TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image));
+                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image));
 
                     if (IsCapturing)
                     {
@@ -321,7 +329,6 @@ namespace ScreenLookup.src.windows
 
             // TesseractOCR
             var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
-            TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
             return TesseractEngine.Process(img);
         }
 
@@ -399,7 +406,7 @@ namespace ScreenLookup.src.windows
                             X = Int32.Parse(data.GetAttribute("HPOS")),
                             Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
                             Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
-                            Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 3,
+                            Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 5,
                             SourceLanguage = App.setting.sourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
