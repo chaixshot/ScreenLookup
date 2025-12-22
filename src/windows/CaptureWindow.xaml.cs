@@ -117,8 +117,10 @@ namespace ScreenLookup.src.windows
                 var mouse = transform.Transform(new System.Windows.Point(point.X, point.Y));
 
                 this.Width = 0;
-                this.Left = mouse.X - (this.ActualWidth / 2);
-                this.Top = mouse.Y - (this.ActualHeight / 2);
+                this.Left = mouse.X - (configMenu.ActualWidth / 2);
+                this.Top = mouse.Y - (configMenu.ActualHeight) - 30;
+
+                this.Topmost = true;
             }
             else
             {
@@ -143,6 +145,8 @@ namespace ScreenLookup.src.windows
                     originalCard.Visibility = Visibility.Visible;
                     translatedCard.Visibility = Visibility.Visible;
                 }
+
+                this.Topmost = App.setting.Topmost;
             }
 
             this.Activate();
@@ -297,8 +301,6 @@ namespace ScreenLookup.src.windows
             imageTranslatedExpander.IsExpanded = false;
 
             AltoText.ItemsSource = null;
-
-            this.Topmost = App.setting.Topmost;
         }
 
         private void CenterWindowOnScreen()
@@ -444,7 +446,7 @@ namespace ScreenLookup.src.windows
 
         private void App_Deactivated(object sender, EventArgs e)
         {
-            if (App.setting.CloseLostFocus || configMenu.IsVisible)
+            if (App.setting.CloseLostFocus)
                 HideWindow();
         }
 
