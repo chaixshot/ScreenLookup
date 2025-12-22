@@ -12,7 +12,6 @@ namespace ScreenLookup.src.utils
 
         private static async Task<string> PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
-            var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
             var translator = LanguageList.TranslatorService[App.setting.TTSProvider];
 
             try
@@ -20,7 +19,16 @@ namespace ScreenLookup.src.utils
                 // Get sound stream
                 if (!audioStreamCache.TryGetValue(Text, out Stream audioStream))
                 {
-                    Stream stream = await translator.TextToSpeechAsync(Text, languageData.ISO6393);
+                    Stream stream;
+                    try
+                    {
+                        stream = await translator.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6393FromID(langID));
+                    }
+                    catch
+                    {
+                        stream = await translator.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6391FromID(langID));
+                    }
+
                     audioStream = new MemoryStream();
                     byte[] buffer = new byte[32768];
                     int read;
