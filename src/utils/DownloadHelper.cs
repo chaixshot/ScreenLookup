@@ -223,6 +223,7 @@ public class TesseractHelper
         key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
 
         App.captureWindow.LoadInstalledLanguage();
+        App.captureWindow.CreateTesseractEngine();
     }
 }
 
