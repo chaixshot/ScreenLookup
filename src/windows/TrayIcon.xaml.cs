@@ -62,6 +62,7 @@ namespace ScreenLookup.src.windows
             }
             catch
             {
+                SnackbarHost.Show("Lookup Shortcut", "The shortcut is already in use for other application", "error");
                 Notification.Show("Lookup Shortcut. The shortcut is already in use for other application");
             }
         }
