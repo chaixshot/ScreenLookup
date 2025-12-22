@@ -13,7 +13,7 @@ namespace ScreenLookup.src.utils
         private static async Task<string> PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
             var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
-            var translator = LanguageList.GetTranslatorService(App.setting.TTSProvider);
+            var translator = LanguageList.TranslatorService[App.setting.TTSProvider];
 
             try
             {
