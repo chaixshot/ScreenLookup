@@ -8,13 +8,6 @@ namespace ScreenLookup.src.utils
     {
         private static readonly Dictionary<string, string> displayNative = [];
         private static readonly Dictionary<string, string> displayName = [];
-        public static List<dynamic> TranslatorService = [
-            new GoogleTranslator(),
-            new GoogleTranslator2(),
-            new BingTranslator(),
-            new MicrosoftTranslator(),
-            new YandexTranslator(),
-        ];
 
         public static string ClearTesseractTag(string tesseractTag)
         {
@@ -180,20 +173,16 @@ namespace ScreenLookup.src.utils
             return GetDisplayNameFromTesseractTag(tessTag, isNative);
         }
 
-        public static async Task<string> TranslatedText(string text, int targetLanguage)
+        public static dynamic GetTranslatorService(int providerID)
         {
-            // Translated text
-            var translator = TranslatorService[App.setting.TranslationProvider];
-            try
+            return providerID switch
             {
-                var translateResult = await translator.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLanguage));
-                return translateResult.Translation;
-            }
-            catch (Exception ex)
-            {
-                Notification.Show(ex.Message);
-                return "";
-            }
+                1 => new GoogleTranslator2(),
+                2 => new BingTranslator(),
+                3 => new MicrosoftTranslator(),
+                4 => new YandexTranslator(),
+                _ => new GoogleTranslator(),
+            };
         }
     }
 }

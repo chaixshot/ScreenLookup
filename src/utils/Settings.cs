@@ -144,6 +144,8 @@ namespace ScreenLookup.src.utils
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("TranslationProvider", value.ToString());
 
+                Translation.ChangeTranslationProvider(value);
+
                 OnPropertyChanged();
             }
         }
@@ -156,6 +158,9 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("TTSProvider", value.ToString());
+
+                TextToSpeech.ChangeTextToSpeechProvider(value);
+
 
                 OnPropertyChanged();
             }

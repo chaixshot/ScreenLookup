@@ -9,11 +9,15 @@ namespace ScreenLookup.src.utils
         private static CancellationTokenSource CTS;
         private static readonly Dictionary<string, Stream> audioStreamCache = [];
         private static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
+        public static dynamic TextToSpeechProvider;
+
+        static TextToSpeech()
+        {
+            ChangeTextToSpeechProvider(App.setting.TTSProvider);
+        }
 
         private static async Task<string> PlayTTS(string Text, int langID, CancellationTokenSource token)
         {
-            var translator = LanguageList.TranslatorService[App.setting.TTSProvider];
-
             try
             {
                 // Get sound stream
@@ -22,11 +26,11 @@ namespace ScreenLookup.src.utils
                     Stream stream;
                     try
                     {
-                        stream = await translator.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6393FromID(langID));
+                        stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6393FromID(langID));
                     }
                     catch
                     {
-                        stream = await translator.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6391FromID(langID));
+                        stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6391FromID(langID));
                     }
 
                     audioStream = new MemoryStream();
@@ -77,6 +81,11 @@ namespace ScreenLookup.src.utils
             {
                 return ex.Message;
             }
+        }
+
+        public static void ChangeTextToSpeechProvider(int providerID)
+        {
+            TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
         }
 
         public static async void StartTTS(string Text, int langID, string window = "main")
