@@ -71,6 +71,22 @@ public partial class ShortcutControl : UserControl
         GoIntoNormalMode();
     }
 
+    #region
+    public bool ShowRecord
+    {
+        get { return (bool)GetValue(ShowRecordProperty); }
+        set
+        {
+            SetValue(ShowRecordProperty, value);
+
+            RecordingToggleButton.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    public static readonly DependencyProperty ShowRecordProperty =
+            DependencyProperty.Register("ShowRecord", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(true));
+    #endregion
+
     public void GoIntoErrorMode(string errorMessage = "")
     {
         BorderBrush = BadBrush;
