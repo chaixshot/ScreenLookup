@@ -72,6 +72,7 @@ namespace ScreenLookup
         public void ShowFromTray()
         {
             this.Show();
+            this.Activate();
             this.WindowState = (WindowState)FormWindowState.Normal;
         }
 

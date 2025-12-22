@@ -39,6 +39,9 @@ namespace ScreenLookup.src.utils
             {
                 snackbarMain ??= new Snackbar(mainWindow?.snackbarHost);
                 snackbar = snackbarMain;
+
+                if (!App.mainWindow.IsVisible || !App.mainWindow.IsActive)
+                    App.mainWindow.ShowFromTray();
             }
             else
             {
