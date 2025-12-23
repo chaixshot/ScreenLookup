@@ -98,8 +98,10 @@ namespace ScreenLookup.src.windows
             flayOut.IsOpen = false;
             translatedCache.Clear();
             TextToSpeech.StopTTS();
-            TesseractPage?.Dispose();
             CTS?.Cancel();
+
+            if (TesseractPage != null && !TesseractPage.IsDisposed)
+                TesseractPage.Dispose();
 
             this.Hide();
         }
@@ -255,8 +257,6 @@ namespace ScreenLookup.src.windows
 
                         IsCapturing = false;
                     }
-
-                    TesseractPage.Dispose();
                 }));
             }, CTS.Token);
         }
