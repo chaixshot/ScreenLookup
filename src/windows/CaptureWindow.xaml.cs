@@ -22,6 +22,7 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
+        private static CancellationTokenSource CTS;
         private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
         private DispatcherFrame ConfigDispatcher;
@@ -98,6 +99,7 @@ namespace ScreenLookup.src.windows
             translatedCache.Clear();
             TextToSpeech.StopTTS();
             TesseractPage?.Dispose();
+            CTS?.Cancel();
 
             this.Hide();
         }
@@ -170,6 +172,7 @@ namespace ScreenLookup.src.windows
             }
 
             IsCapturing = true;
+            CTS = new();
             ResetDefaultState();
 
             // Screenshot
@@ -201,7 +204,7 @@ namespace ScreenLookup.src.windows
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image));
+                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image), CTS.Token);
 
                     if (IsCapturing)
                     {
@@ -216,7 +219,7 @@ namespace ScreenLookup.src.windows
                             ocrText.Text = TesseractPage.Text;
 
                             // Original words card
-                            List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage));
+                            List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage), CTS.Token);
                             if (IsCapturing)
                             {
                                 if (App.setting.LookupOnImage)
@@ -228,7 +231,7 @@ namespace ScreenLookup.src.windows
                                 }
 
                                 // Translate card
-                                string translateResult = await Task.Run(() => Translation.GetTranslated(TesseractPage.Text, App.setting.TargetLanguage));
+                                string translateResult = await Task.Run(() => Translation.GetTranslated(TesseractPage.Text, App.setting.TargetLanguage), CTS.Token);
 
                                 if (App.setting.LookupOnImage)
                                 {
@@ -252,8 +255,10 @@ namespace ScreenLookup.src.windows
 
                         IsCapturing = false;
                     }
+
+                    TesseractPage.Dispose();
                 }));
-            });
+            }, CTS.Token);
         }
 
         private void ResetDefaultState()
