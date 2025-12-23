@@ -11,6 +11,7 @@
 
         public static void ChangeTranslationProvider(int providerID)
         {
+            TranslationProvider?.Dispose();
             TranslationProvider = LanguageList.GetTranslatorService(providerID);
         }
 

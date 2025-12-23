@@ -85,6 +85,7 @@ namespace ScreenLookup.src.utils
 
         public static void ChangeTextToSpeechProvider(int providerID)
         {
+            TextToSpeechProvider?.Dispose();
             TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
         }
 
