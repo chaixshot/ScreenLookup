@@ -47,9 +47,9 @@ namespace ScreenLookup.src.windows
                 if (e.Key == Key.Escape)
                 {
                     if (flayOut.IsOpen)
-                    {
                         flayOut.IsOpen = false;
-                    }
+                    else if (imageTranslatedExpander.IsExpanded)
+                        imageTranslatedExpander.IsExpanded = false;
                     else
                         HideWindow();
                 }
