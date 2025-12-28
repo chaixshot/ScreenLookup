@@ -25,7 +25,6 @@ namespace ScreenLookup
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
 
                 this.RootNavigation.Navigate(typeof(SettingPage));
-                ToggleTopmost(App.setting.Topmost);
             };
         }
 
@@ -39,10 +38,10 @@ namespace ScreenLookup
             base.OnClosing(e);
         }
 
-        // Title bar
+        #region button
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
-            ToggleTopmost(!App.setting.Topmost);
+            App.ToggleTopmost(!App.setting.Topmost);
         }
 
         private void MinimizeButton_Clicked(TitleBar sender, RoutedEventArgs args)
@@ -54,6 +53,7 @@ namespace ScreenLookup
         {
             HideToTray();
         }
+        #endregion
 
         private void HideToTray()
         {
@@ -74,16 +74,6 @@ namespace ScreenLookup
             this.Show();
             this.Activate();
             this.WindowState = (WindowState)FormWindowState.Normal;
-        }
-
-        public void ToggleTopmost(bool enabled)
-        {
-            App.setting.Topmost = enabled;
-
-            var button = TopmostButton as Button;
-            var symbolIcon = button?.Icon as SymbolIcon;
-            symbolIcon.Filled = enabled;
-            this.Topmost = enabled;
         }
 
         // ----------------- Window Persistence State -----------------

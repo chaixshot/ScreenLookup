@@ -484,6 +484,11 @@ namespace ScreenLookup.src.windows
         }
 
         #region button
+        private void TopmostButton_Click(object sender, RoutedEventArgs e)
+        {
+            App.ToggleTopmost(!App.setting.Topmost);
+        }
+
         private async void Button_Word(object sender, RoutedEventArgs e)
         {
             Button? button = sender as Button;
@@ -518,7 +523,6 @@ namespace ScreenLookup.src.windows
         {
             TextToSpeech.StartTTS(translatedText.Text, App.setting.TargetLanguage, "capture");
         }
-
 
         private void Button_Copy(object sender, RoutedEventArgs e)
         {

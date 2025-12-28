@@ -2,6 +2,7 @@
 using ScreenLookup.src.windows;
 using System.IO;
 using System.Windows;
+using Wpf.Ui.Controls;
 
 namespace ScreenLookup
 {
@@ -29,7 +30,26 @@ namespace ScreenLookup
                 mainWindow.Activate();
             }
 
+            ToggleTopmost(setting.Topmost);
+
             base.OnStartup(e);
+        }
+
+        public static void ToggleTopmost(bool enabled)
+        {
+            App.setting.Topmost = enabled;
+
+            // Main Window
+            Button mainButton = mainWindow.TopmostButton;
+            SymbolIcon mainIcon = (SymbolIcon)mainButton?.Icon;
+            mainIcon.Filled = enabled;
+            mainWindow.Topmost = enabled;
+
+            // Capture Window
+            Button captureButton = captureWindow.TopmostButton;
+            SymbolIcon captureIcon = (SymbolIcon)captureButton?.Icon;
+            captureIcon.Filled = enabled;
+            captureWindow.Topmost = enabled;
         }
 
         private void AppExit(object sender, ExitEventArgs e)

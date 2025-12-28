@@ -26,9 +26,10 @@
     WindowStyle="None"
     mc:Ignorable="d">
 
-    <Grid Margin="15,35,15,20">
+    <Grid Margin="15,0,15,20">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -42,7 +43,16 @@
                 Grid.Row="5"
                 IsCaptureWindow="True" />
 
-            <Grid x:Name="configMenu">
+            <Controls:Button
+                x:Name="TopmostButton"
+                Margin="0,5,0,5"
+                HorizontalAlignment="Right"
+                Click="TopmostButton_Click"
+                Icon="{wpfui:SymbolIcon Symbol=Pin16,
+                                        Filled=True}"
+                ToolTip="Always on Top" />
+
+            <Grid x:Name="configMenu" Grid.Row="1">
                 <StackPanel Margin="15">
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
@@ -101,7 +111,7 @@
 
             <Controls:Card
                 x:Name="captureCard"
-                Grid.Row="1"
+                Grid.Row="2"
                 Padding="0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -271,7 +281,7 @@
 
             <Controls:Card
                 x:Name="ocrCard"
-                Grid.Row="2"
+                Grid.Row="3"
                 Margin="0,3,0,0">
                 <Controls:TextBlock
                     x:Name="ocrText"
@@ -282,7 +292,7 @@
 
             <Controls:Card
                 x:Name="originalCard"
-                Grid.Row="3"
+                Grid.Row="4"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -377,7 +387,7 @@
 
             <Controls:Card
                 x:Name="translatedCard"
-                Grid.Row="4"
+                Grid.Row="5"
                 Margin="0,3,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
