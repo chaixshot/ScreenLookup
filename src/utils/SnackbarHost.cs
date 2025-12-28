@@ -55,7 +55,7 @@ namespace ScreenLookup.src.utils
             snackbar.SetCurrentValue(Snackbar.IconProperty, icon);
             snackbar.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
 
-            snackbar.Width = width;
+            snackbar.MinWidth = width;
             snackbar.IsCloseButtonEnabled = closeButton;
 
             snackbar.Show(true);
