@@ -111,7 +111,7 @@
 
                     <StackPanel
                         x:Name="captureCardButton"
-                        Margin="14,67,0,0"
+                        Margin="14,67,0,10"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
 
