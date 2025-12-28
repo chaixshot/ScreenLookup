@@ -197,7 +197,10 @@ namespace ScreenLookup.src.windows
 
             ShowWindow(false);
             ChangeCaptureImage(image);
-            CenterWindowOnScreen();
+            if (App.setting.LookupOnImage)
+                CenterWindowOnScreen(startPoint);
+            else
+                CenterWindowOnScreen();
 
             ThreadPool.QueueUserWorkItem(_ =>
             {
@@ -248,9 +251,7 @@ namespace ScreenLookup.src.windows
                                 {
                                     await AddToHistory(ocrText.Text, captureWords, translateResult);
 
-                                    if (App.setting.LookupOnImage)
-                                        CenterWindowOnScreen(startPoint);
-                                    else
+                                    if (!App.setting.LookupOnImage)
                                         CenterWindowOnScreen();
                                 }
                             }
@@ -267,30 +268,28 @@ namespace ScreenLookup.src.windows
             double buttonWidth = App.setting.FontSizeS + 10;
             double loadingWidth = App.setting.FontSizeS + 5;
 
-            ocrText.Text = "";
-            ocrCard.Visibility = Visibility.Collapsed;
-
-            imageTranslatedTextLoading.Width = loadingWidth;
-            imageTranslatedTextLoading.Height = loadingWidth;
-
             imageTranslatedText.FontSize = App.setting.FontSizeS;
             imageTranslatedText.FontFamily = new FontFamily(App.setting.FontFace);
-
-            originalTTS.Width = buttonWidth;
-            originalTTS.Height = buttonWidth;
-
-            originalWordsLoading.Width = loadingWidth;
-            originalWordsLoading.Height = loadingWidth;
-
-            translatedTSS.Width = buttonWidth;
-            translatedTSS.Height = buttonWidth;
-
-            translatedTextLoading.Width = loadingWidth;
-            translatedTextLoading.Height = loadingWidth;
 
             translatedText.FontSize = App.setting.FontSizeS;
             translatedText.FontFamily = new FontFamily(App.setting.FontFace);
 
+            originalTTS.Width = buttonWidth;
+            originalTTS.Height = buttonWidth;
+
+            translatedTSS.Width = buttonWidth;
+            translatedTSS.Height = buttonWidth;
+
+            imageTranslatedTextLoading.Width = loadingWidth;
+            imageTranslatedTextLoading.Height = loadingWidth;
+
+            originalWordsLoading.Width = loadingWidth;
+            originalWordsLoading.Height = loadingWidth;
+
+            translatedTextLoading.Width = loadingWidth;
+            translatedTextLoading.Height = loadingWidth;
+
+            ocrCard.Visibility = Visibility.Collapsed;
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
             captureCardButton.Visibility = Visibility.Collapsed;
@@ -298,18 +297,21 @@ namespace ScreenLookup.src.windows
             originalCard.Visibility = Visibility.Collapsed;
             translatedCard.Visibility = Visibility.Collapsed;
 
+            imageTranslatedTextLoading.Visibility = Visibility.Visible;
             translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
 
+            AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
+            ocrText.Text = "";
+            imageTranslatedText.Text = "";
             translatedText.Text = "";
 
             originalScrollView.ScrollToTop();
             translatedScrollViewer.ScrollToTop();
             imageTranslatedScrollViewer.ScrollToTop();
-            imageTranslatedExpander.IsExpanded = false;
 
-            AltoText.ItemsSource = null;
+            imageTranslatedExpander.IsExpanded = false;
         }
 
         private void CenterWindowOnScreen(Point gotoPoint = new())
