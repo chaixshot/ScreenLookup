@@ -17,6 +17,7 @@ using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 using FontFamily = System.Windows.Media.FontFamily;
+using Point = System.Windows.Point;
 
 namespace ScreenLookup.src.windows
 {
@@ -108,8 +109,6 @@ namespace ScreenLookup.src.windows
 
         private void ShowWindow(bool IsConfig)
         {
-            this.Show();
-
             if (IsConfig)
             {
                 configMenu.Visibility = Visibility.Visible;
@@ -118,14 +117,7 @@ namespace ScreenLookup.src.windows
                 originalCard.Visibility = Visibility.Collapsed;
                 translatedCard.Visibility = Visibility.Collapsed;
 
-                System.Drawing.Point point = System.Windows.Forms.Control.MousePosition;
-                var transform = PresentationSource.FromVisual(this).CompositionTarget.TransformFromDevice;
-                var mouse = transform.Transform(new System.Windows.Point(point.X, point.Y));
-
                 this.Width = 0;
-                this.Left = mouse.X - (configMenu.ActualWidth / 2);
-                this.Top = mouse.Y - (configMenu.ActualHeight) - 30;
-
                 this.Topmost = true;
             }
             else
@@ -155,6 +147,7 @@ namespace ScreenLookup.src.windows
                 this.Topmost = App.setting.Topmost;
             }
 
+            this.Show();
             this.Activate();
         }
 
@@ -178,7 +171,7 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
 
             // Screenshot
-            (Bitmap? image, bool isRightMouse) = ScreenGrabber.CaptureDialog(false);
+            (Bitmap? image, bool isRightMouse, Point startPoint, Point endPoint) = ScreenGrabber.CaptureDialog(false);
             if (image == null)
             {
                 IsCapturing = false;
@@ -190,6 +183,11 @@ namespace ScreenLookup.src.windows
                 ConfigDispatcher = new DispatcherFrame();
 
                 SelectSourceLanguageComboBox();
+                CenterWindowOnScreen(new()
+                {
+                    X = endPoint.X - (this.ActualWidth / 2),
+                    Y = endPoint.Y - (this.ActualHeight * 3.3),
+                });
                 ShowWindow(true);
                 Dispatcher.PushFrame(ConfigDispatcher);
 
@@ -250,7 +248,10 @@ namespace ScreenLookup.src.windows
                                 {
                                     await AddToHistory(ocrText.Text, captureWords, translateResult);
 
-                                    CenterWindowOnScreen();
+                                    if (App.setting.LookupOnImage)
+                                        CenterWindowOnScreen(startPoint);
+                                    else
+                                        CenterWindowOnScreen();
                                 }
                             }
                         }
@@ -311,7 +312,7 @@ namespace ScreenLookup.src.windows
             AltoText.ItemsSource = null;
         }
 
-        private void CenterWindowOnScreen()
+        private void CenterWindowOnScreen(Point gotoPoint = new())
         {
             double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
             double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
@@ -326,8 +327,16 @@ namespace ScreenLookup.src.windows
             this.MaxHeight = screenHeight - 50;
             this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
 
-            this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
-            this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
+            if (gotoPoint != new Point())
+            {
+                this.Left = gotoPoint.X;
+                this.Top = gotoPoint.Y;
+            }
+            else
+            {
+                this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
+                this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
+            }
         }
 
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
