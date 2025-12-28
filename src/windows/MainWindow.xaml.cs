@@ -38,23 +38,6 @@ namespace ScreenLookup
             base.OnClosing(e);
         }
 
-        #region button
-        private void TopmostButton_Click(object sender, RoutedEventArgs e)
-        {
-            App.ToggleTopmost(!App.setting.Topmost);
-        }
-
-        private void MinimizeButton_Clicked(TitleBar sender, RoutedEventArgs args)
-        {
-            HideToTray();
-        }
-
-        private void CloseButton_Clicked(TitleBar sender, RoutedEventArgs args)
-        {
-            HideToTray();
-        }
-        #endregion
-
         private void HideToTray()
         {
             if (App.setting.MinimizeToTray)
@@ -76,14 +59,36 @@ namespace ScreenLookup
             this.WindowState = (WindowState)FormWindowState.Normal;
         }
 
-        // ----------------- Window Persistence State -----------------
+        private void OnNavigationSelectionChanged(NavigationView navigationView, RoutedEventArgs args)
+        {
+            headerText.Text = navigationView.SelectedItem.TargetPageTag.ToString();
+        }
+
+        #region button
+        private void TopmostButton_Click(object sender, RoutedEventArgs e)
+        {
+            App.ToggleTopmost(!App.setting.Topmost);
+        }
+
+        private void MinimizeButton_Clicked(TitleBar sender, RoutedEventArgs args)
+        {
+            HideToTray();
+        }
+
+        private void CloseButton_Clicked(TitleBar sender, RoutedEventArgs args)
+        {
+            HideToTray();
+        }
+        #endregion
+
+        #region Window Persistence State
         private void MainWindow_BoundsChanged(object sender, EventArgs e)
         {
-            var window = sender as Window;
+            Window window = (Window)sender;
             WindowStateSave(window, "Main");
         }
 
-        private void WindowStateSave(Window windows, string windowsType)
+        private static void WindowStateSave(Window windows, string windowsType)
         {
             if (windows != null)
             {
@@ -91,7 +96,7 @@ namespace ScreenLookup
             }
         }
 
-        private void WindowStateRestore(Window windows, string windowsType)
+        private static void WindowStateRestore(Window windows, string windowsType)
         {
             if (windows != null)
             {
@@ -114,11 +119,6 @@ namespace ScreenLookup
                 }
             }
         }
-
-        private void OnNavigationSelectionChanged(NavigationView sender, RoutedEventArgs args)
-        {
-            NavigationView navigationView = (NavigationView)sender;
-            headerText.Text = navigationView.SelectedItem.TargetPageTag.ToString();
-        }
+        #endregion
     }
 }
