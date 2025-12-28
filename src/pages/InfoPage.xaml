@@ -11,65 +11,81 @@
     Title="Info"
     mc:Ignorable="d">
 
-    <Grid Margin="20,12,40,40">
-        <StackPanel Grid.Column="0" Orientation="Vertical">
-            <TextBlock
-                Margin="32,0,0,10"
-                FontSize="25"
-                FontWeight="SemiBold"
-                Text="About" />
+    <Grid Margin="20,12,20,40">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <wpfui:HyperlinkButton
-                x:Name="VersionTextblock"
-                Margin="5,0,0,5"
-                Content="Version X.X"
-                FontWeight="SemiBold"
-                Icon="{wpfui:SymbolIcon Symbol=Info24}" />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <Controls:Card>
-                <StackPanel>
-                    <TextBlock TextWrapping="Wrap">
-                        Hi, thanks for using ScreenLookup!
-                        I'm developing this application with the goal of learning languages from within my VR headset desktop overlay. It will retrieve text from the screen, translate it, and learn how to pronounce it.<LineBreak />
-                        If you find any errors or want to add new features, please report the issue on GitHub.</TextBlock>
-                    <TextBlock
-                        Margin="0,10,0,0"
-                        FontWeight="DemiBold"
-                        TextWrapping="Wrap">
-                        Lookup is Capture > Recognize > Translate > Learn > Remember
-                    </TextBlock>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <Controls:Image
-                            Height="25"
-                            CornerRadius="2"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/src/images/H@mer.jpg" />
+                <wpfui:HyperlinkButton
+                    x:Name="VersionTextblock"
+                    Margin="5,0,0,5"
+                    Content="Version X.X"
+                    FontWeight="SemiBold"
+                    Icon="{wpfui:SymbolIcon Symbol=Info24}" />
+
+                <Controls:Card Grid.Row="1">
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap">
+                            Hi, thanks for using ScreenLookup!
+                            I'm developing this application with the goal of learning languages from within my VR headset desktop overlay. It will retrieve text from the screen, translate it, and learn how to pronounce it.<LineBreak />
+                            If you find any errors or want to add new features, please report the issue on GitHub.</TextBlock>
+
                         <TextBlock
-                            Margin="5,0,0,0"
-                            HorizontalAlignment="Left"
-                            FontSize="20"
-                            Text="H@mer" />
+                            Margin="0,10,0,0"
+                            FontWeight="DemiBold"
+                            TextWrapping="Wrap">
+                            Lookup is Capture > Recognize > Translate > Learn > Remember
+                        </TextBlock>
+
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                            <Controls:Image
+                                Height="25"
+                                CornerRadius="2"
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                Source="/src/images/H@mer.jpg" />
+
+                            <TextBlock
+                                Margin="5,0,0,0"
+                                HorizontalAlignment="Left"
+                                FontSize="20"
+                                Text="H@mer" />
+                        </StackPanel>
+
+                        <wpfui:HyperlinkButton
+                            Margin="0,10,0,0"
+                            Padding="0"
+                            Content="Report Issue"
+                            Icon="{wpfui:SymbolIcon Symbol=Globe24}"
+                            NavigateUri="https://github.com/chaixshot/ScreenLookup/issues" />
                     </StackPanel>
-                    <wpfui:HyperlinkButton
-                        Margin="0,10,0,0"
-                        Padding="0"
-                        Content="Report Issue"
-                        Icon="{wpfui:SymbolIcon Symbol=Globe24}"
-                        NavigateUri="https://github.com/chaixshot/ScreenLookup/issues" />
-                </StackPanel>
-            </Controls:Card>
+                </Controls:Card>
+            </Grid>
 
-            <TextBlock
-                Margin="5,10,0,5"
-                FontWeight="SemiBold"
-                Text="Getting Started" />
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <Controls:Card>
-                <StackPanel>
+                <TextBlock
+                    Margin="5,10,0,5"
+                    FontWeight="SemiBold"
+                    Text="Getting Started" />
+
+                <Controls:Card Grid.Row="1">
                     <FlowDocumentScrollViewer
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         IsHitTestVisible="False">
+
                         <FlowDocument>
                             <List
                                 Padding="5,Auto,Auto,Auto"
@@ -168,9 +184,8 @@
                             </List>
                         </FlowDocument>
                     </FlowDocumentScrollViewer>
-                </StackPanel>
-
-            </Controls:Card>
-        </StackPanel>
+                </Controls:Card>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

@@ -74,9 +74,23 @@
                 Grid.Row="1"
                 Height="Auto"
                 IsBackButtonVisible="Collapsed"
-                PaneDisplayMode="LeftFluent">
+                PaneDisplayMode="LeftFluent"
+                SelectionChanged="OnNavigationSelectionChanged">
+
+                <Controls:NavigationView.Header>
+                    <TextBlock
+                        x:Name="headerText"
+                        Margin="32,10,0,10"
+                        FontSize="25"
+                        FontWeight="Medium"
+                        Text="Settings" />
+                </Controls:NavigationView.Header>
+
                 <Controls:NavigationView.MenuItems>
-                    <Controls:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:SettingPage}">
+                    <Controls:NavigationViewItem
+                        NavigationCacheMode="Enabled"
+                        TargetPageTag="Setting"
+                        TargetPageType="{x:Type local:SettingPage}">
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="Setting" />
                         </Controls:NavigationViewItem.Content>
@@ -85,7 +99,10 @@
                         </Controls:NavigationViewItem.Icon>
                     </Controls:NavigationViewItem>
 
-                    <Controls:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:HistoryPage}">
+                    <Controls:NavigationViewItem
+                        NavigationCacheMode="Enabled"
+                        TargetPageTag="History"
+                        TargetPageType="{x:Type local:HistoryPage}">
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="History" />
                         </Controls:NavigationViewItem.Content>
@@ -94,7 +111,10 @@
                         </Controls:NavigationViewItem.Icon>
                     </Controls:NavigationViewItem>
 
-                    <Controls:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:SavedPage}">
+                    <Controls:NavigationViewItem
+                        NavigationCacheMode="Enabled"
+                        TargetPageTag="Saved"
+                        TargetPageType="{x:Type local:SavedPage}">
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="Saved" />
                         </Controls:NavigationViewItem.Content>
@@ -103,7 +123,10 @@
                         </Controls:NavigationViewItem.Icon>
                     </Controls:NavigationViewItem>
 
-                    <Controls:NavigationViewItem NavigationCacheMode="Enabled" TargetPageType="{x:Type local:InfoPage}">
+                    <Controls:NavigationViewItem
+                        NavigationCacheMode="Enabled"
+                        TargetPageTag="About"
+                        TargetPageType="{x:Type local:InfoPage}">
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="About" />
                         </Controls:NavigationViewItem.Content>

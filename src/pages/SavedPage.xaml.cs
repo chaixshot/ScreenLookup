@@ -49,7 +49,7 @@ namespace ScreenLookup.src.pages
 
             SizeChanged += (s, e) =>
             {
-                dataGrid.Height = App.mainWindow.ActualHeight - 202;
+                dataGrid.Height = App.mainWindow.ActualHeight - 212;
             };
         }
 

@@ -11,14 +11,8 @@
     Title="Saved"
     mc:Ignorable="d">
 
-    <Grid Margin="20,12,40,0">
+    <Grid Margin="20,12,20,0">
         <StackPanel Grid.Column="0" Orientation="Vertical">
-            <TextBlock
-                Margin="32,0,0,10"
-                FontSize="25"
-                FontWeight="SemiBold"
-                Text="Saved" />
-
             <Grid Margin="15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />

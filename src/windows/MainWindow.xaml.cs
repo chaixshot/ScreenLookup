@@ -124,5 +124,11 @@ namespace ScreenLookup
                 }
             }
         }
+
+        private void OnNavigationSelectionChanged(NavigationView sender, RoutedEventArgs args)
+        {
+            NavigationView navigationView = (NavigationView)sender;
+            headerText.Text = navigationView.SelectedItem.TargetPageTag.ToString();
+        }
     }
 }

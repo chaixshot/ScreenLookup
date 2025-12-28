@@ -11,14 +11,8 @@
     Title="Setting"
     mc:Ignorable="d">
 
-    <Grid Margin="20,12,40,40">
-        <StackPanel Orientation="Vertical">
-            <TextBlock
-                Margin="32,0,0,10"
-                FontSize="25"
-                FontWeight="SemiBold"
-                Text="Settings" />
-
+    <Grid Margin="20,12,20,40">
+        <StackPanel>
             <TextBlock
                 Margin="5,0,0,5"
                 FontWeight="SemiBold"
@@ -292,7 +286,6 @@
                                             Filled=False}"
                     ToolTip="Reset" />
             </Controls:Card>
-
         </StackPanel>
     </Grid>
 </Page>
