@@ -253,9 +253,11 @@
                     </Grid>
                 </StackPanel>
 
-                <Controls:Card
+                <Border
                     Margin="0,10,0,0"
                     Padding="10,5,10,5"
+                    Background="{wpfui:ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{wpfui:ThemeResource DividerStrokeColorDefaultBrush}"
                     BorderThickness="0,1,0,0">
 
                     <StackPanel Orientation="Horizontal">
@@ -286,7 +288,7 @@
                                                     Filled=False}"
                             ToolTip="Saved" />
                     </StackPanel>
-                </Controls:Card>
+                </Border>
             </StackPanel>
         </StackPanel>
     </Controls:Flyout>
