@@ -50,7 +50,7 @@ namespace ScreenLookup.src.windows
                     if (flayOut.IsOpen)
                         flayOut.IsOpen = false;
                     else if (imageTranslatedExpander.IsExpanded)
-                        imageTranslatedExpander.IsExpanded = false;
+                        CloseTranslatedExpanded();
                     else
                         HideWindow();
                 }
@@ -311,7 +311,7 @@ namespace ScreenLookup.src.windows
             translatedScrollViewer.ScrollToTop();
             imageTranslatedScrollViewer.ScrollToTop();
 
-            imageTranslatedExpander.IsExpanded = false;
+            CloseTranslatedExpanded();
         }
 
         private void CenterWindowOnScreen(Point gotoPoint = new())
@@ -483,10 +483,18 @@ namespace ScreenLookup.src.windows
             targetLanguageConfig.SelectedIndex = App.setting.targetLanguage;
         }
 
+        private void CloseTranslatedExpanded()
+        {
+            if (imageTranslatedExpander.IsExpanded)
+                imageTranslatedExpander.IsExpanded = false;
+        }
+
         #region button
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
             App.ToggleTopmost(!App.setting.Topmost);
+
+            CloseTranslatedExpanded();
         }
 
         private async void Button_Word(object sender, RoutedEventArgs e)
@@ -512,6 +520,8 @@ namespace ScreenLookup.src.windows
                 return;
 
             flayOut.Show(word, paragraph, sourceLang, App.setting.TargetLanguage);
+
+            CloseTranslatedExpanded();
         }
 
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
@@ -530,6 +540,11 @@ namespace ScreenLookup.src.windows
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: "capture");
+        }
+
+        private void captureWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            CloseTranslatedExpanded();
         }
         #endregion
 
