@@ -171,7 +171,7 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
 
             // Screenshot
-            (Bitmap? image, bool isRightMouse, Point startPoint, Point endPoint) = ScreenGrabber.CaptureDialog(false);
+            (Bitmap? image, bool isRightMouse, Point startPoint, Point endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
             if (image == null)
             {
                 IsCapturing = false;

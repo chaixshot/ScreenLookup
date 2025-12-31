@@ -37,6 +37,7 @@ namespace ScreenLookup.src.utils
         };
         public bool lookupOnImage = RegSetting.GetValue("LookupOnImage") == null || RegSetting.GetValue("LookupOnImage").ToString() == "True";
         public bool showImage = RegSetting.GetValue("ShowImage") == null || RegSetting.GetValue("ShowImage").ToString() == "True";
+        public bool showAuxiliary = RegSetting.GetValue("ShowAuxiliary") == null || RegSetting.GetValue("ShowAuxiliary").ToString() == "True";
         public bool showHighlight = RegSetting.GetValue("ShowHighlight") == null || RegSetting.GetValue("ShowHighlight").ToString() == "True";
         public bool closeLostFocus = RegSetting.GetValue("CloseLostFocus") == null || RegSetting.GetValue("CloseLostFocus").ToString() == "True";
         public string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
@@ -231,6 +232,20 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("ShowImage", value.ToString());
+
+                OnPropertyChanged();
+            }
+        }
+
+        public bool ShowAuxiliary
+        {
+            get { return showAuxiliary; }
+            set
+            {
+                showAuxiliary = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("ShowAuxiliary", value.ToString());
 
                 OnPropertyChanged();
             }

@@ -217,6 +217,16 @@
                 <CheckBox IsChecked="{Binding ShowImage}" />
             </Controls:CardControl>
 
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Add24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Show Cursor Auxiliary" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show Lookup's cursor helper cross line" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding ShowAuxiliary}" />
+            </Controls:CardControl>
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Highlight24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
