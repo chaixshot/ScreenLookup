@@ -1,6 +1,7 @@
 ﻿using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -121,6 +122,9 @@ namespace ScreenLookup.src.controls
         public void Show(string word, string paragraph, int sourceLang, int targetLang)
         {
             IsOpen = false;
+
+            word = Regex.Replace(word, @"\s*([.!?,。！？，、])\s*", ""); // Remove punctuation
+            word = char.ToUpper(word.First()) + word[1..].ToLower(); // Capitalizing first letter
 
             OriginalWord = word;
             OriginalParagraph = paragraph;
