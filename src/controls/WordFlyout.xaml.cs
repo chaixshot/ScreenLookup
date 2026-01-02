@@ -142,7 +142,6 @@ namespace ScreenLookup.src.controls
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(OriginalWord);
 
-
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 Dispatcher.BeginInvoke(new Action(async () =>
@@ -150,12 +149,11 @@ namespace ScreenLookup.src.controls
                     // Word
                     if (!string.IsNullOrEmpty(OriginalWord))
                     {
-
                         if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
                         {
                             translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
                             if (string.IsNullOrEmpty(translateWord))
-                                translateWord = "Error!!";
+                                translateWord = "!!Error!!";
                             else
                                 translatedCache.TryAdd(OriginalWord, translateWord);
                         }
@@ -173,7 +171,7 @@ namespace ScreenLookup.src.controls
                         {
                             translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
                             if (string.IsNullOrEmpty(translateParagraph))
-                                translateParagraph = "Error!!";
+                                translateParagraph = "!!Error!!";
                             else
                                 translatedCache.TryAdd(OriginalParagraph, translateParagraph);
                         }
