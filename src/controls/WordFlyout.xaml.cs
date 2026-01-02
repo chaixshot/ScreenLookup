@@ -142,36 +142,40 @@ namespace ScreenLookup.src.controls
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(OriginalWord);
 
-            // Word
+
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
+                    // Word
+                    if (!string.IsNullOrEmpty(OriginalWord))
                     {
-                        translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
-                        translatedCache.TryAdd(OriginalWord, translateWord);
+
+                        if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
+                        {
+                            translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
+                            if (string.IsNullOrEmpty(translateWord))
+                                translateWord = "Error!!";
+                            else
+                                translatedCache.TryAdd(OriginalWord, translateWord);
+                        }
+
+                        translatedWord.Text = translateWord;
+                        translatedWord.Visibility = Visibility.Visible;
+                        translatedWordLoading.Visibility = Visibility.Collapsed;
+                        FollowMouse();
                     }
 
-                    translatedWord.Text = translateWord;
-                    translatedWord.Visibility = Visibility.Visible;
-                    translatedWordLoading.Visibility = Visibility.Collapsed;
-                    FollowMouse();
-                }));
-            });
-
-            // Paragraph
-            if (!string.IsNullOrEmpty(OriginalParagraph))
-            {
-                ThreadPool.QueueUserWorkItem(_ =>
-                {
-                    Dispatcher.BeginInvoke(new Action(async () =>
+                    // Paragraph
+                    if (!string.IsNullOrEmpty(OriginalParagraph))
                     {
-
                         if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
                         {
                             translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
-                            translatedCache.TryAdd(OriginalParagraph, translateParagraph);
+                            if (string.IsNullOrEmpty(translateParagraph))
+                                translateParagraph = "Error!!";
+                            else
+                                translatedCache.TryAdd(OriginalParagraph, translateParagraph);
                         }
 
                         translatedParagraph.Text = translateParagraph;
@@ -179,9 +183,9 @@ namespace ScreenLookup.src.controls
                         translatedParagraphLoading.Visibility = Visibility.Collapsed;
 
                         FollowMouse();
-                    }));
-                });
-            }
+                    }
+                }));
+            });
         }
 
         private void OnClose(Flyout sender, RoutedEventArgs args)
