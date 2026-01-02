@@ -123,7 +123,7 @@ namespace ScreenLookup.src.controls
         {
             IsOpen = false;
 
-            word = Regex.Replace(word, @"\s*([.!?,。！？，、])\s*", ""); // Remove punctuation
+            word = Regex.Replace(word, @"\s*([.!?,。！？，、;])\s*", ""); // Remove punctuation
             word = char.ToUpper(word.First()) + word[1..].ToLower(); // Capitalizing first letter
 
             OriginalWord = word;
