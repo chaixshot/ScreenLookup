@@ -235,18 +235,7 @@ namespace ScreenLookup.src.windows
                                 }
 
                                 // Translate card
-                                string translateResult = await Task.Run(() => Translation.GetTranslated(TesseractPage.Text, App.setting.TargetLanguage), CTS.Token);
-
-                                if (App.setting.LookupOnImage)
-                                {
-                                    imageTranslatedText.Text = translateResult;
-                                    imageTranslatedTextLoading.Visibility = Visibility.Collapsed;
-                                }
-                                else
-                                {
-                                    translatedText.Text = translateResult;
-                                    translatedTextLoading.Visibility = Visibility.Collapsed;
-                                }
+                                string translateResult = await TranlsateOriginal();
 
                                 if (IsCapturing)
                                 {
@@ -262,6 +251,47 @@ namespace ScreenLookup.src.windows
                     }
                 }));
             }, CTS.Token);
+        }
+
+        private async Task<string> TranlsateOriginal()
+        {
+            imageTranslatedText.Text = "";
+            imageTranslatedTextLoading.Visibility = Visibility.Visible;
+            imageTranslatedTextRefresh.Visibility = Visibility.Visible;
+
+            translatedText.Text = "";
+            translatedTextLoading.Visibility = Visibility.Visible;
+            translatedTextRefresh.Visibility = Visibility.Visible;
+
+            string translateResult = await Task.Run(() => Translation.GetTranslated(TesseractPage.Text, App.setting.TargetLanguage), CTS.Token);
+
+            if (App.setting.LookupOnImage)
+            {
+                imageTranslatedText.Text = translateResult;
+                imageTranslatedTextLoading.Visibility = Visibility.Collapsed;
+
+                if (!string.IsNullOrEmpty(translateResult))
+                {
+                    imageTranslatedText.Text = translateResult;
+                    imageTranslatedTextRefresh.Visibility = Visibility.Collapsed;
+                }
+
+                imageTranslatedExpanderContent.MinHeight = captureImage.Height;
+                imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
+            }
+            else
+            {
+                translatedText.Text = translateResult;
+                translatedTextLoading.Visibility = Visibility.Collapsed;
+
+                if (!string.IsNullOrEmpty(translateResult))
+                {
+                    translatedText.Text = translateResult;
+                    translatedTextRefresh.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            return translateResult;
         }
 
         private void ResetDefaultState()
@@ -298,14 +328,11 @@ namespace ScreenLookup.src.windows
             originalCard.Visibility = Visibility.Collapsed;
             translatedCard.Visibility = Visibility.Collapsed;
 
-            imageTranslatedTextLoading.Visibility = Visibility.Visible;
-            translatedTextLoading.Visibility = Visibility.Visible;
             originalWordsLoading.Visibility = Visibility.Visible;
 
             AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
             ocrText.Text = "";
-            imageTranslatedText.Text = "";
             translatedText.Text = "";
 
             originalScrollView.ScrollToTop();
@@ -546,6 +573,16 @@ namespace ScreenLookup.src.windows
         private void captureWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             CloseTranslatedExpanded();
+        }
+
+        private void imageTranslatedTextRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            _ = TranlsateOriginal();
+        }
+
+        private void translatedTextRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            _ = TranlsateOriginal();
         }
         #endregion
 
