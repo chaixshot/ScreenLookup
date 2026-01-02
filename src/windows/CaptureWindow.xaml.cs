@@ -97,6 +97,7 @@ namespace ScreenLookup.src.windows
             IsCapturing = false;
             ConfigDispatcher?.Continue = false;
             flayOut.IsOpen = false;
+            flayOut.ClearCache();
             translatedCache.Clear();
             TextToSpeech.StopTTS();
             CTS?.Cancel();

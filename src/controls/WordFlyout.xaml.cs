@@ -36,7 +36,7 @@ namespace ScreenLookup.src.controls
 
             this.Unloaded += (s, e) =>
             {
-                translatedCache.Clear();
+                ClearCache();
             };
         }
 
@@ -229,6 +229,11 @@ namespace ScreenLookup.src.controls
                 paragraphSection.Visibility = Visibility.Collapsed;
             else
                 paragraphSection.Visibility = Visibility.Visible;
+        }
+
+        public void ClearCache()
+        {
+            translatedCache.Clear();
         }
 
         private async void SavedWordButtonStateChange(string word)
