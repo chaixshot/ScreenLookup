@@ -245,9 +245,7 @@ namespace ScreenLookup.src.controls
                 if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
                 {
                     translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
-                    if (string.IsNullOrEmpty(translateParagraph))
-                        translateParagraph = "!!Error!!";
-                    else
+                    if (!string.IsNullOrEmpty(translateParagraph))
                         translatedCache.TryAdd(OriginalParagraph, translateParagraph);
                 }
 
