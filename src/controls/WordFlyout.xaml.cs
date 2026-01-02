@@ -147,41 +147,12 @@ namespace ScreenLookup.src.controls
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
                     // Word
-                    if (!string.IsNullOrEmpty(OriginalWord))
-                    {
-                        if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
-                        {
-                            translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
-                            if (string.IsNullOrEmpty(translateWord))
-                                translateWord = "!!Error!!";
-                            else
-                                translatedCache.TryAdd(OriginalWord, translateWord);
-                        }
-
-                        translatedWord.Text = translateWord;
-                        translatedWord.Visibility = Visibility.Visible;
-                        translatedWordLoading.Visibility = Visibility.Collapsed;
-                        FollowMouse();
-                    }
+                    TranslateOriginalWord();
+                    FollowMouse();
 
                     // Paragraph
-                    if (!string.IsNullOrEmpty(OriginalParagraph))
-                    {
-                        if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
-                        {
-                            translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
-                            if (string.IsNullOrEmpty(translateParagraph))
-                                translateParagraph = "!!Error!!";
-                            else
-                                translatedCache.TryAdd(OriginalParagraph, translateParagraph);
-                        }
-
-                        translatedParagraph.Text = translateParagraph;
-                        translatedParagraph.Visibility = Visibility.Visible;
-                        translatedParagraphLoading.Visibility = Visibility.Collapsed;
-
-                        FollowMouse();
-                    }
+                    TranslateOriginalParagraph();
+                    FollowMouse();
                 }));
             });
         }
@@ -211,19 +182,14 @@ namespace ScreenLookup.src.controls
             translatedWordLoading.Width = loadingWidth;
             translatedWordLoading.Height = loadingWidth;
 
+            translatedWordRefresh.Width = buttonWidth;
+            translatedWordRefresh.Height = buttonWidth;
+
             openBrowser.Width = buttonWidth;
             openBrowser.Height = buttonWidth;
 
             wordSave.Width = buttonWidth;
             wordSave.Height = buttonWidth;
-
-            translatedWord.Text = "";
-            translatedWord.Visibility = Visibility.Collapsed;
-            translatedWordLoading.Visibility = Visibility.Visible;
-
-            translatedParagraph.Text = "";
-            translatedParagraph.Visibility = Visibility.Collapsed;
-            translatedParagraphLoading.Visibility = Visibility.Visible;
 
             if (string.IsNullOrEmpty(OriginalParagraph))
                 paragraphSection.Visibility = Visibility.Collapsed;
@@ -241,6 +207,56 @@ namespace ScreenLookup.src.controls
             var saveButton = wordSave as Button;
             var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
             saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
+        }
+
+        private async void TranslateOriginalWord()
+        {
+            translatedWord.Text = "";
+            translatedWordLoading.Visibility = Visibility.Visible;
+            translatedWordRefresh.Visibility = Visibility.Collapsed;
+
+            if (!string.IsNullOrEmpty(OriginalWord))
+            {
+                if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
+                {
+                    translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
+                    if (!string.IsNullOrEmpty(translateWord))
+                        translatedCache.TryAdd(OriginalWord, translateWord);
+                }
+
+                translatedWordLoading.Visibility = Visibility.Collapsed;
+
+                if (string.IsNullOrEmpty(translateWord))
+                    translatedWordRefresh.Visibility = Visibility.Visible;
+                else
+                    translatedWord.Text = translateWord;
+            }
+        }
+
+        private async void TranslateOriginalParagraph()
+        {
+            translatedParagraph.Text = "";
+            translatedParagraphLoading.Visibility = Visibility.Visible;
+            translatedParagraphRefresh.Visibility = Visibility.Collapsed;
+
+            if (!string.IsNullOrEmpty(OriginalParagraph))
+            {
+                if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
+                {
+                    translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
+                    if (string.IsNullOrEmpty(translateParagraph))
+                        translateParagraph = "!!Error!!";
+                    else
+                        translatedCache.TryAdd(OriginalParagraph, translateParagraph);
+                }
+
+                translatedParagraphLoading.Visibility = Visibility.Collapsed;
+
+                if (string.IsNullOrEmpty(translateParagraph))
+                    translatedParagraphRefresh.Visibility = Visibility.Visible;
+                else
+                    translatedParagraph.Text = translateParagraph;
+            }
         }
 
         #region Button Click
@@ -285,6 +301,17 @@ namespace ScreenLookup.src.controls
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: IsCaptureWindow ? "capture" : "main");
         }
+
+        private void translatedWordRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            TranslateOriginalWord();
+        }
+
+        private void translatedParagraphRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            TranslateOriginalParagraph();
+        }
+
         #endregion
     }
 }
