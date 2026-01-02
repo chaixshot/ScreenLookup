@@ -213,7 +213,7 @@ namespace ScreenLookup.src.controls
         {
             translatedWord.Text = "";
             translatedWordLoading.Visibility = Visibility.Visible;
-            translatedWordRefresh.Visibility = Visibility.Collapsed;
+            translatedWordRefresh.Visibility = Visibility.Visible;
 
             if (!string.IsNullOrEmpty(OriginalWord))
             {
@@ -226,10 +226,11 @@ namespace ScreenLookup.src.controls
 
                 translatedWordLoading.Visibility = Visibility.Collapsed;
 
-                if (string.IsNullOrEmpty(translateWord))
-                    translatedWordRefresh.Visibility = Visibility.Visible;
-                else
+                if (!string.IsNullOrEmpty(translateWord))
+                {
                     translatedWord.Text = translateWord;
+                    translatedWordRefresh.Visibility = Visibility.Collapsed;
+                }
             }
         }
 
@@ -237,7 +238,7 @@ namespace ScreenLookup.src.controls
         {
             translatedParagraph.Text = "";
             translatedParagraphLoading.Visibility = Visibility.Visible;
-            translatedParagraphRefresh.Visibility = Visibility.Collapsed;
+            translatedParagraphRefresh.Visibility = Visibility.Visible;
 
             if (!string.IsNullOrEmpty(OriginalParagraph))
             {
@@ -252,10 +253,11 @@ namespace ScreenLookup.src.controls
 
                 translatedParagraphLoading.Visibility = Visibility.Collapsed;
 
-                if (string.IsNullOrEmpty(translateParagraph))
-                    translatedParagraphRefresh.Visibility = Visibility.Visible;
-                else
+                if (!string.IsNullOrEmpty(translateParagraph))
+                {
                     translatedParagraph.Text = translateParagraph;
+                    translatedParagraphRefresh.Visibility = Visibility.Collapsed;
+                }
             }
         }
 
