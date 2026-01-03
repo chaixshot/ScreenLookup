@@ -108,44 +108,16 @@
                         Click="Button_Copy"
                         Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                 Filled=False}"
-                        Tag="{Binding Text, ElementName=translatedWord}"
+                        Tag="{Binding Tag, ElementName=translatedWord}"
                         ToolTip="Copy" />
 
                     <Controls:DynamicScrollViewer
                         Grid.Column="2"
+                        Margin="5,0,0,0"
                         IsScrollingVertically="True"
                         VerticalScrollBarVisibility="Visible">
 
-                        <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
-                            <Controls:TextBlock
-                                x:Name="translatedWord"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="{Binding FontFace}"
-                                FontSize="{Binding FontSizeS}"
-                                TextWrapping="Wrap" />
-                            <wpfui:ProgressRing
-                                x:Name="translatedWordLoading"
-                                Width="12"
-                                Height="12"
-                                Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                                IsIndeterminate="True" />
-                            <Controls:Button
-                                x:Name="translatedWordRefresh"
-                                Width="{Binding Width, ElementName=flayoutOriginalTSS}"
-                                Height="{Binding Height, ElementName=flayoutOriginalTSS}"
-                                Margin="2,0,0,0"
-                                Padding="0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
-                                HorizontalContentAlignment="Center"
-                                VerticalContentAlignment="Center"
-                                Click="translatedWordRefresh_Click"
-                                Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
-                                                        Filled=False}"
-                                Tag="{Binding Text, ElementName=translatedWord}"
-                                ToolTip="Refresh" />
-                        </WrapPanel>
+                        <local:TranslatedBox x:Name="translatedWord" />
                     </Controls:DynamicScrollViewer>
                 </Grid>
 
@@ -241,44 +213,16 @@
                             Click="Button_Copy"
                             Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                     Filled=False}"
-                            Tag="{Binding Text, ElementName=translatedParagraph}"
+                            Tag="{Binding Tag, ElementName=translatedParagraph}"
                             ToolTip="Copy" />
 
                         <Controls:DynamicScrollViewer
                             Grid.Column="2"
+                            Margin="5,0,0,0"
                             IsScrollingVertically="True"
                             VerticalScrollBarVisibility="Visible">
 
-                            <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
-                                <Controls:TextBlock
-                                    x:Name="translatedParagraph"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="{Binding FontFace}"
-                                    FontSize="{Binding FontSizeS}"
-                                    TextWrapping="Wrap" />
-                                <wpfui:ProgressRing
-                                    x:Name="translatedParagraphLoading"
-                                    Width="{Binding Width, ElementName=translatedWordLoading}"
-                                    Height="{Binding Height, ElementName=translatedWordLoading}"
-                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                                    IsIndeterminate="True" />
-                                <Controls:Button
-                                    x:Name="translatedParagraphRefresh"
-                                    Width="{Binding Width, ElementName=flayoutOriginalTSS}"
-                                    Height="{Binding Height, ElementName=flayoutOriginalTSS}"
-                                    Margin="2,0,0,0"
-                                    Padding="0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Top"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Click="translatedParagraphRefresh_Click"
-                                    Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
-                                                            Filled=False}"
-                                    Tag="{Binding Text, ElementName=translatedWord}"
-                                    ToolTip="Refresh" />
-                            </WrapPanel>
+                            <local:TranslatedBox x:Name="translatedParagraph" />
                         </Controls:DynamicScrollViewer>
                     </Grid>
                 </StackPanel>

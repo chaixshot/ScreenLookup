@@ -17,7 +17,6 @@ namespace ScreenLookup.src.controls
     public partial class WordFlyout : UserControl, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        private readonly Dictionary<string, string> translatedCache = [];
 
         public int sourceLanguage = 1;
         public int targetLanguage = 1;
@@ -147,11 +146,11 @@ namespace ScreenLookup.src.controls
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
                     // Word
-                    TranslateOriginalWord();
+                    await translatedWord.TranslateText(OriginalWord, TargetLanguage);
                     FollowMouse();
 
                     // Paragraph
-                    TranslateOriginalParagraph();
+                    await translatedParagraph.TranslateText(OriginalParagraph, TargetLanguage);
                     FollowMouse();
                 }));
             });
@@ -179,12 +178,6 @@ namespace ScreenLookup.src.controls
             flayoutOriginalTSS.Width = buttonWidth;
             flayoutOriginalTSS.Height = buttonWidth;
 
-            translatedWordLoading.Width = loadingWidth;
-            translatedWordLoading.Height = loadingWidth;
-
-            translatedWordRefresh.Width = buttonWidth;
-            translatedWordRefresh.Height = buttonWidth;
-
             openBrowser.Width = buttonWidth;
             openBrowser.Height = buttonWidth;
 
@@ -199,7 +192,8 @@ namespace ScreenLookup.src.controls
 
         public void ClearCache()
         {
-            translatedCache.Clear();
+            translatedWord.ClearCache();
+            translatedParagraph.ClearCache();
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -207,56 +201,6 @@ namespace ScreenLookup.src.controls
             var saveButton = wordSave as Button;
             var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
             saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
-        }
-
-        private async void TranslateOriginalWord()
-        {
-            translatedWord.Text = "";
-            translatedWordLoading.Visibility = Visibility.Visible;
-            translatedWordRefresh.Visibility = Visibility.Visible;
-
-            if (!string.IsNullOrEmpty(OriginalWord))
-            {
-                if (!translatedCache.TryGetValue(OriginalWord, out string translateWord))
-                {
-                    translateWord = await Translation.GetTranslated(OriginalWord, TargetLanguage);
-                    if (!string.IsNullOrEmpty(translateWord))
-                        translatedCache.TryAdd(OriginalWord, translateWord);
-                }
-
-                translatedWordLoading.Visibility = Visibility.Collapsed;
-
-                if (!string.IsNullOrEmpty(translateWord))
-                {
-                    translatedWord.Text = translateWord;
-                    translatedWordRefresh.Visibility = Visibility.Collapsed;
-                }
-            }
-        }
-
-        private async void TranslateOriginalParagraph()
-        {
-            translatedParagraph.Text = "";
-            translatedParagraphLoading.Visibility = Visibility.Visible;
-            translatedParagraphRefresh.Visibility = Visibility.Visible;
-
-            if (!string.IsNullOrEmpty(OriginalParagraph))
-            {
-                if (!translatedCache.TryGetValue(OriginalParagraph, out string translateParagraph))
-                {
-                    translateParagraph = await Translation.GetTranslated(OriginalParagraph, TargetLanguage);
-                    if (!string.IsNullOrEmpty(translateParagraph))
-                        translatedCache.TryAdd(OriginalParagraph, translateParagraph);
-                }
-
-                translatedParagraphLoading.Visibility = Visibility.Collapsed;
-
-                if (!string.IsNullOrEmpty(translateParagraph))
-                {
-                    translatedParagraph.Text = translateParagraph;
-                    translatedParagraphRefresh.Visibility = Visibility.Collapsed;
-                }
-            }
         }
 
         #region Button Click
@@ -267,7 +211,7 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedWord.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translatedWord.Translated.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_ParagraphOriginalTTS(object sender, RoutedEventArgs e)
@@ -277,12 +221,12 @@ namespace ScreenLookup.src.controls
 
         private async void Button_ParagraphTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedParagraph.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translatedParagraph.Translated.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
         {
-            string translated = this.translatedWord.Text;
+            string translated = translatedWord.Translated.Text;
 
             if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
             {
@@ -300,16 +244,6 @@ namespace ScreenLookup.src.controls
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: IsCaptureWindow ? "capture" : "main");
-        }
-
-        private void translatedWordRefresh_Click(object sender, RoutedEventArgs e)
-        {
-            TranslateOriginalWord();
-        }
-
-        private void translatedParagraphRefresh_Click(object sender, RoutedEventArgs e)
-        {
-            TranslateOriginalParagraph();
         }
 
         #endregion

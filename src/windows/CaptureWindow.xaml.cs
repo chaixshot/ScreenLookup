@@ -16,7 +16,6 @@ using TesseractOCR.Enums;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
-using FontFamily = System.Windows.Media.FontFamily;
 using Point = System.Windows.Point;
 
 namespace ScreenLookup.src.windows
@@ -98,6 +97,8 @@ namespace ScreenLookup.src.windows
             ConfigDispatcher?.Continue = false;
             flayOut.IsOpen = false;
             flayOut.ClearCache();
+            imageTranslatedText.ClearCache();
+            translatedText.ClearCache();
             translatedCache.Clear();
             TextToSpeech.StopTTS();
             CTS?.Cancel();
@@ -255,43 +256,21 @@ namespace ScreenLookup.src.windows
 
         private async Task<string> TranlsateOriginal()
         {
-            imageTranslatedText.Text = "";
-            imageTranslatedTextLoading.Visibility = Visibility.Visible;
-            imageTranslatedTextRefresh.Visibility = Visibility.Visible;
-
-            translatedText.Text = "";
-            translatedTextLoading.Visibility = Visibility.Visible;
-            translatedTextRefresh.Visibility = Visibility.Visible;
-
-            string translateResult = await Task.Run(() => Translation.GetTranslated(TesseractPage.Text, App.setting.TargetLanguage), CTS.Token);
-
             if (App.setting.LookupOnImage)
             {
-                imageTranslatedText.Text = translateResult;
-                imageTranslatedTextLoading.Visibility = Visibility.Collapsed;
-
-                if (!string.IsNullOrEmpty(translateResult))
-                {
-                    imageTranslatedText.Text = translateResult;
-                    imageTranslatedTextRefresh.Visibility = Visibility.Collapsed;
-                }
-
                 imageTranslatedExpanderContent.MinHeight = captureImage.Height;
                 imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
+
+                await imageTranslatedText.TranslateText(TesseractPage.Text, App.setting.TargetLanguage);
+
+                return imageTranslatedText.Translated.Text;
             }
             else
             {
-                translatedText.Text = translateResult;
-                translatedTextLoading.Visibility = Visibility.Collapsed;
+                await translatedText.TranslateText(TesseractPage.Text, App.setting.TargetLanguage);
 
-                if (!string.IsNullOrEmpty(translateResult))
-                {
-                    translatedText.Text = translateResult;
-                    translatedTextRefresh.Visibility = Visibility.Collapsed;
-                }
+                return translatedText.Translated.Text;
             }
-
-            return translateResult;
         }
 
         private void ResetDefaultState()
@@ -299,26 +278,14 @@ namespace ScreenLookup.src.windows
             double buttonWidth = App.setting.FontSizeS + 10;
             double loadingWidth = App.setting.FontSizeS + 5;
 
-            imageTranslatedText.FontSize = App.setting.FontSizeS;
-            imageTranslatedText.FontFamily = new FontFamily(App.setting.FontFace);
-
-            translatedText.FontSize = App.setting.FontSizeS;
-            translatedText.FontFamily = new FontFamily(App.setting.FontFace);
-
             originalTTS.Width = buttonWidth;
             originalTTS.Height = buttonWidth;
 
             translatedTSS.Width = buttonWidth;
             translatedTSS.Height = buttonWidth;
 
-            imageTranslatedTextLoading.Width = loadingWidth;
-            imageTranslatedTextLoading.Height = loadingWidth;
-
             originalWordsLoading.Width = loadingWidth;
             originalWordsLoading.Height = loadingWidth;
-
-            translatedTextLoading.Width = loadingWidth;
-            translatedTextLoading.Height = loadingWidth;
 
             ocrCard.Visibility = Visibility.Collapsed;
             configMenu.Visibility = Visibility.Collapsed;
@@ -333,7 +300,6 @@ namespace ScreenLookup.src.windows
             AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
             ocrText.Text = "";
-            translatedText.Text = "";
 
             originalScrollView.ScrollToTop();
             translatedScrollViewer.ScrollToTop();
@@ -559,7 +525,7 @@ namespace ScreenLookup.src.windows
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedText.Text, App.setting.TargetLanguage, "capture");
+            TextToSpeech.StartTTS(translatedText.Translated.Text, App.setting.TargetLanguage, "capture");
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)
@@ -573,16 +539,6 @@ namespace ScreenLookup.src.windows
         private void captureWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             CloseTranslatedExpanded();
-        }
-
-        private void imageTranslatedTextRefresh_Click(object sender, RoutedEventArgs e)
-        {
-            _ = TranlsateOriginal();
-        }
-
-        private void translatedTextRefresh_Click(object sender, RoutedEventArgs e)
-        {
-            _ = TranlsateOriginal();
         }
         #endregion
 
