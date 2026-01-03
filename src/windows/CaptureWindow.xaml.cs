@@ -305,6 +305,8 @@ namespace ScreenLookup.src.windows
             translatedScrollViewer.ScrollToTop();
             imageTranslatedScrollViewer.ScrollToTop();
 
+            Grid.SetRow(flayOut, App.setting.LookupOnImage ? 1 : 3);
+
             CloseTranslatedExpanded();
         }
 
