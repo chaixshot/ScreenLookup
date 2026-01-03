@@ -58,21 +58,19 @@
                         Tag="{Binding OriginalWord}"
                         ToolTip="Copy" />
 
-                    <Controls:DynamicScrollViewer
+                    <WrapPanel
                         Grid.Column="2"
-                        IsScrollingVertically="True"
-                        VerticalScrollBarVisibility="Visible">
-
-                        <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
-                            <Controls:TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="{Binding FontFace}"
-                                FontSize="{Binding FontSizeS}"
-                                Text="{Binding OriginalWord}"
-                                TextWrapping="Wrap" />
-                        </WrapPanel>
-                    </Controls:DynamicScrollViewer>
+                        Margin="5,0,0,0"
+                        Orientation="Horizontal">
+                        <Controls:TextBlock
+                            Margin="2"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="{Binding FontFace}"
+                            FontSize="{Binding FontSizeS}"
+                            Text="{Binding OriginalWord}"
+                            TextWrapping="Wrap" />
+                    </WrapPanel>
                 </Grid>
 
                 <Grid Margin="10,10,10,0">
@@ -111,14 +109,10 @@
                         Tag="{Binding Tag, ElementName=translatedWord}"
                         ToolTip="Copy" />
 
-                    <Controls:DynamicScrollViewer
+                    <local:TranslatedBox
+                        x:Name="translatedWord"
                         Grid.Column="2"
-                        Margin="5,0,0,0"
-                        IsScrollingVertically="True"
-                        VerticalScrollBarVisibility="Visible">
-
-                        <local:TranslatedBox x:Name="translatedWord" />
-                    </Controls:DynamicScrollViewer>
+                        Margin="5,0,0,0" />
                 </Grid>
 
                 <StackPanel
@@ -170,6 +164,7 @@
 
                             <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
                                 <Controls:TextBlock
+                                    Margin="2"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     FontFamily="{Binding FontFace}"
@@ -216,14 +211,10 @@
                             Tag="{Binding Tag, ElementName=translatedParagraph}"
                             ToolTip="Copy" />
 
-                        <Controls:DynamicScrollViewer
+                        <local:TranslatedBox
+                            x:Name="translatedParagraph"
                             Grid.Column="2"
-                            Margin="5,0,0,0"
-                            IsScrollingVertically="True"
-                            VerticalScrollBarVisibility="Visible">
-
-                            <local:TranslatedBox x:Name="translatedParagraph" />
-                        </Controls:DynamicScrollViewer>
+                            Margin="5,0,0,0" />
                     </Grid>
                 </StackPanel>
 

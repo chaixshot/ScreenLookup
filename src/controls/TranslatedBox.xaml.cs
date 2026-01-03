@@ -64,6 +64,8 @@ namespace ScreenLookup.src.controls
 
             Refresh.Width = buttonWidth;
             Refresh.Height = buttonWidth;
+
+            translatedScrollViewer.ScrollToTop();
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)

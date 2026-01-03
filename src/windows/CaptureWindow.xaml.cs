@@ -302,8 +302,6 @@ namespace ScreenLookup.src.windows
             ocrText.Text = "";
 
             originalScrollView.ScrollToTop();
-            translatedScrollViewer.ScrollToTop();
-            imageTranslatedScrollViewer.ScrollToTop();
 
             Grid.SetRow(flayOut, App.setting.LookupOnImage ? 1 : 3);
 
