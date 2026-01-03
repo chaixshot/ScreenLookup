@@ -26,9 +26,7 @@ namespace ScreenLookup.src.controls
 
         public async Task TranslateText(string text, int targetLang)
         {
-            Translated.Text = "";
-            Loading.Visibility = Visibility.Visible;
-            Refresh.Visibility = Visibility.Visible;
+            ResetDefaultState();
 
             Text = text;
             TargetLanguage = targetLang;
@@ -54,7 +52,7 @@ namespace ScreenLookup.src.controls
             }
         }
 
-        private void ResetDefaultState()
+        public void ResetDefaultState()
         {
             double buttonWidth = App.setting.FontSizeS + 10;
             double loadingWidth = App.setting.FontSizeS + 5;
@@ -64,6 +62,10 @@ namespace ScreenLookup.src.controls
 
             Refresh.Width = buttonWidth;
             Refresh.Height = buttonWidth;
+
+            Translated.Text = "";
+            Loading.Visibility = Visibility.Visible;
+            Refresh.Visibility = Visibility.Visible;
 
             translatedScrollViewer.ScrollToTop();
         }

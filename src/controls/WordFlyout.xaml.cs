@@ -145,6 +145,9 @@ namespace ScreenLookup.src.controls
             {
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
+                    translatedWord.ResetDefaultState();
+                    translatedParagraph.ResetDefaultState();
+
                     // Word
                     await translatedWord.TranslateText(OriginalWord, TargetLanguage);
                     FollowMouse();
