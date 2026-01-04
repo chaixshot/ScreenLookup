@@ -186,6 +186,8 @@
                                         Height="{Binding Height}"
                                         Padding="0"
                                         Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        BorderBrush="{wpfui:ThemeResource AccentTextFillColorSecondaryBrush}"
+                                        BorderThickness="1"
                                         Click="Button_Paragraph"
                                         MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
                                         Opacity="0.2"
