@@ -202,7 +202,16 @@ namespace ScreenLookup.src.windows
             ShowWindow(false);
             ChangeCaptureImage(image);
             if (App.setting.LookupOnImage)
-                CenterWindowOnScreen(startPoint);
+            {
+                Point gotoPoint = endPoint;
+
+                if (endPoint.X > startPoint.X)
+                    gotoPoint.X -= endPoint.X - startPoint.X;
+                if (endPoint.Y > startPoint.Y)
+                    gotoPoint.Y -= endPoint.Y - startPoint.Y;
+
+                CenterWindowOnScreen(gotoPoint);
+            }
             else
                 CenterWindowOnScreen();
 
