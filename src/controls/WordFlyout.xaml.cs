@@ -24,6 +24,7 @@ namespace ScreenLookup.src.controls
         public string originalParagraph = "";
         public double width = double.NaN;
         public bool isOpen = false;
+        public Point MousePosotion;
 
         public WordFlyout()
         {
@@ -135,6 +136,8 @@ namespace ScreenLookup.src.controls
 
         private void OnOpen(Flyout sender, RoutedEventArgs args)
         {
+            MousePosotion = Mouse.GetPosition(this);
+
             ResetDefaultState();
             FollowMouse();
 
@@ -166,9 +169,8 @@ namespace ScreenLookup.src.controls
 
         private void FollowMouse()
         {
-            var MousePos_Point = Mouse.GetPosition(this);
             Matrix matrix = new();
-            matrix.Translate(MousePos_Point.X - 50, MousePos_Point.Y - 40);
+            matrix.Translate(MousePosotion.X - 50, MousePosotion.Y - 40);
             mt.Matrix = matrix;
             flayOut.LayoutTransform = Transform.Identity;
         }
