@@ -1,5 +1,7 @@
 ﻿using ScreenLookup.src.models;
 using System.Windows.Media;
+using Bitmap = System.Drawing.Bitmap;
+using Graphics = System.Drawing.Graphics;
 
 namespace ScreenLookup.src.utils
 {
@@ -75,6 +77,21 @@ namespace ScreenLookup.src.utils
             }
 
             return itemsForCard;
+        }
+
+        public static Bitmap BitmapRescale(Bitmap origin, double scale)
+        {
+            if (scale == 1.0)
+                return origin;
+            else
+            {
+                Bitmap rescaled = new(Convert.ToInt32(origin.Width * scale), Convert.ToInt32(origin.Height * scale), origin.PixelFormat);
+                using (Graphics g = Graphics.FromImage(rescaled))
+                {
+                    g.DrawImage(origin, 0, 0, Convert.ToInt32(origin.Width * scale), Convert.ToInt32(origin.Height * scale));
+                }
+                return rescaled;
+            }
         }
     }
 }

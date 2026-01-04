@@ -180,6 +180,8 @@ namespace ScreenLookup.src.windows
                 return;
             }
 
+            image = Convertor.BitmapRescale(image, 1.0);
+
             if (isRightMouse)
             {
                 ConfigDispatcher = new DispatcherFrame();
@@ -447,7 +449,7 @@ namespace ScreenLookup.src.windows
             [return: MarshalAs(UnmanagedType.Bool)]
             static extern bool DeleteObject([In] IntPtr hObject);
 
-            var handle = bmp.GetHbitmap();
+            nint handle = bmp.GetHbitmap();
             try
             {
                 captureImage.Source = Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
