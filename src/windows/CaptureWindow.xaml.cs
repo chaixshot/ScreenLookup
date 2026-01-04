@@ -153,7 +153,6 @@ namespace ScreenLookup.src.windows
             this.Activate();
         }
 
-
         public async void StartCaptureScreen()
         {
             if (IsCapturing)
@@ -334,22 +333,28 @@ namespace ScreenLookup.src.windows
             this.MaxHeight = screenHeight - 50;
             this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
 
-            if (gotoPoint != new Point())
+            Task.Delay(1).ContinueWith(_ => // Wait for Visible change fade effect
             {
-                this.Left = gotoPoint.X;
-                this.Top = gotoPoint.Y;
-            }
-            else
-            {
-                this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
-                this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
-            }
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (gotoPoint != new Point())
+                    {
+                        this.Left = gotoPoint.X;
+                        this.Top = gotoPoint.Y;
+                    }
+                    else
+                    {
+                        this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
+                        this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
+                    }
 
-            double maxLeft = screenWidth - this.ActualWidth;
-            double maxTop = screenHeight - this.ActualHeight;
+                    double maxLeft = screenWidth - this.ActualWidth;
+                    double maxTop = screenHeight - this.ActualHeight;
 
-            this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
-            this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
+                    this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
+                    this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
+                }));
+            });
         }
 
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
