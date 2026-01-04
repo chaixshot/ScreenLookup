@@ -190,7 +190,7 @@ namespace ScreenLookup.src.windows
                 CenterWindowOnScreen(new()
                 {
                     X = endPoint.X - (this.ActualWidth / 2),
-                    Y = endPoint.Y - (this.ActualHeight * 3.3),
+                    Y = endPoint.Y - (this.ActualHeight * 2),
                 });
                 ShowWindow(true);
                 Dispatcher.PushFrame(ConfigDispatcher);
@@ -335,6 +335,12 @@ namespace ScreenLookup.src.windows
                 this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
                 this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
             }
+
+            double maxLeft = screenWidth - this.ActualWidth;
+            double maxTop = screenHeight - this.ActualHeight;
+
+            this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
+            this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
         }
 
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
