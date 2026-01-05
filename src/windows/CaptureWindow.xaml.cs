@@ -36,6 +36,8 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
             LoadInstalledLanguage();
 
+            if (App.setting.StartInBackground)
+                CreateTesseractEngine();
             Loaded += (s, e) =>
             {
                 ApplicationThemeManager.ApplySystemTheme();
