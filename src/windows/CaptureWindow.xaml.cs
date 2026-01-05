@@ -38,6 +38,11 @@ namespace ScreenLookup.src.windows
 
             if (App.setting.StartInBackground)
                 CreateTesseractEngine();
+
+            captureWindow.Left = -10000;
+            captureWindow.ShowWindow(true);
+            captureWindow.HideWindow();
+
             Loaded += (s, e) =>
             {
                 ApplicationThemeManager.ApplySystemTheme();
@@ -104,6 +109,8 @@ namespace ScreenLookup.src.windows
             translatedCache.Clear();
             TextToSpeech.StopTTS();
             CTS?.Cancel();
+
+            this.Left = -10000;
 
             if (TesseractPage != null && !TesseractPage.IsDisposed)
                 TesseractPage.Dispose();
