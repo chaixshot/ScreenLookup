@@ -44,21 +44,21 @@ namespace ScreenLookup.src.utils
                 }
 
                 // Release sound stream
-                if (audioStreamCTS.TryGetValue(Text, out CancellationTokenSource cancleToken))
+                if (audioStreamCTS.TryGetValue(Text, out CancellationTokenSource cancelToken))
                 {
-                    cancleToken.Cancel();
-                    cancleToken.Dispose();
+                    cancelToken.Cancel();
+                    cancelToken.Dispose();
                     audioStreamCTS.Remove(Text);
                 }
-                cancleToken = new CancellationTokenSource();
+                cancelToken = new CancellationTokenSource();
 
-                audioStreamCTS.TryAdd(Text, cancleToken);
+                audioStreamCTS.TryAdd(Text, cancelToken);
                 _ = Task.Delay(30 * 1000).ContinueWith((task) =>
                 {
                     audioStreamCache[Text].Close();
                     audioStreamCache.Remove(Text);
                     audioStreamCTS.Remove(Text);
-                }, cancleToken.Token);
+                }, cancelToken.Token);
 
                 // Play sound stream
                 audioStream.Position = 0;
