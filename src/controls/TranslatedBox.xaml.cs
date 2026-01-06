@@ -19,9 +19,10 @@ namespace ScreenLookup.src.controls
             ResetDefaultState();
         }
 
-        public void ClearCache()
+        public void Clear()
         {
             translatedCache.Clear();
+            Translated.Text = "";
         }
 
         public async Task TranslateText(string text, int targetLang)

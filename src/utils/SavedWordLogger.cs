@@ -61,7 +61,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static async Task Add(string originalWord, string translatedWord, int sourceLanguage, int sargetLanguage, CancellationToken token = default)
+        public static async void Add(string originalWord, string translatedWord, int sourceLanguage, int sargetLanguage)
         {
             string insertQuery = @"
                 INSERT INTO savedword (Original, Translated, SourceLanguage, TargetLanguage)
@@ -72,49 +72,49 @@ namespace ScreenLookup.src.utils
             command.Parameters.AddWithValue("@Translated", translatedWord);
             command.Parameters.AddWithValue("@SourceLanguage", sourceLanguage);
             command.Parameters.AddWithValue("@TargetLanguage", sargetLanguage);
-            await command.ExecuteNonQueryAsync(token);
+            await command.ExecuteNonQueryAsync();
         }
 
-        public static async Task Remove(string Id, CancellationToken token = default)
+        public static async void Remove(string Id)
         {
             string insertQuery = @"
                  DELETE FROM savedword WHERE Id = @Id or Original = @Id";
 
             using var command = new SqliteCommand(insertQuery, GetConnection());
             command.Parameters.AddWithValue("@Id", Id);
-            await command.ExecuteNonQueryAsync(token);
+            await command.ExecuteNonQueryAsync();
         }
 
-        public static async Task ToggleSaved(string original, string translated, int sourceLanguage, int targetLanguage)
+        public static async void ToggleSaved(string original, string translated, int sourceLanguage, int targetLanguage)
         {
-            bool isExist = SavedWordLogger.IsExist(original).Result;
+            bool isExist = IsExist(original).Result;
 
             if (isExist)
-                await SavedWordLogger.Remove(original);
+                Remove(original);
             else
-                await SavedWordLogger.Add(original, translated, sourceLanguage, targetLanguage);
+                Add(original, translated, sourceLanguage, targetLanguage);
         }
 
-        public static async Task Clear(CancellationToken token = default)
+        public static async void Clear()
         {
             string selectQuery = "DELETE FROM savedword; DELETE FROM sqlite_sequence WHERE NAME='savedword'";
             using var command = new SqliteCommand(selectQuery, GetConnection());
-            await command.ExecuteNonQueryAsync(token);
+            await command.ExecuteNonQueryAsync();
         }
 
-        public static async Task<bool> IsExist(string originalWord, CancellationToken token = default)
+        public static async Task<bool> IsExist(string originalWord)
         {
             string selectQuery = @"
                  SELECT 1 FROM savedword WHERE Original = @Original LIMIT 1";
 
             using var command = new SqliteCommand(selectQuery, GetConnection());
             command.Parameters.AddWithValue("@Original", originalWord);
-            using var reader = await command.ExecuteReaderAsync(token);
-            return await reader.ReadAsync(token);
+            using var reader = await command.ExecuteReaderAsync();
+            return await reader.ReadAsync();
         }
 
         public static async Task<(List<SavedWordEntry>, int)> LoadAsync(
-            int page, int maxRow, string searchText, int searchSourceLanguage, CancellationToken token = default)
+            int page, int maxRow, string searchText, int searchSourceLanguage)
         {
             var history = new List<SavedWordEntry>();
             int totalCount = 0;
@@ -125,7 +125,7 @@ namespace ScreenLookup.src.utils
             {
                 command.Parameters.AddWithValue("@searchText", $"%{searchText}%");
                 command.Parameters.AddWithValue("@searchSourceLanguage", $"{searchSourceLanguage}");
-                totalCount = Convert.ToInt32(await command.ExecuteScalarAsync(token));
+                totalCount = Convert.ToInt32(await command.ExecuteScalarAsync());
             }
 
             int maxPage = Math.Max(1, (int)Math.Ceiling(totalCount / (double)maxRow));
@@ -143,8 +143,8 @@ namespace ScreenLookup.src.utils
                 command.Parameters.AddWithValue("@maxRow", maxRow);
                 command.Parameters.AddWithValue("@offset", offset);
 
-                using var reader = await command.ExecuteReaderAsync(token);
-                while (await reader.ReadAsync(token))
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
                 {
                     history.Add(new SavedWordEntry
                     {
@@ -159,7 +159,7 @@ namespace ScreenLookup.src.utils
             return (history, maxPage);
         }
 
-        public static async Task ExportToCSV(string filePath, CancellationToken token = default)
+        public static async Task ExportToCSV(string filePath)
         {
             var history = new List<SavedWordEntry>();
 
@@ -168,9 +168,9 @@ namespace ScreenLookup.src.utils
                 FROM savedword";
 
             using (var command = new SqliteCommand(selectQuery, GetConnection()))
-            using (var reader = await command.ExecuteReaderAsync(token))
+            using (var reader = await command.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync(token))
+                while (await reader.ReadAsync())
                 {
                     int sourceLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
                     int targetLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
@@ -188,7 +188,7 @@ namespace ScreenLookup.src.utils
 
             using var writer = new StreamWriter(filePath, false, new UTF8Encoding(true));
             using var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-            await csvWriter.WriteRecordsAsync(history, token);
+            await csvWriter.WriteRecordsAsync(history);
         }
     }
 }

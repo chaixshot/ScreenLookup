@@ -197,8 +197,8 @@ namespace ScreenLookup.src.controls
 
         public void ClearCache()
         {
-            translatedWord.ClearCache();
-            translatedParagraph.ClearCache();
+            translatedWord.Clear();
+            translatedParagraph.Clear();
         }
 
         private async void SavedWordButtonStateChange(string word)

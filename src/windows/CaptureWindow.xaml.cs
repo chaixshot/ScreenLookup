@@ -104,8 +104,8 @@ namespace ScreenLookup.src.windows
             ConfigDispatcher?.Continue = false;
             flayOut.IsOpen = false;
             flayOut.ClearCache();
-            imageTranslatedText.ClearCache();
-            translatedText.ClearCache();
+            imageTranslatedText.Clear();
+            translatedText.Clear();
             translatedCache.Clear();
             TextToSpeech.StopTTS();
             CTS?.Cancel();
@@ -259,7 +259,7 @@ namespace ScreenLookup.src.windows
 
                                 if (IsCapturing)
                                 {
-                                    await AddToHistory(ocrText.Text, captureWords, translateResult);
+                                    AddToHistory(ocrText.Text, captureWords, translateResult);
 
                                     if (!App.setting.LookupOnImage)
                                         CenterWindowOnScreen();
@@ -466,9 +466,9 @@ namespace ScreenLookup.src.windows
             AltoText.ItemsSource = items;
         }
 
-        private async Task AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords, string translated)
+        private async void AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords, string translated)
         {
-            await HistoryLogger.Add(original, originalWords, translated, App.setting.SourceLanguage, App.setting.TargetLanguage);
+            HistoryLogger.Add(original, originalWords, translated, App.setting.SourceLanguage, App.setting.TargetLanguage);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
