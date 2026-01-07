@@ -197,7 +197,7 @@
                         </Controls:DataGrid.BorderBrush>
 
                         <Controls:DataGrid.Columns>
-                            <!--  Original words paragraph  -->
+                            <!--  Original message buttons  -->
                             <DataGridTemplateColumn Width="*" Header="Original">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -215,7 +215,7 @@
                                                     VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Click="Button_ParagraphTTS"
+                                                    Click="Button_MessageTTS"
                                                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                                             Filled=False}"
                                                     Tag="{Binding SourceLanguage}"
@@ -228,7 +228,7 @@
                                                     VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Click="Button_ParagraphCopy"
+                                                    Click="Button_MessageCopy"
                                                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                                             Filled=False}"
                                                     Tag="{Binding Original}"
@@ -276,7 +276,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <!--  Translated paragraph  -->
+                            <!--  Translated message  -->
                             <DataGridTemplateColumn Width="*" Header="Translated">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -294,7 +294,7 @@
                                                     VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Click="Button_ParagraphTTS"
+                                                    Click="Button_MessageTTS"
                                                     Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                                             Filled=False}"
                                                     Tag="{Binding TargetLanguage}"
@@ -307,7 +307,7 @@
                                                     VerticalAlignment="Top"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Click="Button_ParagraphCopy"
+                                                    Click="Button_MessageCopy"
                                                     Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                                             Filled=False}"
                                                     Tag="{Binding Translated}"

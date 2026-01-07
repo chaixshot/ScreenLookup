@@ -188,7 +188,7 @@
                                         Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
                                         BorderBrush="{wpfui:ThemeResource AccentTextFillColorSecondaryBrush}"
                                         BorderThickness="1"
-                                        Click="Button_Paragraph"
+                                        Click="Button_Message"
                                         MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
                                         Opacity="0.2"
                                         Tag="{Binding SourceLanguage}"
@@ -259,7 +259,7 @@
                                     ToolTip="Copy" />
 
                                 <local:TranslatedBox
-                                    x:Name="imageTranslatedText"
+                                    x:Name="translationImage"
                                     Grid.Column="2"
                                     Margin="5,0,0,0" />
                             </Grid>
@@ -416,7 +416,7 @@
                         ToolTip="Copy" />
 
                     <local:TranslatedBox
-                        x:Name="translatedText"
+                        x:Name="translationMessage"
                         Grid.Column="2"
                         Margin="5,0,0,0" />
                 </Grid>

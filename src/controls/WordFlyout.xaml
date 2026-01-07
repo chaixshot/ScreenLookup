@@ -110,13 +110,13 @@
                         ToolTip="Copy" />
 
                     <local:TranslatedBox
-                        x:Name="translatedWord"
+                        x:Name="translationWord"
                         Grid.Column="2"
                         Margin="5,0,0,0" />
                 </Grid>
 
                 <StackPanel
-                    x:Name="paragraphSection"
+                    x:Name="messageSection"
                     MaxWidth="{Binding WidthX}"
                     Margin="0,10,0,0">
                     <Controls:NavigationViewItemSeparator />
@@ -136,7 +136,7 @@
                             VerticalAlignment="Top"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="Button_ParagraphOriginalTTS"
+                            Click="Button_OriginalMessageTTS"
                             Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                     Filled=False}"
                             ToolTip="Speak" />
@@ -154,7 +154,7 @@
                             Click="Button_Copy"
                             Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                     Filled=False}"
-                            Tag="{Binding OriginalParagraph}"
+                            Tag="{Binding OriginalMessage}"
                             ToolTip="Copy" />
 
                         <Controls:DynamicScrollViewer
@@ -169,7 +169,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="{Binding FontFace}"
                                     FontSize="{Binding FontSizeS}"
-                                    Text="{Binding OriginalParagraph}"
+                                    Text="{Binding OriginalMessage}"
                                     TextWrapping="Wrap" />
                             </WrapPanel>
                         </Controls:DynamicScrollViewer>
@@ -190,7 +190,7 @@
                             VerticalAlignment="Top"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="Button_ParagraphTranslatedTTS"
+                            Click="Button_TranslatedMessageTTS"
                             Icon="{wpfui:SymbolIcon Symbol=Speaker216,
                                                     Filled=False}"
                             ToolTip="Speak" />
@@ -208,11 +208,11 @@
                             Click="Button_Copy"
                             Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                     Filled=False}"
-                            Tag="{Binding Tag, ElementName=translatedParagraph}"
+                            Tag="{Binding Tag, ElementName=translationMessage}"
                             ToolTip="Copy" />
 
                         <local:TranslatedBox
-                            x:Name="translatedParagraph"
+                            x:Name="translationMessage"
                             Grid.Column="2"
                             Margin="5,0,0,0" />
                     </Grid>

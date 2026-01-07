@@ -10,7 +10,8 @@ namespace ScreenLookup.src.controls
     public partial class TranslatedBox : UserControl
     {
         private readonly Dictionary<string, string> translatedCache = [];
-        private string Text = "";
+        private string Original = "";
+        public string Translated = "";
         private int TargetLanguage;
 
         public TranslatedBox()
@@ -22,34 +23,36 @@ namespace ScreenLookup.src.controls
         public void Clear()
         {
             translatedCache.Clear();
-            Translated.Text = "";
+            ResetDefaultState();
         }
 
-        public async Task TranslateText(string text, int targetLang)
+        public async Task Translate(string text, int targetLang)
         {
             ResetDefaultState();
 
-            Text = text;
+            Original = text;
             TargetLanguage = targetLang;
 
-            if (!string.IsNullOrEmpty(Text))
+            if (!string.IsNullOrEmpty(Original))
             {
-                if (!translatedCache.TryGetValue(Text, out string translateWord))
+                if (!translatedCache.TryGetValue(Original, out string translatedText))
                 {
-                    translateWord = await Translation.GetTranslated(Text, targetLang);
-                    if (!string.IsNullOrEmpty(translateWord))
-                        translatedCache.TryAdd(Text, translateWord);
+                    translatedText = await Translation.GetTranslated(Original, targetLang);
+                    if (!string.IsNullOrEmpty(translatedText))
+                        translatedCache.TryAdd(Original, translatedText);
                 }
 
                 Loading.Visibility = Visibility.Collapsed;
 
-                if (!string.IsNullOrEmpty(translateWord))
+                if (!string.IsNullOrEmpty(translatedText))
                 {
-                    Translated.Text = translateWord;
+                    TranslatedText.Text = translatedText;
                     Refresh.Visibility = Visibility.Collapsed;
+
+                    Translated = translatedText;
                 }
 
-                this.Tag = translateWord;
+                this.Tag = translatedText;
             }
         }
 
@@ -64,16 +67,16 @@ namespace ScreenLookup.src.controls
             Refresh.Width = buttonWidth;
             Refresh.Height = buttonWidth;
 
-            Translated.Text = "";
+            TranslatedText.Text = "";
             Loading.Visibility = Visibility.Visible;
             Refresh.Visibility = Visibility.Visible;
 
             translatedScrollViewer.ScrollToTop();
         }
 
-        private void Refresh_Click(object sender, RoutedEventArgs e)
+        private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            TranslateText(Text, TargetLanguage);
+            await Translate(Original, TargetLanguage);
         }
     }
 }

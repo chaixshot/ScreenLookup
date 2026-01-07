@@ -10,7 +10,7 @@
     <Compile Update="src\controls\ShortcutControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="src\controls\TranslatedBox.xaml.cs">
+    <Compile Update="src\controls\TranslationBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="src\controls\WordFlyout.xaml.cs">

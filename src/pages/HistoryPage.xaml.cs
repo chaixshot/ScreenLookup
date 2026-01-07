@@ -260,7 +260,7 @@ namespace ScreenLookup.src.pages
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            bool isYes = await DialogBox.Show($"Do you want to delete paragraph?", "This operation cannot be undone!", 0);
+            bool isYes = await DialogBox.Show($"Do you want to delete message?", "This operation cannot be undone!", 0);
 
             if (isYes)
             {
@@ -282,13 +282,13 @@ namespace ScreenLookup.src.pages
             flayOut.Show(word, "", sourceLang, targetLang);
         }
 
-        private void Button_ParagraphTTS(object sender, RoutedEventArgs e)
+        private void Button_MessageTTS(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             TextToSpeech.StartTTS(button.Uid.ToString(), Int32.Parse(button.Tag.ToString()));
         }
 
-        private void Button_ParagraphCopy(object sender, RoutedEventArgs e)
+        private void Button_MessageCopy(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
 

@@ -104,8 +104,8 @@ namespace ScreenLookup.src.windows
             ConfigDispatcher?.Continue = false;
             flayOut.IsOpen = false;
             flayOut.ClearCache();
-            imageTranslatedText.Clear();
-            translatedText.Clear();
+            translationImage.Clear();
+            translationMessage.Clear();
             translatedCache.Clear();
             TextToSpeech.StopTTS();
             CTS?.Cancel();
@@ -239,7 +239,7 @@ namespace ScreenLookup.src.windows
                         }
                         else
                         {
-                            // Original full paragraph
+                            // Original full message
                             ocrText.Text = TesseractPage.Text;
 
                             // Original words card
@@ -280,15 +280,15 @@ namespace ScreenLookup.src.windows
                 imageTranslatedExpanderContent.MinHeight = captureImage.Height;
                 imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
 
-                await imageTranslatedText.TranslateText(TesseractPage.Text, App.setting.TargetLanguage);
+                await translationImage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
 
-                return imageTranslatedText.Translated.Text;
+                return translationImage.Translated;
             }
             else
             {
-                await translatedText.TranslateText(TesseractPage.Text, App.setting.TargetLanguage);
+                await translationMessage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
 
-                return translatedText.Translated.Text;
+                return translationMessage.Translated;
             }
         }
 
@@ -534,17 +534,17 @@ namespace ScreenLookup.src.windows
             flayOut.Show(word, "", sourceLang, App.setting.TargetLanguage);
         }
 
-        private void Button_Paragraph(object sender, RoutedEventArgs e)
+        private void Button_Message(object sender, RoutedEventArgs e)
         {
             Button? button = sender as Button;
             string word = button.ToolTip.ToString();
-            string paragraph = button.Uid.ToString();
+            string message = button.Uid.ToString();
             int sourceLang = Int32.Parse(button.Tag.ToString());
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, paragraph, sourceLang, App.setting.TargetLanguage);
+            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage);
 
             CloseTranslatedExpanded();
         }
@@ -556,7 +556,7 @@ namespace ScreenLookup.src.windows
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedText.Translated.Text, App.setting.TargetLanguage, "capture");
+            TextToSpeech.StartTTS(translationMessage.Translated, App.setting.TargetLanguage, "capture");
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)

@@ -21,7 +21,7 @@ namespace ScreenLookup.src.controls
         public int sourceLanguage = 1;
         public int targetLanguage = 1;
         public string originalWord = "";
-        public string originalParagraph = "";
+        public string originalMessage = "";
         public double width = double.NaN;
         public bool isOpen = false;
         public Point MousePosotion;
@@ -77,12 +77,12 @@ namespace ScreenLookup.src.controls
             }
         }
 
-        public string OriginalParagraph
+        public string OriginalMessage
         {
-            get { return originalParagraph; }
+            get { return originalMessage; }
             set
             {
-                originalParagraph = value;
+                originalMessage = value;
                 OnPropertyChanged();
             }
         }
@@ -119,7 +119,7 @@ namespace ScreenLookup.src.controls
             DependencyProperty.Register("IsCapture", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(false));
         #endregion
 
-        public void Show(string word, string paragraph, int sourceLang, int targetLang)
+        public void Show(string word, string message, int sourceLang, int targetLang)
         {
             IsOpen = false;
 
@@ -127,7 +127,7 @@ namespace ScreenLookup.src.controls
             word = char.ToUpper(word.First()) + word[1..].ToLower(); // Capitalizing first letter
 
             OriginalWord = word;
-            OriginalParagraph = paragraph;
+            OriginalMessage = message;
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
@@ -148,15 +148,15 @@ namespace ScreenLookup.src.controls
             {
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    translatedWord.ResetDefaultState();
-                    translatedParagraph.ResetDefaultState();
+                    translationWord.ResetDefaultState();
+                    translationMessage.ResetDefaultState();
 
                     // Word
-                    await translatedWord.TranslateText(OriginalWord, TargetLanguage);
+                    await translationWord.Translate(OriginalWord, TargetLanguage);
                     FollowMouse();
 
-                    // Paragraph
-                    await translatedParagraph.TranslateText(OriginalParagraph, TargetLanguage);
+                    // Message
+                    await translationMessage.Translate(OriginalMessage, TargetLanguage);
                     FollowMouse();
                 }));
             });
@@ -189,16 +189,16 @@ namespace ScreenLookup.src.controls
             wordSave.Width = buttonWidth;
             wordSave.Height = buttonWidth;
 
-            if (string.IsNullOrEmpty(OriginalParagraph))
-                paragraphSection.Visibility = Visibility.Collapsed;
+            if (string.IsNullOrEmpty(OriginalMessage))
+                messageSection.Visibility = Visibility.Collapsed;
             else
-                paragraphSection.Visibility = Visibility.Visible;
+                messageSection.Visibility = Visibility.Visible;
         }
 
         public void ClearCache()
         {
-            translatedWord.Clear();
-            translatedParagraph.Clear();
+            translationWord.Clear();
+            translationMessage.Clear();
         }
 
         private async void SavedWordButtonStateChange(string word)
@@ -216,22 +216,22 @@ namespace ScreenLookup.src.controls
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedWord.Translated.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translationWord.Translated, TargetLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
-        private async void Button_ParagraphOriginalTTS(object sender, RoutedEventArgs e)
+        private async void Button_OriginalMessageTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(OriginalParagraph, SourceLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalMessage, SourceLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
-        private async void Button_ParagraphTranslatedTTS(object sender, RoutedEventArgs e)
+        private async void Button_TranslatedMessageTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translatedParagraph.Translated.Text, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translationMessage.Translated, TargetLanguage, IsCaptureWindow ? "capture" : "main");
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
         {
-            string translated = translatedWord.Translated.Text;
+            string translated = translationWord.Translated;
 
             if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
             {
