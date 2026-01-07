@@ -31,7 +31,7 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            maxRow.SelectionChanged += maxRow_SelectionChanged;
+            maxRow.SelectionChanged += MaxRow_SelectionChanged;
 
             Loaded += (s, e) =>
             {
@@ -124,7 +124,24 @@ namespace ScreenLookup.src.pages
             sourceLanguage.ItemsSource = items;
         }
 
-        private void maxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var comboBox = (sender as ComboBox);
+            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+
+            if (comboBoxItem != null)
+            {
+                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+                SearchSourceLanguage = searchSourceLanguage;
+            }
+            else
+                SearchSourceLanguage = -1;
+
+            LoadSavedWord();
+        }
+
+        #region Control
+        private void MaxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
             maxRowPerPage = Convert.ToInt32(tag);
@@ -225,23 +242,9 @@ namespace ScreenLookup.src.pages
                 }
             }
         }
+        #endregion
 
-        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            var comboBox = (sender as ComboBox);
-            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
-
-            if (comboBoxItem != null)
-            {
-                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                SearchSourceLanguage = searchSourceLanguage;
-            }
-            else
-                SearchSourceLanguage = -1;
-
-            LoadSavedWord();
-        }
-
+        #region Buttons
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
@@ -268,5 +271,6 @@ namespace ScreenLookup.src.pages
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
+        #endregion
     }
 }

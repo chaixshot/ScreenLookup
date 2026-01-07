@@ -61,28 +61,32 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static async void Add(string originalWord, string translatedWord, int sourceLanguage, int sargetLanguage)
+        public static void Add(string originalWord, string translatedWord, int sourceLanguage, int sargetLanguage)
         {
             string insertQuery = @"
                 INSERT INTO savedword (Original, Translated, SourceLanguage, TargetLanguage)
                 VALUES (@Original, @Translated, @SourceLanguage, @TargetLanguage)";
 
             using var command = new SqliteCommand(insertQuery, GetConnection());
+
             command.Parameters.AddWithValue("@Original", originalWord);
             command.Parameters.AddWithValue("@Translated", translatedWord);
             command.Parameters.AddWithValue("@SourceLanguage", sourceLanguage);
             command.Parameters.AddWithValue("@TargetLanguage", sargetLanguage);
-            await command.ExecuteNonQueryAsync();
+
+            command.ExecuteNonQuery();
         }
 
-        public static async void Remove(string Id)
+        public static void Remove(string Id)
         {
             string insertQuery = @"
                  DELETE FROM savedword WHERE Id = @Id or Original = @Id";
 
             using var command = new SqliteCommand(insertQuery, GetConnection());
+
             command.Parameters.AddWithValue("@Id", Id);
-            await command.ExecuteNonQueryAsync();
+
+            command.ExecuteNonQuery();
         }
 
         public static async void ToggleSaved(string original, string translated, int sourceLanguage, int targetLanguage)
@@ -95,11 +99,11 @@ namespace ScreenLookup.src.utils
                 Add(original, translated, sourceLanguage, targetLanguage);
         }
 
-        public static async void Clear()
+        public static void Clear()
         {
             string selectQuery = "DELETE FROM savedword; DELETE FROM sqlite_sequence WHERE NAME='savedword'";
             using var command = new SqliteCommand(selectQuery, GetConnection());
-            await command.ExecuteNonQueryAsync();
+            command.ExecuteNonQuery();
         }
 
         public static async Task<bool> IsExist(string originalWord)

@@ -34,7 +34,7 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            maxRow.SelectionChanged += maxRow_SelectionChanged;
+            maxRow.SelectionChanged += MaxRow_SelectionChanged;
 
             Loaded += (s, e) =>
             {
@@ -138,7 +138,34 @@ namespace ScreenLookup.src.pages
             sourceLanguage.ItemsSource = items;
         }
 
-        private void maxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var comboBox = (sender as ComboBox);
+            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+
+            if (comboBoxItem != null)
+            {
+                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+                SearchSourceLanguage = searchSourceLanguage;
+            }
+            else
+                SearchSourceLanguage = -1;
+
+            LoadHistoryLogger();
+        }
+
+        private void Original_MouseEnter(object sender, MouseEventArgs e)
+        {
+            var parent = sender as Grid;
+            var originalWords = parent.FindName("originalWords") as ItemsControl;
+            var original = parent.FindName("original") as Wpf.Ui.Controls.TextBlock;
+
+            originalWords.Visibility = Visibility.Visible;
+            original.Visibility = Visibility.Collapsed;
+        }
+
+        #region Control
+        private void MaxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
             maxRowPerPage = System.Convert.ToInt32(tag);
@@ -240,19 +267,27 @@ namespace ScreenLookup.src.pages
                 }
             }
         }
+        #endregion
 
-        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+
+        #region Buttons
+
+        private async void ReTranslate_Click(object sender, RoutedEventArgs e)
         {
-            var comboBox = (sender as ComboBox);
-            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+            Button? button = sender as Button;
+            string Id = button.Tag.ToString();
 
-            if (comboBoxItem != null)
+            foreach (var item in HistoryItems)
             {
-                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                SearchSourceLanguage = searchSourceLanguage;
+                if (item.Id == Id)
+                {
+                    string translatedText = await Translation.GetTranslated(item.Original, Int32.Parse(item.TargetLanguage));
+
+                    HistoryLogger.Update(Int32.Parse(item.Id), translatedText);
+
+                    break;
+                }
             }
-            else
-                SearchSourceLanguage = -1;
 
             LoadHistoryLogger();
         }
@@ -295,15 +330,6 @@ namespace ScreenLookup.src.pages
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
-
-        private void original_MouseEnter(object sender, MouseEventArgs e)
-        {
-            var parent = sender as Grid;
-            var originalWords = parent.FindName("originalWords") as ItemsControl;
-            var original = parent.FindName("original") as Wpf.Ui.Controls.TextBlock;
-
-            originalWords.Visibility = Visibility.Visible;
-            original.Visibility = Visibility.Collapsed;
-        }
+        #endregion
     }
 }

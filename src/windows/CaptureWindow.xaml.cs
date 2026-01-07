@@ -28,6 +28,7 @@ namespace ScreenLookup.src.windows
         private DispatcherFrame ConfigDispatcher;
         private Engine TesseractEngine;
         private TesseractOCR.Page TesseractPage;
+        private int LastHistoryID;
 
         public CaptureWindow()
         {
@@ -55,11 +56,16 @@ namespace ScreenLookup.src.windows
                 {
                     if (flayOut.IsOpen)
                         flayOut.IsOpen = false;
-                    else if (imageTranslatedExpander.IsExpanded)
+                    else if (imageTranslationExpander.IsExpanded)
                         CloseTranslatedExpanded();
                     else
                         HideWindow();
                 }
+            };
+
+            imageTranslationExpander.Expanded += async (s, e) =>
+            {
+                TranlsateImageExpander();
             };
         }
 
@@ -139,7 +145,7 @@ namespace ScreenLookup.src.windows
                 {
                     captureCard.Visibility = Visibility.Visible;
                     captureCardButton.Visibility = Visibility.Visible;
-                    imageTranslatedExpander.Visibility = Visibility.Visible;
+                    imageTranslationExpander.Visibility = Visibility.Visible;
                     originalCard.Visibility = Visibility.Collapsed;
                     translatedCard.Visibility = Visibility.Collapsed;
                 }
@@ -150,7 +156,7 @@ namespace ScreenLookup.src.windows
                     else
                         captureCard.Visibility = Visibility.Collapsed;
                     captureCardButton.Visibility = Visibility.Collapsed;
-                    imageTranslatedExpander.Visibility = Visibility.Collapsed;
+                    imageTranslationExpander.Visibility = Visibility.Collapsed;
                     originalCard.Visibility = Visibility.Visible;
                     translatedCard.Visibility = Visibility.Visible;
                 }
@@ -246,21 +252,20 @@ namespace ScreenLookup.src.windows
                             List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage), CTS.Token);
                             if (IsCapturing)
                             {
+                                LastHistoryID = await AddToHistory(ocrText.Text, captureWords);
+
                                 if (App.setting.LookupOnImage)
                                     TesseractAltoText(TesseractPage);
                                 else
                                 {
                                     originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
                                     originalWordsLoading.Visibility = Visibility.Collapsed;
-                                }
 
-                                // Translate card
-                                string translateResult = await TranlsateOriginal();
+                                    TranlsateMessage();
+                                }
 
                                 if (IsCapturing)
                                 {
-                                    AddToHistory(ocrText.Text, captureWords, translateResult);
-
                                     if (!App.setting.LookupOnImage)
                                         CenterWindowOnScreen();
                                 }
@@ -273,23 +278,21 @@ namespace ScreenLookup.src.windows
             }, CTS.Token);
         }
 
-        private async Task<string> TranlsateOriginal()
+        private async void TranlsateMessage()
         {
-            if (App.setting.LookupOnImage)
-            {
-                imageTranslatedExpanderContent.MinHeight = captureImage.Height;
-                imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
+            await translationMessage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
 
-                await translationImage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
+            HistoryLogger.Update(LastHistoryID, translationMessage.Translated);
+        }
 
-                return translationImage.Translated;
-            }
-            else
-            {
-                await translationMessage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
+        private async Task TranlsateImageExpander()
+        {
+            imageTranslatedExpanderContent.MinHeight = captureImage.Height;
+            imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
 
-                return translationMessage.Translated;
-            }
+            await translationImage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
+
+            HistoryLogger.Update(LastHistoryID, translationImage.Translated);
         }
 
         private void ResetDefaultState()
@@ -310,7 +313,7 @@ namespace ScreenLookup.src.windows
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
             captureCardButton.Visibility = Visibility.Collapsed;
-            imageTranslatedExpander.Visibility = Visibility.Collapsed;
+            imageTranslationExpander.Visibility = Visibility.Collapsed;
             originalCard.Visibility = Visibility.Collapsed;
             translatedCard.Visibility = Visibility.Collapsed;
 
@@ -466,9 +469,9 @@ namespace ScreenLookup.src.windows
             AltoText.ItemsSource = items;
         }
 
-        private async void AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords, string translated)
+        private async Task<int> AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords)
         {
-            HistoryLogger.Add(original, originalWords, translated, App.setting.SourceLanguage, App.setting.TargetLanguage);
+            return await HistoryLogger.Add(original, originalWords, "", App.setting.SourceLanguage, App.setting.TargetLanguage);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
@@ -510,8 +513,8 @@ namespace ScreenLookup.src.windows
 
         private void CloseTranslatedExpanded()
         {
-            if (imageTranslatedExpander.IsExpanded)
-                imageTranslatedExpander.IsExpanded = false;
+            if (imageTranslationExpander.IsExpanded)
+                imageTranslationExpander.IsExpanded = false;
         }
 
         #region button

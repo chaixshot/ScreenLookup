@@ -201,7 +201,7 @@
                             <DataGridTemplateColumn Width="*" Header="Original">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Grid MouseEnter="original_MouseEnter">
+                                        <Grid MouseEnter="Original_MouseEnter">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
@@ -299,6 +299,7 @@
                                                                             Filled=False}"
                                                     Tag="{Binding TargetLanguage}"
                                                     ToolTip="Speak" />
+
                                                 <Controls:Button
                                                     Width="20"
                                                     Height="20"
@@ -313,11 +314,27 @@
                                                     Tag="{Binding Translated}"
                                                     ToolTip="Copy" />
                                             </StackPanel>
-                                            <Controls:TextBlock
-                                                Grid.Column="1"
-                                                Margin="15,0,0,0"
-                                                Text="{Binding Translated}"
-                                                TextWrapping="Wrap" />
+
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                <Controls:TextBlock
+                                                    Margin="15,0,0,0"
+                                                    Text="{Binding Translated}"
+                                                    TextWrapping="Wrap" />
+                                                <Controls:Button
+                                                    Width="30"
+                                                    Height="30"
+                                                    Margin="5,0,0,0"
+                                                    Padding="0"
+                                                    VerticalAlignment="Top"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Click="ReTranslate_Click"
+                                                    Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
+                                                                            Filled=False}"
+                                                    Tag="{Binding Id}"
+                                                    ToolTip="Translate"
+                                                    Visibility="{Binding ReTranslate}" />
+                                            </StackPanel>
                                         </Grid>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

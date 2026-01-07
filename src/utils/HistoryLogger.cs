@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Media;
 
 namespace ScreenLookup.src.utils
@@ -64,38 +65,58 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static async void Add(string originalWord, List<CaptureWordsSimplifiedEntry> originalWords, string translatedWord, int sourceLanguage, int sargetLanguage)
+        public static async Task<int> Add(string Original, List<CaptureWordsSimplifiedEntry> OriginalWords, string Translated, int SourceLanguage, int TargetLanguage)
         {
-            var originalWordsJson = JsonSerializer.Serialize(originalWords);
+            var originalWordsJson = JsonSerializer.Serialize(OriginalWords);
 
             string insertQuery = @"
                 INSERT INTO history (Original, OriginalWords, Translated, SourceLanguage, TargetLanguage)
-                VALUES (@Original, @OriginalWords, @Translated, @SourceLanguage, @TargetLanguage)";
+                VALUES (@Original, @OriginalWords, @Translated, @SourceLanguage, @TargetLanguage);
+
+                SELECT last_insert_rowid();";
 
             using var command = new SqliteCommand(insertQuery, GetConnection());
-            command.Parameters.AddWithValue("@Original", originalWord);
+
+            command.Parameters.AddWithValue("@Original", Original);
             command.Parameters.AddWithValue("@OriginalWords", originalWordsJson);
-            command.Parameters.AddWithValue("@Translated", translatedWord);
-            command.Parameters.AddWithValue("@SourceLanguage", sourceLanguage);
-            command.Parameters.AddWithValue("@TargetLanguage", sargetLanguage);
-            await command.ExecuteNonQueryAsync();
+            command.Parameters.AddWithValue("@Translated", Translated);
+            command.Parameters.AddWithValue("@SourceLanguage", SourceLanguage);
+            command.Parameters.AddWithValue("@TargetLanguage", TargetLanguage);
+
+            var ID = await command.ExecuteScalarAsync();
+            return Int32.Parse(ID.ToString());
         }
 
-        public static async void Remove(string Id)
+        public static void Remove(string Id)
         {
             string insertQuery = @"
                  DELETE FROM history WHERE Id = @Id";
 
             using var command = new SqliteCommand(insertQuery, GetConnection());
+
             command.Parameters.AddWithValue("@Id", Id);
-            await command.ExecuteNonQueryAsync();
+
+            command.ExecuteNonQuery();
         }
 
-        public static async void Clear()
+        public static void Update(int Id, string Translated)
+        {
+            string insertQuery = @"
+                  UPDATE history SET Translated = @Translated WHERE Id = @Id";
+
+            using var command = new SqliteCommand(insertQuery, GetConnection());
+
+            command.Parameters.AddWithValue("@Id", Id);
+            command.Parameters.AddWithValue("@Translated", Translated);
+
+            command.ExecuteNonQuery();
+        }
+
+        public static void Clear()
         {
             string selectQuery = "DELETE FROM history; DELETE FROM sqlite_sequence WHERE NAME='history'";
             using var command = new SqliteCommand(selectQuery, GetConnection());
-            await command.ExecuteNonQueryAsync();
+            command.ExecuteNonQuery();
         }
 
         public static async Task<bool> IsExist(string originalWord)
@@ -142,20 +163,23 @@ namespace ScreenLookup.src.utils
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    string originalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
-                    string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
-                    string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
-                    List<CaptureWordsSimplifiedEntry> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsSimplifiedEntry>>(originalWords);
-                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(sourceLanguage), Int32.Parse(targetLanguage), App.mainWindow.Width);
+                    string OriginalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
+                    string SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
+                    string TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
+                    string Translated = reader.GetString(reader.GetOrdinal("Translated"));
+
+                    List<CaptureWordsSimplifiedEntry> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsSimplifiedEntry>>(OriginalWords);
+                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(SourceLanguage), Int32.Parse(TargetLanguage), App.mainWindow.Width);
 
                     history.Add(new HistoryLoggerPageEntry
                     {
                         Id = reader.GetString(reader.GetOrdinal("Id")),
                         Original = reader.GetString(reader.GetOrdinal("Original")),
                         OriginalWords = captureWords,
-                        Translated = reader.GetString(reader.GetOrdinal("Translated")),
-                        SourceLanguage = sourceLanguage,
-                        TargetLanguage = targetLanguage,
+                        ReTranslate = string.IsNullOrEmpty(Translated) ? Visibility.Visible : Visibility.Collapsed,
+                        Translated = Translated,
+                        SourceLanguage = SourceLanguage,
+                        TargetLanguage = TargetLanguage,
                         FontSizeS = App.setting.FontSizeS,
                         FontFace = new FontFamily(App.setting.FontFace),
                     });

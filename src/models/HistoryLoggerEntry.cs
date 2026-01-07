@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Media;
 
 namespace ScreenLookup.src.models
 {
@@ -25,6 +26,7 @@ namespace ScreenLookup.src.models
         public required string Id { get; set; }
         public required string Original { get; set; }
         public required List<CaptureWordsEntry> OriginalWords { get; set; }
+        public required Visibility ReTranslate { get; set; }
         public required string Translated { get; set; }
         public required string SourceLanguage { get; set; }
         public required string TargetLanguage { get; set; }

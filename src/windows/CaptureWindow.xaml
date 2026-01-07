@@ -207,7 +207,7 @@
                     </Grid>
 
                     <wpfui:CardExpander
-                        x:Name="imageTranslatedExpander"
+                        x:Name="imageTranslationExpander"
                         Grid.ColumnSpan="2"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
