@@ -43,13 +43,13 @@ namespace ScreenLookup.src.controls
                 {
                     translatedText = await Translation.GetTranslated(Original, sourceLang, targetLang);
 
-                    if (token.IsCancellationRequested)
-                        return;
-
                     if (string.IsNullOrEmpty(translatedText))
                         Refresh.Visibility = Visibility.Visible;
                     else
                         translatedCache.TryAdd(Original, translatedText);
+
+                    if (token.IsCancellationRequested)
+                        return;
                 }
 
                 Loading.Visibility = Visibility.Collapsed;
