@@ -44,6 +44,48 @@
                 Grid.Row="5"
                 IsCaptureWindow="True" />
 
+            <StackPanel Orientation="Horizontal">
+                <Controls:Button
+                    x:Name="Contol_RotateLeft"
+                    Margin="0,0,2,0"
+                    Click="RotateLeft_Click"
+                    Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
+                                            Filled=True}"
+                    ToolTip="Rotate Left" />
+
+                <Controls:Button
+                    x:Name="Contol_RotateRight"
+                    Margin="0,0,2,0"
+                    Click="RotateRight_Click"
+                    Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
+                                            Filled=True}"
+                    ToolTip="Rotate Right" />
+
+                <Controls:Button
+                    x:Name="Contol_Zoom"
+                    Margin="0,0,2,0"
+                    Click="Zoom_Click"
+                    Icon="{wpfui:SymbolIcon Symbol=Add24,
+                                            Filled=True}"
+                    ToolTip="Zoom" />
+
+                <Controls:Button
+                    x:Name="Contol_Undo"
+                    Margin="5,0,2,0"
+                    Click="Undo_Click"
+                    Icon="{wpfui:SymbolIcon Symbol=ArrowUndo24,
+                                            Filled=True}"
+                    ToolTip="Undo" />
+
+                <Controls:Button
+                    x:Name="Contol_Confirm"
+                    Margin="0,0,2,0"
+                    Click="Confirm_Click"
+                    Icon="{wpfui:SymbolIcon Symbol=Checkmark24,
+                                            Filled=True}"
+                    ToolTip="Confirm" />
+            </StackPanel>
+
             <Controls:Button
                 x:Name="TopmostButton"
                 Margin="0,5,0,5"

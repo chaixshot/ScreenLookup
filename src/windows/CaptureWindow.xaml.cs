@@ -29,6 +29,8 @@ namespace ScreenLookup.src.windows
         private Engine TesseractEngine;
         private TesseractOCR.Page TesseractPage;
         private int LastHistoryID;
+        private Bitmap CapturedImage;
+        private Bitmap CapturedImageEdited;
 
         public CaptureWindow()
         {
@@ -118,9 +120,6 @@ namespace ScreenLookup.src.windows
 
             this.Left = -10000;
 
-            if (TesseractPage != null && !TesseractPage.IsDisposed)
-                TesseractPage.Dispose();
-
             this.Hide();
         }
 
@@ -188,20 +187,23 @@ namespace ScreenLookup.src.windows
 
             // Screenshot
             (Bitmap? image, bool isRightMouse, Point startPoint, Point endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
+
             if (image == null)
             {
                 IsCapturing = false;
                 return;
             }
 
-            image = Convertor.BitmapRescale(image, 1.0);
+            CapturedImage = image;
+            CapturedImageEdited = CapturedImage;
 
             if (isRightMouse)
             {
                 ConfigDispatcher = new DispatcherFrame();
 
                 SelectSourceLanguageComboBox();
-                CenterWindowOnScreen(new()
+                SetWindowSize();
+                SetWindowPosition(new()
                 {
                     X = endPoint.X - (this.ActualWidth / 2),
                     Y = endPoint.Y - (this.ActualHeight * 2),
@@ -214,7 +216,7 @@ namespace ScreenLookup.src.windows
             }
 
             ShowWindow(false);
-            ChangeCaptureImage(image);
+            ChangeCaptureImage(CapturedImageEdited);
             if (App.setting.LookupOnImage)
             {
                 Point gotoPoint = endPoint;
@@ -224,24 +226,36 @@ namespace ScreenLookup.src.windows
                 if (endPoint.Y > startPoint.Y)
                     gotoPoint.Y -= endPoint.Y - startPoint.Y;
 
-                CenterWindowOnScreen(gotoPoint);
+                SetWindowSize();
+                SetWindowPosition(gotoPoint);
             }
             else
-                CenterWindowOnScreen();
+            {
+                SetWindowSize();
+                SetWindowPosition();
+            }
+
+            ProcessImage();
+        }
+
+        private void ProcessImage()
+        {
+            if (TesseractPage != null && !TesseractPage.IsDisposed)
+                TesseractPage.Dispose();
 
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(image), CTS.Token);
+                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(CapturedImageEdited), CTS.Token);
 
                     if (IsCapturing)
                     {
                         if (string.IsNullOrWhiteSpace(TesseractPage.Text))
                         {
-                            ResetDefaultState();
-                            captureCard.Visibility = Visibility.Visible;
+                            originalCard.Visibility = Visibility.Collapsed;
+                            translatedCard.Visibility = Visibility.Collapsed;
                         }
                         else
                         {
@@ -260,6 +274,8 @@ namespace ScreenLookup.src.windows
                                 {
                                     originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
                                     originalWordsLoading.Visibility = Visibility.Collapsed;
+                                    originalCard.Visibility = Visibility.Visible;
+                                    translatedCard.Visibility = Visibility.Visible;
 
                                     TranlsateMessage();
                                 }
@@ -267,7 +283,10 @@ namespace ScreenLookup.src.windows
                                 if (IsCapturing)
                                 {
                                     if (!App.setting.LookupOnImage)
-                                        CenterWindowOnScreen();
+                                    {
+                                        SetWindowSize();
+                                        SetWindowPosition();
+                                    }
                                 }
                             }
                         }
@@ -318,6 +337,8 @@ namespace ScreenLookup.src.windows
             translatedCard.Visibility = Visibility.Collapsed;
 
             originalWordsLoading.Visibility = Visibility.Visible;
+            Contol_Undo.Visibility = Visibility.Collapsed;
+            Contol_Confirm.Visibility = Visibility.Collapsed;
 
             AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
@@ -330,7 +351,7 @@ namespace ScreenLookup.src.windows
             CloseTranslatedExpanded();
         }
 
-        private void CenterWindowOnScreen(Point gotoPoint = new())
+        private void SetWindowSize()
         {
             double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
             double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
@@ -344,6 +365,12 @@ namespace ScreenLookup.src.windows
             this.MaxWidth = screenWidth - 50;
             this.MaxHeight = screenHeight - 50;
             this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
+        }
+
+        private void SetWindowPosition(Point gotoPoint = new())
+        {
+            double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
+            double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
 
             Task.Delay(1).ContinueWith(_ => // Wait for Visible change fade effect
             {
@@ -573,6 +600,72 @@ namespace ScreenLookup.src.windows
         private void captureWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             CloseTranslatedExpanded();
+        }
+        #endregion
+
+        #region Top control buttons
+        private void Undo_Click(object sender, RoutedEventArgs e)
+        {
+            AltoText.ItemsSource = null;
+
+            Contol_Confirm.Visibility = Visibility.Visible;
+
+            CapturedImageEdited = CapturedImage;
+
+            ChangeCaptureImage(CapturedImageEdited);
+            SetWindowSize();
+        }
+
+        private void Confirm_Click(object sender, RoutedEventArgs e)
+        {
+            IsCapturing = true;
+            if (CapturedImageEdited == CapturedImage)
+                Contol_Undo.Visibility = Visibility.Collapsed;
+            Contol_Confirm.Visibility = Visibility.Collapsed;
+
+            ProcessImage();
+        }
+
+        private void RotateLeft_Click(object sender, RoutedEventArgs e)
+        {
+            AltoText.ItemsSource = null;
+
+            Contol_Undo.Visibility = Visibility.Visible;
+            Contol_Confirm.Visibility = Visibility.Visible;
+
+            CapturedImageEdited = Convertor.BitmapRotate(CapturedImageEdited, -2);
+
+            ChangeCaptureImage(CapturedImageEdited);
+
+            SetWindowSize();
+        }
+
+        private void RotateRight_Click(object sender, RoutedEventArgs e)
+        {
+            AltoText.ItemsSource = null;
+
+            Contol_Undo.Visibility = Visibility.Visible;
+            Contol_Confirm.Visibility = Visibility.Visible;
+
+            CapturedImageEdited = Convertor.BitmapRotate(CapturedImageEdited, 2);
+
+            ChangeCaptureImage(CapturedImageEdited);
+
+            SetWindowSize();
+        }
+
+        private void Zoom_Click(object sender, RoutedEventArgs e)
+        {
+            AltoText.ItemsSource = null;
+
+            Contol_Undo.Visibility = Visibility.Visible;
+            Contol_Confirm.Visibility = Visibility.Visible;
+
+            CapturedImageEdited = Convertor.BitmapRescale(CapturedImageEdited, 1.1);
+
+            ChangeCaptureImage(CapturedImageEdited);
+
+            SetWindowSize();
         }
         #endregion
 
