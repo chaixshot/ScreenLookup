@@ -43,9 +43,7 @@ namespace ScreenLookup.src.controls
                 {
                     translatedText = await Translation.GetTranslated(Original, sourceLang, targetLang);
 
-                    if (string.IsNullOrEmpty(translatedText))
-                        Refresh.Visibility = Visibility.Visible;
-                    else
+                    if (!string.IsNullOrEmpty(translatedText))
                         translatedCache.TryAdd(Original, translatedText);
 
                     if (token.IsCancellationRequested)
@@ -54,7 +52,9 @@ namespace ScreenLookup.src.controls
 
                 Loading.Visibility = Visibility.Collapsed;
 
-                if (!string.IsNullOrEmpty(translatedText))
+                if (string.IsNullOrEmpty(translatedText))
+                    Refresh.Visibility = Visibility.Visible;
+                else
                 {
                     TranslatedText.Text = translatedText;
                     TranslatedText.Visibility = Visibility.Visible;
