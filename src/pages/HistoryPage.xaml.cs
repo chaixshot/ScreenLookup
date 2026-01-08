@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 
@@ -81,7 +82,7 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        public void LoadHistoryLogger()
+        private void LoadHistoryLogger()
         {
             ThreadPool.QueueUserWorkItem(_ =>
             {
@@ -104,6 +105,15 @@ namespace ScreenLookup.src.pages
                     }
                 }));
             });
+        }
+
+        private void ScrollTop()
+        {
+            if (VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
+            {
+                var scrollViewer = border.Child as ScrollViewer;
+                scrollViewer.ScrollToTop();
+            }
         }
 
         private void LoadSourceLanguageItems()
@@ -171,6 +181,7 @@ namespace ScreenLookup.src.pages
             maxRowPerPage = System.Convert.ToInt32(tag);
 
             LoadHistoryLogger();
+            ScrollTop();
         }
 
         private async void PageDown_click(object sender, RoutedEventArgs e)
@@ -178,6 +189,7 @@ namespace ScreenLookup.src.pages
             if (currentPage - 1 >= 1)
                 currentPage--;
             LoadHistoryLogger();
+            ScrollTop();
         }
 
         private async void PageUp_click(object sender, RoutedEventArgs e)
@@ -185,6 +197,7 @@ namespace ScreenLookup.src.pages
             if (currentPage < maxPage)
                 currentPage++;
             LoadHistoryLogger();
+            ScrollTop();
         }
 
         private async void Clear_click(object sender, RoutedEventArgs e)
@@ -202,6 +215,7 @@ namespace ScreenLookup.src.pages
         private void Refresh_click(object sender, RoutedEventArgs e)
         {
             LoadHistoryLogger();
+            ScrollTop();
             LoadSourceLanguageItems();
         }
 
@@ -252,6 +266,7 @@ namespace ScreenLookup.src.pages
                 currentPage = 1;
             }
             LoadHistoryLogger();
+            ScrollTop();
         }
 
         private async void HistorySearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -264,6 +279,7 @@ namespace ScreenLookup.src.pages
                     SearchText = string.Empty;
                     currentPage = searchPage;
                     LoadHistoryLogger();
+                    ScrollTop();
                 }
             }
         }
