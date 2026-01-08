@@ -46,7 +46,9 @@ namespace ScreenLookup.src.controls
                     if (token.IsCancellationRequested)
                         return;
 
-                    if (!string.IsNullOrEmpty(translatedText))
+                    if (string.IsNullOrEmpty(translatedText))
+                        Refresh.Visibility = Visibility.Visible;
+                    else
                         translatedCache.TryAdd(Original, translatedText);
                 }
 
@@ -55,6 +57,7 @@ namespace ScreenLookup.src.controls
                 if (!string.IsNullOrEmpty(translatedText))
                 {
                     TranslatedText.Text = translatedText;
+                    TranslatedText.Visibility = Visibility.Visible;
                     Refresh.Visibility = Visibility.Collapsed;
 
                     Translated = translatedText;
@@ -76,14 +79,18 @@ namespace ScreenLookup.src.controls
             Refresh.Height = buttonWidth;
 
             TranslatedText.Text = "";
+            TranslatedText.Visibility = Visibility.Collapsed;
             Loading.Visibility = Visibility.Visible;
-            Refresh.Visibility = Visibility.Visible;
+            Refresh.Visibility = Visibility.Collapsed;
 
             translatedScrollViewer.ScrollToTop();
         }
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
+            TranslatesCancelToken?.Cancel();
+            TranslatesCancelToken = new();
+
             await Translate(Original, SourceLanguage, TargetLanguage, TranslatesCancelToken);
         }
     }
