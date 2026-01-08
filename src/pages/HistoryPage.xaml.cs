@@ -310,7 +310,8 @@ namespace ScreenLookup.src.pages
                 }
             }
 
-            LoadHistoryLogger();
+            if (this.IsLoaded)
+                LoadHistoryLogger();
         }
 
         private async void Delete_click(object sender, RoutedEventArgs e)
