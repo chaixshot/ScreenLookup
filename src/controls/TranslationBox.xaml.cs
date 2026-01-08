@@ -12,7 +12,9 @@ namespace ScreenLookup.src.controls
         private readonly Dictionary<string, string> translatedCache = [];
         private string Original = "";
         public string Translated = "";
+        private int SourceLanguage;
         private int TargetLanguage;
+        private static CancellationTokenSource TranslatesCancelToken;
 
         public TranslatedBox()
         {
@@ -26,18 +28,24 @@ namespace ScreenLookup.src.controls
             ResetDefaultState();
         }
 
-        public async Task Translate(string text, int targetLang)
+        public async Task Translate(string text, int sourceLang, int targetLang, CancellationTokenSource token)
         {
             ResetDefaultState();
 
             Original = text;
+            SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
+            TranslatesCancelToken = token;
 
             if (!string.IsNullOrEmpty(Original))
             {
                 if (!translatedCache.TryGetValue(Original, out string translatedText))
                 {
-                    translatedText = await Translation.GetTranslated(Original, targetLang);
+                    translatedText = await Translation.GetTranslated(Original, sourceLang, targetLang);
+
+                    if (token.IsCancellationRequested)
+                        return;
+
                     if (!string.IsNullOrEmpty(translatedText))
                         translatedCache.TryAdd(Original, translatedText);
                 }
@@ -76,7 +84,7 @@ namespace ScreenLookup.src.controls
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            await Translate(Original, TargetLanguage);
+            await Translate(Original, SourceLanguage, TargetLanguage, TranslatesCancelToken);
         }
     }
 }

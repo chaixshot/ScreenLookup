@@ -299,7 +299,7 @@ namespace ScreenLookup.src.pages
             {
                 if (item.Id == Id)
                 {
-                    string translatedText = await Translation.GetTranslated(item.Original, Int32.Parse(item.TargetLanguage));
+                    string translatedText = await Translation.GetTranslated(item.Original, Int32.Parse(item.SourceLanguage), Int32.Parse(item.TargetLanguage));
 
                     if (string.IsNullOrEmpty(translatedText))
                         button.Visibility = Visibility.Visible;

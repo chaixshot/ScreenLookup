@@ -22,7 +22,6 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
-        private static CancellationTokenSource CTS;
         private bool IsCapturing = false;
         private readonly Dictionary<string, string> translatedCache = [];
         private DispatcherFrame ConfigDispatcher;
@@ -31,6 +30,8 @@ namespace ScreenLookup.src.windows
         private int LastHistoryID;
         private Bitmap CapturedImage;
         private Bitmap CapturedImageEdited;
+        private static CancellationTokenSource ProcessImageCancelToken;
+        private static CancellationTokenSource TranslatesCancelToken;
 
         public CaptureWindow()
         {
@@ -116,7 +117,8 @@ namespace ScreenLookup.src.windows
             translationMessage.Clear();
             translatedCache.Clear();
             TextToSpeech.StopTTS();
-            CTS?.Cancel();
+            ProcessImageCancelToken?.Cancel();
+            TranslatesCancelToken?.Cancel();
 
             this.Left = -10000;
 
@@ -182,7 +184,8 @@ namespace ScreenLookup.src.windows
             }
 
             IsCapturing = true;
-            CTS = new();
+            ProcessImageCancelToken = new();
+            TranslatesCancelToken = new();
             ResetDefaultState();
 
             // Screenshot
@@ -248,7 +251,7 @@ namespace ScreenLookup.src.windows
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(CapturedImageEdited), CTS.Token);
+                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(CapturedImageEdited), ProcessImageCancelToken.Token);
 
                     if (IsCapturing)
                     {
@@ -263,7 +266,7 @@ namespace ScreenLookup.src.windows
                             ocrText.Text = TesseractPage.Text;
 
                             // Original words card
-                            List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage), CTS.Token);
+                            List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage), ProcessImageCancelToken.Token);
                             if (IsCapturing)
                             {
                                 LastHistoryID = await AddToHistory(ocrText.Text, captureWords);
@@ -294,12 +297,12 @@ namespace ScreenLookup.src.windows
                         IsCapturing = false;
                     }
                 }));
-            }, CTS.Token);
+            }, ProcessImageCancelToken.Token);
         }
 
         private async void TranlsateMessage()
         {
-            await translationMessage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
+            await translationMessage.Translate(TesseractPage.Text, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
 
             HistoryLogger.Update(LastHistoryID, translationMessage.Translated);
         }
@@ -309,7 +312,7 @@ namespace ScreenLookup.src.windows
             imageTranslatedExpanderContent.MinHeight = captureImage.Height;
             imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
 
-            await translationImage.Translate(TesseractPage.Text, App.setting.TargetLanguage);
+            await translationImage.Translate(TesseractPage.Text, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
 
             HistoryLogger.Update(LastHistoryID, translationImage.Translated);
         }

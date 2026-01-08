@@ -25,6 +25,7 @@ namespace ScreenLookup.src.controls
         public double width = double.NaN;
         public bool isOpen = false;
         public Point MousePosotion;
+        private static CancellationTokenSource TranslatesCancelToken;
 
         public WordFlyout()
         {
@@ -151,12 +152,15 @@ namespace ScreenLookup.src.controls
                     translationWord.ResetDefaultState();
                     translationMessage.ResetDefaultState();
 
+                    TranslatesCancelToken?.Cancel();
+                    TranslatesCancelToken = new();
+
                     // Word
-                    await translationWord.Translate(OriginalWord, TargetLanguage);
+                    await translationWord.Translate(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
                     FollowMouse();
 
                     // Message
-                    await translationMessage.Translate(OriginalMessage, TargetLanguage);
+                    await translationMessage.Translate(OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken);
                     FollowMouse();
                 }));
             });

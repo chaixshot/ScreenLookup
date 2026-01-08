@@ -6,7 +6,7 @@ namespace ScreenLookup.src.utils
 {
     class TextToSpeech
     {
-        private static CancellationTokenSource CTS;
+        private static CancellationTokenSource PlayTTSCancelToken;
         private static readonly Dictionary<string, Stream> audioStreamCache = [];
         private static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
         public static dynamic TextToSpeechProvider;
@@ -92,10 +92,10 @@ namespace ScreenLookup.src.utils
         public static async void StartTTS(string Text, int langID, string window = "main")
         {
             StopTTS();
-            CTS = new();
+            PlayTTSCancelToken = new();
 
             var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
-            string errorMsg = await Task.Run(() => PlayTTS(Text, langID, CTS));
+            string errorMsg = await Task.Run(() => PlayTTS(Text, langID, PlayTTSCancelToken));
 
             if (!string.IsNullOrEmpty(errorMsg))
             {
@@ -109,7 +109,7 @@ namespace ScreenLookup.src.utils
 
         public static void StopTTS()
         {
-            CTS?.Cancel();
+            PlayTTSCancelToken?.Cancel();
         }
     }
 }

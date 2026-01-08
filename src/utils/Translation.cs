@@ -20,7 +20,7 @@
             // Translated text
             try
             {
-                var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLanguage));
+                var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLang), LanguageList.GetTesseractTagFromID(sourceLang));
                 return translateResult.Translation;
             }
             catch (Exception ex)
