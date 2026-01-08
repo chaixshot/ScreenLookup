@@ -9,6 +9,13 @@ namespace ScreenLookup.src.utils
         private static readonly Dictionary<string, string> displayNative = [];
         private static readonly Dictionary<string, string> displayName = [];
 
+        /// <summary>
+        /// Removes known Tesseract tag suffixes from the specified tag string.
+        /// </summary>
+        /// <remarks>This method is useful for normalizing Tesseract tag names by stripping common variant
+        /// suffixes. The comparison is case-sensitive.</remarks>
+        /// <param name="tesseractTag">The tag string from which to remove Tesseract-specific suffixes. Cannot be null.</param>
+        /// <returns>A string with the '_frak', '_old', '_latn', and '_vert' suffixes removed from the original tag, if present.</returns>
         public static string ClearTesseractTag(string tesseractTag)
         {
             tesseractTag = tesseractTag.Replace("_frak", "");
@@ -19,6 +26,11 @@ namespace ScreenLookup.src.utils
             return tesseractTag;
         }
 
+        /// <summary>
+        /// Get Tesseract language tag from language Tesseract file name
+        /// </summary>
+        /// <param name="textName"></param>
+        /// <returns>Tesseract tag (tha, eng, chi_sim)</returns>
         public static string GetTesseractTagFromLanguageTesseract(string textName)
         {
             string tesseractTag = textName.Split('.').First();
@@ -26,6 +38,11 @@ namespace ScreenLookup.src.utils
             return tesseractTag;
         }
 
+        /// <summary>
+        /// Get Tesseract language tag from language ID
+        /// </summary>
+        /// <param name="langID"></param>
+        /// <returns>Tesseract tag (tha, eng, chi_sim)</returns>
         public static string GetTesseractTagFromID(int langID)
         {
             string tesseractTag = GetTesseractTagFromLanguageTesseract(TesseractHelper.LangList[langID]);
@@ -33,6 +50,11 @@ namespace ScreenLookup.src.utils
             return tesseractTag;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="langID"></param>
+        /// <returns>th, en, ch</returns>
         public static string GetLanguageISO6391FromID(int langID)
         {
             string tessTag = ClearTesseractTag(LanguageList.GetTesseractTagFromID(langID));
@@ -53,6 +75,11 @@ namespace ScreenLookup.src.utils
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="langID"></param>
+        /// <returns>tha, eng, chi</returns>
         public static string GetLanguageISO6393FromID(int langID)
         {
             string tessTag = ClearTesseractTag(LanguageList.GetTesseractTagFromID(langID));
@@ -73,6 +100,18 @@ namespace ScreenLookup.src.utils
             }
         }
 
+        /// <summary>
+        /// Gets the human-readable display name for a given Tesseract language tag.
+        /// </summary>
+        /// <remarks>The method attempts to resolve the display name using internal mappings and language
+        /// data. If the tag is not found, it falls back to using culture information and may append notes such as
+        /// "(Fraktur)", "(Old)", or "Vertical" for certain tags. The result is cached for future calls.</remarks>
+        /// <param name="tesseractTag">The Tesseract language tag to convert to a display name. This value should correspond to a valid Tesseract
+        /// language code.</param>
+        /// <param name="isNative">true to return the display name in the language's native form; otherwise, false to return the name in
+        /// English.</param>
+        /// <returns>A string containing the display name corresponding to the specified Tesseract language tag. If the tag is
+        /// not recognized, returns a best-effort display name based on available information.</returns>
         public static string GetDisplayNameFromTesseractTag(string tesseractTag, bool isNative)
         {
             string tessLangTag = ClearTesseractTag(tesseractTag);
@@ -167,6 +206,14 @@ namespace ScreenLookup.src.utils
             }
         }
 
+        /// <summary>
+        /// Returns the display name of a language corresponding to the specified language identifier.
+        /// </summary>
+        /// <param name="langID">The identifier of the language for which to retrieve the display name.</param>
+        /// <param name="isNative">true to return the display name in the language's native form; otherwise, false to return the name in
+        /// English.</param>
+        /// <returns>A string containing the display name of the specified language. Returns an empty string if the language
+        /// identifier is not recognized.</returns>
         public static string GetDisplayNameFromID(int langID, bool isNative)
         {
             string tessTag = GetTesseractTagFromID(langID);
