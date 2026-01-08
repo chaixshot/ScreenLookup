@@ -293,13 +293,18 @@ namespace ScreenLookup.src.pages
             Button? button = sender as Button;
             string Id = button.Tag.ToString();
 
+            button.Visibility = Visibility.Collapsed;
+
             foreach (var item in HistoryItems)
             {
                 if (item.Id == Id)
                 {
                     string translatedText = await Translation.GetTranslated(item.Original, Int32.Parse(item.TargetLanguage));
 
-                    HistoryLogger.Update(Int32.Parse(item.Id), translatedText);
+                    if (string.IsNullOrEmpty(translatedText))
+                        button.Visibility = Visibility.Visible;
+                    else
+                        HistoryLogger.Update(Int32.Parse(item.Id), translatedText);
 
                     break;
                 }
