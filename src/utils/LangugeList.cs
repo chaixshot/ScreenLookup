@@ -27,27 +27,13 @@ namespace ScreenLookup.src.utils
         }
 
         /// <summary>
-        /// Get Tesseract language tag from language Tesseract file name
-        /// </summary>
-        /// <param name="textName"></param>
-        /// <returns>Tesseract tag (tha, eng, chi_sim)</returns>
-        public static string GetTesseractTagFromLanguageTesseract(string textName)
-        {
-            string tesseractTag = textName.Split('.').First();
-
-            return tesseractTag;
-        }
-
-        /// <summary>
         /// Get Tesseract language tag from language ID
         /// </summary>
         /// <param name="langID"></param>
         /// <returns>Tesseract tag (tha, eng, chi_sim)</returns>
         public static string GetTesseractTagFromID(int langID)
         {
-            string tesseractTag = GetTesseractTagFromLanguageTesseract(TesseractHelper.LangList[langID]);
-
-            return tesseractTag;
+            return TesseractHelper.LangList[langID];
         }
 
         /// <summary>

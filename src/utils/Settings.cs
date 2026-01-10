@@ -106,7 +106,6 @@ namespace ScreenLookup.src.utils
 
                         RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                         key.SetValue("HunSpell", value.ToString());
-
                     }
                 }
                 else

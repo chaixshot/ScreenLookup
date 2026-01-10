@@ -54,9 +54,8 @@ namespace ScreenLookup.src.pages
             List<string> items = [];
             for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
-                string languageTesseract = TesseractHelper.LangList[langID];
-                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+                string tesseractTag = TesseractHelper.LangList[langID];
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
 
                 items.Add(text);
             }
@@ -70,9 +69,8 @@ namespace ScreenLookup.src.pages
 
             for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
-                string languageTesseract = TesseractHelper.LangList[langID];
-                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+                string tesseractTag = TesseractHelper.LangList[langID];
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
 
                 items.Add(new ComboBoxItem
@@ -144,9 +142,10 @@ namespace ScreenLookup.src.pages
             int langID = App.setting.SourceLanguage;
             int accID = App.setting.SourceLanguageAccuracy;
 
-            string? pickedLanguageFile = TesseractHelper.LangList[langID];
-            if (isLoadingTesseract || string.IsNullOrWhiteSpace(pickedLanguageFile))
+            if (isLoadingTesseract || string.IsNullOrWhiteSpace(TesseractHelper.LangList[langID]))
                 return;
+
+            string pickedLanguageFile = $"{TesseractHelper.LangList[langID]}.traineddata";
 
             isLoadingTesseract = true;
             ButtonDownloadTesseracChanged();

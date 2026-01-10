@@ -79,9 +79,8 @@ namespace ScreenLookup.src.windows
 
             for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
-                string languageTesseract = TesseractHelper.LangList[langID];
-                string tesseractTag = LanguageList.GetTesseractTagFromLanguageTesseract(languageTesseract);
-                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{languageTesseract}";
+                string tesseractTag = TesseractHelper.LangList[langID];
+                string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
 
                 if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
                     sourceItems.Add(new ComboBoxItem
