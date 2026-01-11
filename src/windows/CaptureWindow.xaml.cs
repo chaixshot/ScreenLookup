@@ -428,7 +428,7 @@ namespace ScreenLookup.src.windows
 
                                 string text = word.Text;
                                 if (App.setting.HunSpell)
-                                    text = HunspellHelper.CorrectionWord(text, App.setting.SourceLanguage);
+                                    text = HunspellHelper.CorrectionWord(text);
 
                                 items.Add(new CaptureWordsSimplifiedEntry() { Word = text, Stop = 0 });
                             }
@@ -476,7 +476,7 @@ namespace ScreenLookup.src.windows
 
                         string Word = data.GetAttribute("CONTENT");
                         if (App.setting.HunSpell)
-                            Word = HunspellHelper.CorrectionWord(Word, App.setting.SourceLanguage);
+                            Word = HunspellHelper.CorrectionWord(Word);
 
                         items.Add(new CaptureAltoEntry
                         {

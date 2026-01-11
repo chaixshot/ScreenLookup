@@ -230,7 +230,7 @@ public class TesseractHelper
 internal class HunspellHelper
 {
     public static string FilePath = Path.Combine(App.appDataFolder, "hunspell");
-    public static Dictionary<int, Hunspell> HunspellEngine = [];
+    public static Hunspell HunspellEngine;
 
     public static readonly Dictionary<string, string> LangList = new()
     {
@@ -287,9 +287,13 @@ internal class HunspellHelper
 
     public static bool IsInstalled(int langID)
     {
-        var reg = App.setting.RegLoadedHunspell.GetValue(langID.ToString());
+        object reg = App.setting.RegLoadedHunspell.GetValue(langID.ToString());
+        bool isInstalled = reg != null;
 
-        return reg != null;
+        if (isInstalled)
+            CreateHunspellEngine(langID);
+
+        return isInstalled;
     }
 
     public static void SaveInstalled(int langID)
@@ -297,29 +301,27 @@ internal class HunspellHelper
         App.setting.RegLoadedHunspell.SetValue(langID.ToString(), true);
     }
 
-    public static string CorrectionWord(string word, int sourceLanguage)
+    public static void CreateHunspellEngine(int langID)
     {
-        string tessTag = LanguageList.GetTesseractTagFromID(sourceLanguage);
+        string tessTag = LanguageList.GetTesseractTagFromID(langID);
+
+        HunspellEngine?.Dispose();
         if (LangList.TryGetValue(tessTag, out string? fileName))
         {
             string nameTag = fileName.Split('/')[1];
-
-            if (!HunspellEngine.TryGetValue(sourceLanguage, out Hunspell hunspell))
-            {
-                hunspell = new Hunspell($"{FilePath}\\{nameTag}.aff", $"{FilePath}\\{nameTag}.dic");
-                HunspellEngine.TryAdd(sourceLanguage, hunspell);
-            }
-
-            if (!hunspell.Spell(word))
-            {
-                List<string> suggestions = hunspell.Suggest(word);
-                if (suggestions.Count != 0)
-                    word = suggestions[0];
-            }
+            HunspellEngine = new Hunspell($"{FilePath}\\{nameTag}.aff", $"{FilePath}\\{nameTag}.dic");
         }
         else
+            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error", windows: "capture");
+    }
+
+    public static string CorrectionWord(string word)
+    {
+        if (!HunspellEngine.Spell(word))
         {
-            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(sourceLanguage, true)}\" dosen't support Hunspell", "error", windows: "capture");
+            List<string> suggestions = HunspellEngine.Suggest(word);
+            if (suggestions.Count != 0)
+                word = suggestions[0];
         }
 
         return word;
