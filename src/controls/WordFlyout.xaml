@@ -106,7 +106,7 @@
                         Click="Button_Copy"
                         Icon="{wpfui:SymbolIcon Symbol=Copy24,
                                                 Filled=False}"
-                        Tag="{Binding Tag, ElementName=translatedWord}"
+                        Tag="{Binding Tag, ElementName=translationWord}"
                         ToolTip="Copy" />
 
                     <local:TranslationBox
