@@ -109,7 +109,7 @@
                         Tag="{Binding Tag, ElementName=translatedWord}"
                         ToolTip="Copy" />
 
-                    <local:TranslatedBox
+                    <local:TranslationBox
                         x:Name="translationWord"
                         Grid.Column="2"
                         Margin="5,0,0,0" />
@@ -211,7 +211,7 @@
                             Tag="{Binding Tag, ElementName=translationMessage}"
                             ToolTip="Copy" />
 
-                        <local:TranslatedBox
+                        <local:TranslationBox
                             x:Name="translationMessage"
                             Grid.Column="2"
                             Margin="5,0,0,0" />

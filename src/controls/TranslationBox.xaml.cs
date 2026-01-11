@@ -7,7 +7,7 @@ namespace ScreenLookup.src.controls
     /// <summary>
     /// Interaction logic for TranslatedBox.xaml
     /// </summary>
-    public partial class TranslatedBox : UserControl
+    public partial class TranslationBox : UserControl
     {
         private readonly Dictionary<string, string> translatedCache = [];
         private string Original = "";
@@ -16,7 +16,7 @@ namespace ScreenLookup.src.controls
         private int TargetLanguage;
         private static CancellationTokenSource TranslatesCancelToken;
 
-        public TranslatedBox()
+        public TranslationBox()
         {
             InitializeComponent();
             ResetDefaultState();

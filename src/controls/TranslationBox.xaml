@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="ScreenLookup.src.controls.TranslatedBox"
+    x:Class="ScreenLookup.src.controls.TranslationBox"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:Controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
