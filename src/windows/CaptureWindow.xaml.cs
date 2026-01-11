@@ -619,8 +619,8 @@ namespace ScreenLookup.src.windows
         #region Capture edit control panel
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            Contol_Undo.Visibility = Visibility.Collapsed;
-            Contol_Confirm.Visibility = Visibility.Collapsed;
+            Contol_Undo.Visibility = Visibility.Hidden;
+            Contol_Confirm.Visibility = Visibility.Visible;
 
             CapturedImageEdited = CapturedImage;
 
@@ -629,9 +629,6 @@ namespace ScreenLookup.src.windows
 
             ChangeCaptureImage(CapturedImageEdited);
             SetWindowSize();
-
-            IsCapturing = true;
-            ProcessImage();
         }
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
