@@ -32,8 +32,8 @@ namespace ScreenLookup.src.utils
                     Original TEXT,
                     OriginalWords TEXT,
                     Translated TEXT,
-                    SourceLanguage TEXT,
-                    TargetLanguage TEXT
+                    SourceLanguage INTEGER,
+                    TargetLanguage INTEGER
                 );", GetConnection());
             command.ExecuteNonQuery();
         }

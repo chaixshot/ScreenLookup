@@ -209,7 +209,10 @@ namespace ScreenLookup.src.controls
         {
             var saveButton = wordSave as Button;
             var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
-            saveSymbolIcon?.Filled = await SavedWordLogger.IsExist(word);
+            bool isExist = await SavedWordLogger.IsExist(word);
+
+            saveSymbolIcon?.Filled = isExist;
+            wordSaveScore.Visibility = isExist ? Visibility.Visible : Visibility.Collapsed;
         }
 
         #region Button Click
@@ -245,6 +248,22 @@ namespace ScreenLookup.src.controls
 
             SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
             SavedWordButtonStateChange(OriginalWord);
+        }
+
+        private void Button_WordAddScore(object sender, RoutedEventArgs e)
+        {
+            var scoreButton = sender as Button;
+
+            scoreButton.Visibility = Visibility.Collapsed;
+
+            SavedWordLogger.AddScore(OriginalWord);
+            SnackbarHost.Show(
+                title: OriginalWord,
+                message: "Score +1",
+                timeout: 1,
+                width: 130,
+                closeButton: false
+                );
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)

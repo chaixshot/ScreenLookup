@@ -24,6 +24,7 @@ namespace ScreenLookup.src.pages
 
         public string SearchText { get; set; } = string.Empty;
         public int SearchSourceLanguage = -1;
+        public string OrderBy = "Id";
 
         public List<SavedWordEntry> savedItems;
 
@@ -33,6 +34,7 @@ namespace ScreenLookup.src.pages
             InitializeComponent();
 
             maxRow.SelectionChanged += MaxRow_SelectionChanged;
+            orderBy.SelectionChanged += OrderBy_SelectionChanged;
 
             Loaded += (s, e) =>
             {
@@ -79,7 +81,7 @@ namespace ScreenLookup.src.pages
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
                 start:
-                    var data = await SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
+                    var data = await SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, OrderBy);
 
                     SavedItems = data.Item1;
                     maxPage = (data.Item2 > 0) ? data.Item2 : 1;
@@ -96,7 +98,7 @@ namespace ScreenLookup.src.pages
 
         private void ScrollTop()
         {
-            if (VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
+            if (dataGrid != null && VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
             {
                 var scrollViewer = border.Child as ScrollViewer;
                 scrollViewer.ScrollToTop();
@@ -154,6 +156,14 @@ namespace ScreenLookup.src.pages
         {
             string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
             maxRowPerPage = Convert.ToInt32(tag);
+
+            LoadSavedWord();
+            ScrollTop();
+        }
+
+        private void OrderBy_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            OrderBy = (e.AddedItems[0] as ComboBoxItem).Tag as string;
 
             LoadSavedWord();
             ScrollTop();

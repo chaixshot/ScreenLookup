@@ -66,6 +66,17 @@
                             <ComboBoxItem Content="50/page" Tag="50" />
                             <ComboBoxItem Content="100/page" Tag="100" />
                         </ComboBox>
+
+                        <ComboBox
+                            x:Name="orderBy"
+                            MinHeight="0"
+                            Margin="5,0,0,0"
+                            Padding="10,4,10,7"
+                            VerticalAlignment="Stretch"
+                            SelectedIndex="0">
+                            <ComboBoxItem Content="Added Time" Tag="Id" />
+                            <ComboBoxItem Content="Want To Learn" Tag="Score" />
+                        </ComboBox>
                     </StackPanel>
 
                     <StackPanel

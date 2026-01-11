@@ -28,8 +28,9 @@ namespace ScreenLookup.src.utils
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     Original TEXT,
                     Translated TEXT,
-                    SourceLanguage TEXT,
-                    TargetLanguage TEXT
+                    SourceLanguage INTEGER,
+                    TargetLanguage INTEGER,
+                    Score INTEGER
                 );", GetConnection());
             command.ExecuteNonQuery();
         }
@@ -77,6 +78,20 @@ namespace ScreenLookup.src.utils
             command.ExecuteNonQuery();
         }
 
+        public static void AddScore(string originalWord)
+        {
+            string insertQuery = @"
+                UPDATE savedword
+                SET Score = Score+1
+                WHERE Original = @Original; ";
+
+            using var command = new SqliteCommand(insertQuery, GetConnection());
+
+            command.Parameters.AddWithValue("@Original", originalWord);
+
+            command.ExecuteNonQuery();
+        }
+
         public static void Remove(string Id)
         {
             string insertQuery = @"
@@ -118,7 +133,7 @@ namespace ScreenLookup.src.utils
         }
 
         public static async Task<(List<SavedWordEntry>, int)> LoadAsync(
-            int page, int maxRow, string searchText, int searchSourceLanguage)
+            int page, int maxRow, string searchText, int searchSourceLanguage, string orderBy)
         {
             var history = new List<SavedWordEntry>();
             int totalCount = 0;
@@ -139,13 +154,19 @@ namespace ScreenLookup.src.utils
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
                 FROM savedword
                 WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')
-                ORDER BY Id DESC
+                ORDER BY 
+                    (CASE
+                        WHEN @orderBy == 'Id' THEN Id
+                        WHEN @orderBy == 'Score' THEN Score
+                    END)
+                DESC, Id DESC
                 LIMIT @maxRow OFFSET @offset", GetConnection()))
             {
                 command.Parameters.AddWithValue("@searchText", $"%{searchText}%");
                 command.Parameters.AddWithValue("@searchSourceLanguage", $"{searchSourceLanguage}");
                 command.Parameters.AddWithValue("@maxRow", maxRow);
                 command.Parameters.AddWithValue("@offset", offset);
+                command.Parameters.AddWithValue("@orderBy", orderBy);
 
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
