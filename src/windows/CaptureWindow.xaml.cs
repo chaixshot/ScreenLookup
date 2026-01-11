@@ -23,15 +23,23 @@ namespace ScreenLookup.src.windows
     public partial class CaptureWindow : FluentWindow
     {
         private bool IsCapturing = false;
-        private readonly Dictionary<string, string> translatedCache = [];
-        private DispatcherFrame ConfigDispatcher;
         private Engine TesseractEngine;
         private TesseractOCR.Page TesseractPage;
+
+        private DispatcherFrame ConfigDispatcher;
+
         private int LastHistoryID;
+
         private Bitmap CapturedImage;
         private Bitmap CapturedImageEdited;
+
         private static CancellationTokenSource ProcessImageCancelToken;
         private static CancellationTokenSource TranslatesCancelToken;
+
+        private int EditRotate = 0;
+        private double EditZoom = 1.0;
+
+        private readonly Dictionary<string, string> translatedCache = [];
 
         public CaptureWindow()
         {
@@ -118,6 +126,9 @@ namespace ScreenLookup.src.windows
             TextToSpeech.StopTTS();
             ProcessImageCancelToken?.Cancel();
             TranslatesCancelToken?.Cancel();
+
+            EditRotate = 0;
+            EditZoom = 1.0;
 
             this.Left = -10000;
 
@@ -605,26 +616,31 @@ namespace ScreenLookup.src.windows
         }
         #endregion
 
-        #region Top control buttons
+        #region Capture edit control panel
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            AltoText.ItemsSource = null;
-
-            Contol_Confirm.Visibility = Visibility.Visible;
+            Contol_Undo.Visibility = Visibility.Collapsed;
+            Contol_Confirm.Visibility = Visibility.Collapsed;
 
             CapturedImageEdited = CapturedImage;
 
+            EditRotate = 0;
+            EditZoom = 1.0;
+
             ChangeCaptureImage(CapturedImageEdited);
             SetWindowSize();
+
+            IsCapturing = true;
+            ProcessImage();
         }
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            IsCapturing = true;
             if (CapturedImageEdited == CapturedImage)
                 Contol_Undo.Visibility = Visibility.Collapsed;
             Contol_Confirm.Visibility = Visibility.Collapsed;
 
+            IsCapturing = true;
             ProcessImage();
         }
 
@@ -635,11 +651,8 @@ namespace ScreenLookup.src.windows
             Contol_Undo.Visibility = Visibility.Visible;
             Contol_Confirm.Visibility = Visibility.Visible;
 
-            CapturedImageEdited = Convertor.BitmapRotate(CapturedImageEdited, -2);
-
-            ChangeCaptureImage(CapturedImageEdited);
-
-            SetWindowSize();
+            EditRotate -= 1;
+            ApplyCaptureEdit();
         }
 
         private void RotateRight_Click(object sender, RoutedEventArgs e)
@@ -649,11 +662,8 @@ namespace ScreenLookup.src.windows
             Contol_Undo.Visibility = Visibility.Visible;
             Contol_Confirm.Visibility = Visibility.Visible;
 
-            CapturedImageEdited = Convertor.BitmapRotate(CapturedImageEdited, 2);
-
-            ChangeCaptureImage(CapturedImageEdited);
-
-            SetWindowSize();
+            EditRotate += 1;
+            ApplyCaptureEdit();
         }
 
         private void Zoom_Click(object sender, RoutedEventArgs e)
@@ -663,10 +673,17 @@ namespace ScreenLookup.src.windows
             Contol_Undo.Visibility = Visibility.Visible;
             Contol_Confirm.Visibility = Visibility.Visible;
 
-            CapturedImageEdited = Convertor.BitmapRescale(CapturedImageEdited, 1.1);
+            EditZoom += 0.1;
+            ApplyCaptureEdit();
+        }
+
+        private void ApplyCaptureEdit()
+        {
+            CapturedImageEdited = CapturedImage;
+            CapturedImageEdited = Convertor.BitmapRescale(CapturedImageEdited, EditZoom);
+            CapturedImageEdited = Convertor.BitmapRotate(CapturedImageEdited, EditRotate);
 
             ChangeCaptureImage(CapturedImageEdited);
-
             SetWindowSize();
         }
         #endregion
