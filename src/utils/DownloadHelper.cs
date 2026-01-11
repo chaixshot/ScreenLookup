@@ -312,7 +312,7 @@ internal class HunspellHelper
             HunspellEngine = new Hunspell($"{FilePath}\\{nameTag}.aff", $"{FilePath}\\{nameTag}.dic");
         }
         else
-            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error", windows: "capture");
+            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error");
     }
 
     public static string CorrectionWord(string word)

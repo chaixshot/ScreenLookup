@@ -8,7 +8,7 @@ namespace ScreenLookup.src.utils
         public static Snackbar? snackbarCapture;
         public static MainWindow? mainWindow = App.mainWindow;
 
-        public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, string windows = "main", bool closeButton = true)
+        public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, bool showMainWindow = false, bool closeButton = true)
         {
             ControlAppearance appearance;
             SymbolIcon icon;
@@ -35,30 +35,35 @@ namespace ScreenLookup.src.utils
                 icon = new SymbolIcon(SymbolRegular.Info24);
             }
 
-            if (windows == "main")
-            {
-                snackbarMain ??= new Snackbar(mainWindow?.snackbarHost);
-                snackbar = snackbarMain;
+            // Create a new Snackbar for both windows
+            snackbarMain ??= new Snackbar(mainWindow?.snackbarHost);
+            snackbarCapture ??= new Snackbar((App.captureWindow.snackbarHost));
 
+            if (showMainWindow)
+            {
                 if (!App.mainWindow.IsVisible || !App.mainWindow.IsActive)
                     App.mainWindow.ShowFromTray();
             }
-            else
-            {
-                snackbarCapture ??= new Snackbar((App.captureWindow.snackbarHost));
-                snackbar = snackbarCapture;
-            }
 
-            snackbar.SetCurrentValue(Snackbar.TitleProperty, title);
-            snackbar.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
-            snackbar.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
-            snackbar.SetCurrentValue(Snackbar.IconProperty, icon);
-            snackbar.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+            // Main Window
+            snackbarMain.SetCurrentValue(Snackbar.TitleProperty, title);
+            snackbarMain.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
+            snackbarMain.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
+            snackbarMain.SetCurrentValue(Snackbar.IconProperty, icon);
+            snackbarMain.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+            snackbarMain.MinWidth = width;
+            snackbarMain.IsCloseButtonEnabled = closeButton;
+            snackbarMain.Show(true);
 
-            snackbar.MinWidth = width;
-            snackbar.IsCloseButtonEnabled = closeButton;
-
-            snackbar.Show(true);
+            //Capture Window
+            snackbarCapture.SetCurrentValue(Snackbar.TitleProperty, title);
+            snackbarCapture.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
+            snackbarCapture.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
+            snackbarCapture.SetCurrentValue(Snackbar.IconProperty, icon);
+            snackbarCapture.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+            snackbarCapture.MinWidth = width;
+            snackbarCapture.IsCloseButtonEnabled = closeButton;
+            snackbarCapture.Show(true);
         }
     }
 }

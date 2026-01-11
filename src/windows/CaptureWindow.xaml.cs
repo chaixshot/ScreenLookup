@@ -607,7 +607,7 @@ namespace ScreenLookup.src.windows
             var button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
-            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: "capture");
+            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
 
         private void captureWindow_MouseDown(object sender, MouseButtonEventArgs e)
@@ -716,7 +716,7 @@ namespace ScreenLookup.src.windows
             ToggleSwitch switchs = (ToggleSwitch)sender;
             if (switchs.Name == "hunSpell")
                 if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
-                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error", windows: "capture");
+                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
         }
         #endregion
     }

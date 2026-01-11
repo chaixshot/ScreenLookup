@@ -242,7 +242,7 @@ namespace ScreenLookup.src.controls
 
             if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
             {
-                SnackbarHost.Show("Error", "Translation is not yet complete", "error", windows: IsCaptureWindow ? "capture" : "main");
+                SnackbarHost.Show("Error", "Translation is not yet complete", "error", showMainWindow: !IsCaptureWindow);
                 return;
             }
 
@@ -271,7 +271,7 @@ namespace ScreenLookup.src.controls
             var button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
-            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, windows: IsCaptureWindow ? "capture" : "main");
+            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, showMainWindow: !IsCaptureWindow);
         }
 
         #endregion

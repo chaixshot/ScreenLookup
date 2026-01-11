@@ -99,11 +99,10 @@ namespace ScreenLookup.src.utils
 
             if (!string.IsNullOrEmpty(errorMsg))
             {
-                bool isCaptureWindow = window == "capture";
                 if (errorMsg.Contains("Language not supported"))
-                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: "error", windows: isCaptureWindow ? "capture" : "main");
+                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: "error", showMainWindow: window == "main");
                 else
-                    SnackbarHost.Show("Error", errorMsg, type: "error", windows: isCaptureWindow ? "capture" : "main");
+                    SnackbarHost.Show("Error", errorMsg, type: "error", showMainWindow: window == "main");
             }
         }
 
