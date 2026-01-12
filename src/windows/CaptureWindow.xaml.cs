@@ -51,10 +51,6 @@ namespace ScreenLookup.src.windows
             if (App.setting.StartInBackground)
                 CreateTesseractEngine();
 
-            captureWindow.Left = -10000;
-            captureWindow.ShowWindow(true);
-            captureWindow.HideWindow();
-
             Loaded += (s, e) =>
             {
                 ApplicationThemeManager.ApplySystemTheme();
@@ -78,6 +74,10 @@ namespace ScreenLookup.src.windows
             {
                 TranlsateImageExpander();
             };
+
+            captureWindow.Left = -10000;
+            captureWindow.ShowWindow(true);
+            captureWindow.HideWindow();
         }
 
         public void LoadInstalledLanguage()
