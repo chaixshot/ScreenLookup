@@ -265,7 +265,7 @@
                             VerticalContentAlignment="Center"
                             Click="Button_WordAddScore"
                             Icon="{wpfui:SymbolIcon Symbol=StarEmphasis24,
-                                                    Filled=False}"
+                                                    Filled=True}"
                             ToolTip="+1 want to learn score" />
                     </StackPanel>
                 </Border>

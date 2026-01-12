@@ -207,11 +207,9 @@ namespace ScreenLookup.src.controls
 
         private async void SavedWordButtonStateChange(string word)
         {
-            var saveButton = wordSave as Button;
-            var saveSymbolIcon = saveButton?.Icon as SymbolIcon;
             bool isExist = await SavedWordLogger.IsExist(word);
 
-            saveSymbolIcon?.Filled = isExist;
+            wordSave.Visibility = isExist ? Visibility.Collapsed : Visibility.Visible;
             wordSaveScore.Visibility = isExist ? Visibility.Visible : Visibility.Collapsed;
         }
 
