@@ -10,10 +10,13 @@ namespace ScreenLookup.src.controls
     public partial class TranslationBox : UserControl
     {
         private readonly Dictionary<string, string> translatedCache = [];
+
         private string Original = "";
         public string Translated = "";
+
         private int SourceLanguage;
         private int TargetLanguage;
+
         private static CancellationTokenSource TranslatesCancelToken;
 
         public TranslationBox()
@@ -92,6 +95,9 @@ namespace ScreenLookup.src.controls
             TranslatedText.Visibility = Visibility.Collapsed;
             Loading.Visibility = Visibility.Visible;
             Refresh.Visibility = Visibility.Collapsed;
+
+            Original = "";
+            Translated = "";
 
             translatedScrollViewer.ScrollToTop();
         }
