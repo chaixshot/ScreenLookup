@@ -28,6 +28,16 @@ namespace ScreenLookup.src.controls
             ResetDefaultState();
         }
 
+        public void Set(string text, int sourceLang, int targetLang)
+        {
+            Original = text;
+            SourceLanguage = sourceLang;
+            TargetLanguage = targetLang;
+
+            Loading.Visibility = Visibility.Collapsed;
+            Refresh.Visibility = Visibility.Visible;
+        }
+
         public async Task Translate(string text, int sourceLang, int targetLang, CancellationTokenSource token)
         {
             ResetDefaultState();

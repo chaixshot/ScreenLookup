@@ -290,7 +290,7 @@ namespace ScreenLookup.src.windows
                                     originalCard.Visibility = Visibility.Visible;
                                     translatedCard.Visibility = Visibility.Visible;
 
-                                    TranlsateMessage();
+                                    translationMessage.Set(TesseractPage.Text, App.setting.SourceLanguage, App.setting.TargetLanguage);
                                 }
 
                                 if (IsCapturing)
@@ -308,13 +308,6 @@ namespace ScreenLookup.src.windows
                     }
                 }));
             }, ProcessImageCancelToken.Token);
-        }
-
-        private async void TranlsateMessage()
-        {
-            await translationMessage.Translate(TesseractPage.Text, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
-
-            HistoryLogger.Update(LastHistoryID, translationMessage.Translated);
         }
 
         private async Task TranlsateImageExpander()
