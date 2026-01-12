@@ -14,6 +14,7 @@ namespace ScreenLookup
         public static readonly TrayIcon? trayIcon = new();
         public static readonly MainWindow? mainWindow = new();
         public static readonly CaptureWindow? captureWindow = new();
+        public static bool Ready = false;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -31,6 +32,8 @@ namespace ScreenLookup
             }
 
             ToggleTopmost(setting.Topmost);
+
+            Ready = true;
 
             base.OnStartup(e);
         }

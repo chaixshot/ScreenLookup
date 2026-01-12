@@ -49,7 +49,10 @@ namespace ScreenLookup.src.windows
             LoadInstalledLanguage();
 
             if (App.setting.StartInBackground)
+            {
                 CreateTesseractEngine();
+                SelectConfigLanguage();
+            }
 
             Loaded += (s, e) =>
             {
@@ -214,7 +217,6 @@ namespace ScreenLookup.src.windows
             {
                 ConfigDispatcher = new DispatcherFrame();
 
-                SelectSourceLanguageComboBox();
                 SetWindowSize();
                 SetWindowPosition(new()
                 {
@@ -530,7 +532,7 @@ namespace ScreenLookup.src.windows
                 HideWindow();
         }
 
-        public void SelectSourceLanguageComboBox()
+        public void SelectConfigLanguage()
         {
             foreach (ComboBoxItem item in sourceLanguageConfig.Items)
             {
@@ -681,19 +683,23 @@ namespace ScreenLookup.src.windows
         #region configSection
         private void SourceLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var comboBox = sender as ComboBox;
-            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+            if (!App.Ready)
+                return;
 
-            if (selectedItem != null)
+            var comboBox = sender as ComboBox;
+
+            if (comboBox.SelectedItem is ComboBoxItem selectedItem)
                 App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
         }
 
         private void TargetLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var comboBox = sender as ComboBox;
-            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+            if (!App.Ready)
+                return;
 
-            if (selectedItem != null)
+            var comboBox = sender as ComboBox;
+
+            if (comboBox.SelectedItem is ComboBoxItem selectedItem)
                 App.setting.TargetLanguage = Int32.Parse(selectedItem.Tag.ToString());
         }
         private void ConfigSubmit_Click(object sender, RoutedEventArgs e)

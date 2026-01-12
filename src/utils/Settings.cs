@@ -88,6 +88,7 @@ namespace ScreenLookup.src.utils
                 key.SetValue("SourceLanguage", value.ToString());
 
                 App.captureWindow.CreateTesseractEngine();
+                App.captureWindow.SelectConfigLanguage();
 
                 OnPropertyChanged();
             }
