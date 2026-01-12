@@ -144,6 +144,8 @@ namespace ScreenLookup.src.windows
             {
                 configMenu.Visibility = Visibility.Visible;
 
+                ImageControlPanel.Visibility = Visibility.Collapsed;
+
                 captureCard.Visibility = Visibility.Collapsed;
                 originalCard.Visibility = Visibility.Collapsed;
                 translatedCard.Visibility = Visibility.Collapsed;
@@ -154,6 +156,8 @@ namespace ScreenLookup.src.windows
             else
             {
                 configMenu.Visibility = Visibility.Collapsed;
+
+                ImageControlPanel.Visibility = Visibility.Visible;
 
                 if (App.setting.LookupOnImage)
                 {

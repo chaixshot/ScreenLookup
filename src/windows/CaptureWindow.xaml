@@ -44,7 +44,7 @@
                 Grid.Row="5"
                 IsCaptureWindow="True" />
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel x:Name="ImageControlPanel" Orientation="Horizontal">
                 <Controls:Button
                     x:Name="Contol_RotateLeft"
                     Margin="0,0,2,0"
@@ -95,8 +95,11 @@
                                         Filled=True}"
                 ToolTip="Always on Top" />
 
-            <Grid x:Name="configMenu" Grid.Row="1">
-                <StackPanel Margin="15">
+            <Grid
+                x:Name="configMenu"
+                Grid.Row="1"
+                Margin="15">
+                <StackPanel>
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
