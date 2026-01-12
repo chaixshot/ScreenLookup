@@ -24,7 +24,6 @@ namespace ScreenLookup.src.controls
         public string originalMessage = "";
         public double width = double.NaN;
         public bool isOpen = false;
-        public Point MousePosotion;
         private static CancellationTokenSource TranslatesCancelToken;
 
         public WordFlyout()
@@ -124,6 +123,8 @@ namespace ScreenLookup.src.controls
         {
             IsOpen = false;
 
+            FollowMouse();
+
             word = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
             word = char.ToUpper(word.First()) + word[1..].ToLower(); // Capitalizing first letter
 
@@ -132,15 +133,13 @@ namespace ScreenLookup.src.controls
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
+
             IsOpen = true;
         }
 
         private void OnOpen(Flyout sender, RoutedEventArgs args)
         {
-            MousePosotion = Mouse.GetPosition(this);
-
             ResetDefaultState();
-            FollowMouse();
 
             TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
             SavedWordButtonStateChange(OriginalWord);
@@ -157,11 +156,10 @@ namespace ScreenLookup.src.controls
 
                     // Word
                     await translationWord.Translate(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
-                    FollowMouse();
 
                     // Message
                     await translationMessage.Translate(OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken);
-                    FollowMouse();
+
                 }));
             });
         }
@@ -173,10 +171,10 @@ namespace ScreenLookup.src.controls
 
         private void FollowMouse()
         {
-            Matrix matrix = new();
-            matrix.Translate(MousePosotion.X - 50, MousePosotion.Y - 40);
-            mt.Matrix = matrix;
-            flayOut.LayoutTransform = Transform.Identity;
+            Point MousePosotion = Mouse.GetPosition(this);
+
+            mTransform.X = MousePosotion.X - 50;
+            mTransform.Y = MousePosotion.Y - 40;
         }
 
         private void ResetDefaultState()

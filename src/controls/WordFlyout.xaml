@@ -16,7 +16,7 @@
         Placement="Top">
 
         <Controls:Flyout.RenderTransform>
-            <MatrixTransform x:Name="mt" />
+            <TranslateTransform x:Name="mTransform" />
         </Controls:Flyout.RenderTransform>
 
         <StackPanel>
