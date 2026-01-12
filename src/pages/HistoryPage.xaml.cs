@@ -186,17 +186,21 @@ namespace ScreenLookup.src.pages
         private async void PageDown_click(object sender, RoutedEventArgs e)
         {
             if (currentPage - 1 >= 1)
+            {
                 currentPage--;
-            LoadHistoryLogger();
-            ScrollTop();
+                LoadHistoryLogger();
+                ScrollTop();
+            }
         }
 
         private async void PageUp_click(object sender, RoutedEventArgs e)
         {
             if (currentPage < maxPage)
+            {
                 currentPage++;
-            LoadHistoryLogger();
-            ScrollTop();
+                LoadHistoryLogger();
+                ScrollTop();
+            }
         }
 
         private async void Clear_click(object sender, RoutedEventArgs e)
