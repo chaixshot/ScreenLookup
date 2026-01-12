@@ -273,10 +273,19 @@ namespace ScreenLookup.src.pages
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            bool isYes = await DialogBox.Show($"Do you want to delete word \"{button.Content.ToString()}\"?", "This operation cannot be undone!", 0);
+            string word = button.Content.ToString();
+            bool isYes = await DialogBox.Show($"Do you want to delete word \"{word}\"?", "This operation cannot be undone!", 0);
 
             if (isYes)
             {
+                SnackbarHost.Show(
+                title: word,
+                message: "Revmoed",
+                type: "success",
+                timeout: 2,
+                width: 130,
+                closeButton: false
+                );
                 SavedWordLogger.Remove(button.Tag.ToString());
                 LoadSavedWord();
             }

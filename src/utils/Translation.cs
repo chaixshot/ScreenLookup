@@ -41,7 +41,7 @@
             }
             catch (Exception ex)
             {
-                Notification.Show(ex.Message);
+                SnackbarHost.Show(ex.StackTrace);
                 return "";
             }
         }

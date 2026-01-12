@@ -320,6 +320,14 @@ namespace ScreenLookup.src.pages
 
             if (isYes)
             {
+                SnackbarHost.Show(
+                title: "Message",
+                message: "Revmoed",
+                type: "success",
+                timeout: 2,
+                width: 130,
+                closeButton: false
+                );
                 HistoryLogger.Remove(button.Tag.ToString());
                 LoadHistoryLogger();
             }

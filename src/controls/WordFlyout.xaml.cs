@@ -241,11 +241,20 @@ namespace ScreenLookup.src.controls
             if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
             {
                 SnackbarHost.Show("Error", "Translation is not yet complete", "error", showMainWindow: !IsCaptureWindow);
-                return;
             }
-
-            SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
-            SavedWordButtonStateChange(OriginalWord);
+            else
+            {
+                SnackbarHost.Show(
+                title: OriginalWord,
+                message: "Saved",
+                type: "success",
+                timeout: 2,
+                width: 130,
+                closeButton: false
+                );
+                SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
+                SavedWordButtonStateChange(OriginalWord);
+            }
         }
 
         private void Button_WordAddScore(object sender, RoutedEventArgs e)
@@ -258,7 +267,7 @@ namespace ScreenLookup.src.controls
             SnackbarHost.Show(
                 title: OriginalWord,
                 message: "Score +1",
-                timeout: 1,
+                timeout: 2,
                 width: 130,
                 closeButton: false
                 );
