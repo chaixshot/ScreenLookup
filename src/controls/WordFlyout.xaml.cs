@@ -236,23 +236,16 @@ namespace ScreenLookup.src.controls
         {
             string translated = translationWord.Translated;
 
-            if (string.IsNullOrWhiteSpace(translated) && !await SavedWordLogger.IsExist(OriginalWord))
-            {
-                SnackbarHost.Show("Error", "Translation is not yet complete", "error", showMainWindow: !IsCaptureWindow);
-            }
-            else
-            {
-                SnackbarHost.Show(
+            SnackbarHost.Show(
                 title: OriginalWord,
                 message: "Saved",
                 type: "success",
                 timeout: 2,
                 width: 130,
                 closeButton: false
-                );
-                SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
-                SavedWordButtonStateChange(OriginalWord);
-            }
+            );
+            SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
+            SavedWordButtonStateChange(OriginalWord);
         }
 
         private void Button_WordAddScore(object sender, RoutedEventArgs e)
