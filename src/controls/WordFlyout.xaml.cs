@@ -107,8 +107,23 @@ namespace ScreenLookup.src.controls
             }
         }
 
-        public static double FontSizeS => App.setting.FontSizeS;
-        public static FontFamily FontFace => new(App.setting.FontFace);
+        public double FontSizeS
+        {
+            get { return App.setting.FontSizeS; }
+            set
+            {
+                OnPropertyChanged();
+            }
+        }
+
+        public FontFamily FontFace
+        {
+            get { return new(App.setting.FontFace); }
+            set
+            {
+                OnPropertyChanged();
+            }
+        }
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
@@ -122,6 +137,8 @@ namespace ScreenLookup.src.controls
         public void Show(string word, string message, int sourceLang, int targetLang)
         {
             IsOpen = false;
+            FontSizeS = FontSizeS;
+            FontFace = FontFace;
 
             FollowMouse();
 
@@ -179,8 +196,8 @@ namespace ScreenLookup.src.controls
 
         private void ResetDefaultState()
         {
-            double buttonWidth = App.setting.FontSizeS + 10;
-            double loadingWidth = App.setting.FontSizeS + 5;
+            double buttonWidth = FontSizeS + 10;
+            double loadingWidth = FontSizeS + 5;
 
             flayoutOriginalTSS.Width = buttonWidth;
             flayoutOriginalTSS.Height = buttonWidth;
