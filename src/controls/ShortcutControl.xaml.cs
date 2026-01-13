@@ -60,6 +60,7 @@ public partial class ShortcutControl : UserControl
             RecordingToggleButton.IsChecked = isRecording;
             RecordText.Text = isRecording ? "Recording" : "Record";
             recordIcon.Symbol = isRecording ? SymbolRegular.RecordStop24 : SymbolRegular.Record24;
+            ErrorText.Text = string.Empty;
         }
     }
 
