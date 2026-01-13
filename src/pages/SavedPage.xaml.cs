@@ -24,7 +24,7 @@ namespace ScreenLookup.src.pages
 
         public string SearchText { get; set; } = string.Empty;
         public int SearchSourceLanguage = -1;
-        public string OrderBy = "Id";
+        public string OrderBy = "Score";
 
         public List<SavedWordEntry> savedItems;
 
