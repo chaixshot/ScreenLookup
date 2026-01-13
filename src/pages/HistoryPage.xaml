@@ -84,7 +84,8 @@
                             Margin="5,0,0,0"
                             Padding="10,4,10,7"
                             VerticalAlignment="Stretch"
-                            SelectedIndex="0">
+                            SelectedIndex="0"
+                            SelectionChanged="MaxRow_SelectionChanged">
                             <ComboBoxItem Content="10/page" Tag="10" />
                             <ComboBoxItem Content="20/page" Tag="20" />
                             <ComboBoxItem Content="30/page" Tag="30" />
@@ -142,7 +143,7 @@
                             x:Name="sourceLanguage"
                             Grid.Column="1"
                             Width="200"
-                            SelectionChanged="SourceLanguage_Changed" />
+                            SelectionChanged="SourceLanguage_SelectionChanged" />
 
                         <Controls:AutoSuggestBox
                             x:Name="HistorySearchBox"

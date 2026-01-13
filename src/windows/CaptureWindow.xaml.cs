@@ -687,24 +687,24 @@ namespace ScreenLookup.src.windows
         #region configSection
         private void SourceLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!App.Ready)
-                return;
+            ComboBox? comboBox = sender as ComboBox;
 
-            var comboBox = sender as ComboBox;
-
-            if (comboBox.SelectedItem is ComboBoxItem selectedItem)
-                App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+            if (comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedItem is ComboBoxItem selectedItem)
+                    App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+            }
         }
 
         private void TargetLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!App.Ready)
-                return;
+            ComboBox? comboBox = sender as ComboBox;
 
-            var comboBox = sender as ComboBox;
-
-            if (comboBox.SelectedItem is ComboBoxItem selectedItem)
-                App.setting.TargetLanguage = Int32.Parse(selectedItem.Tag.ToString());
+            if (comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedItem is ComboBoxItem selectedItem)
+                    App.setting.TargetLanguage = Int32.Parse(selectedItem.Tag.ToString());
+            }
         }
         private void ConfigSubmit_Click(object sender, RoutedEventArgs e)
         {

@@ -238,22 +238,28 @@ namespace ScreenLookup.src.pages
                 await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
             }
         }
-        private void SourceLanguageAccuracy_Changed(object sender, SelectionChangedEventArgs e)
+        private void SourceLanguageAccuracy_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ButtonDownloadTesseracChanged();
-            LoadSourceLanguageContent();
+            ComboBox? comboBox = sender as ComboBox;
+
+            if (comboBox.IsDropDownOpen)
+                ButtonDownloadTesseracChanged();
         }
 
-        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        private void SourceLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var comboBox = sender as ComboBox;
-            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+            ComboBox? comboBox = sender as ComboBox;
 
-            if (selectedItem != null)
-                App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+            if (comboBox.IsDropDownOpen)
+            {
+                ComboBoxItem? selectedItem = comboBox.SelectedItem as ComboBoxItem;
 
-            ButtonDownloadTesseracChanged();
-            ButtonDownloadHunspellChanged();
+                if (selectedItem != null)
+                    App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+
+                ButtonDownloadTesseracChanged();
+                ButtonDownloadHunspellChanged();
+            }
         }
 
         public void SelectSourceLanguageComboBox()

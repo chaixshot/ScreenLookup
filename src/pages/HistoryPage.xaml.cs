@@ -35,8 +35,6 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            maxRow.SelectionChanged += MaxRow_SelectionChanged;
-
             Loaded += (s, e) =>
             {
                 if (dataGrid.ItemsSource == null)
@@ -147,20 +145,23 @@ namespace ScreenLookup.src.pages
             sourceLanguage.ItemsSource = items;
         }
 
-        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        private void SourceLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var comboBox = (sender as ComboBox);
-            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+            ComboBox? comboBox = (sender as ComboBox);
+            ComboBoxItem? comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
 
-            if (comboBoxItem != null)
+            if (comboBox.IsDropDownOpen)
             {
-                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                SearchSourceLanguage = searchSourceLanguage;
-            }
-            else
-                SearchSourceLanguage = -1;
+                if (comboBoxItem != null)
+                {
+                    int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+                    SearchSourceLanguage = searchSourceLanguage;
+                }
+                else
+                    SearchSourceLanguage = -1;
 
-            LoadHistoryLogger();
+                LoadHistoryLogger();
+            }
         }
 
         private void Original_MouseEnter(object sender, MouseEventArgs e)
@@ -176,11 +177,16 @@ namespace ScreenLookup.src.pages
         #region Control
         private void MaxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
-            maxRowPerPage = System.Convert.ToInt32(tag);
+            ComboBox? comboBox = sender as ComboBox;
 
-            LoadHistoryLogger();
-            ScrollTop();
+            if (comboBox.IsDropDownOpen)
+            {
+                string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
+                maxRowPerPage = System.Convert.ToInt32(tag);
+
+                LoadHistoryLogger();
+                ScrollTop();
+            }
         }
 
         private async void PageDown_click(object sender, RoutedEventArgs e)

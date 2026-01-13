@@ -82,12 +82,12 @@
                         x:Name="sourceLanguageAccuracy"
                         Width="146"
                         SelectedIndex="{Binding SourceLanguageAccuracy}"
-                        SelectionChanged="SourceLanguageAccuracy_Changed" />
+                        SelectionChanged="SourceLanguageAccuracy_SelectionChanged" />
                     <ComboBox
                         x:Name="sourceLanguage"
                         Width="200"
                         Margin="5,0,0,0"
-                        SelectionChanged="SourceLanguage_Changed" />
+                        SelectionChanged="SourceLanguage_SelectionChanged" />
                 </StackPanel>
             </Controls:CardControl>
 

@@ -33,9 +33,6 @@ namespace ScreenLookup.src.pages
             DataContext = this;
             InitializeComponent();
 
-            maxRow.SelectionChanged += MaxRow_SelectionChanged;
-            orderBy.SelectionChanged += OrderBy_SelectionChanged;
-
             Loaded += (s, e) =>
             {
                 if (dataGrid.ItemsSource == null)
@@ -135,38 +132,51 @@ namespace ScreenLookup.src.pages
             sourceLanguage.ItemsSource = items;
         }
 
-        private void SourceLanguage_Changed(object sender, SelectionChangedEventArgs e)
+        private void SourceLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var comboBox = (sender as ComboBox);
-            var comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
+            ComboBox? comboBox = (sender as ComboBox);
+            ComboBoxItem? comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
 
-            if (comboBoxItem != null)
+            if (comboBox.IsDropDownOpen)
             {
-                int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                SearchSourceLanguage = searchSourceLanguage;
-            }
-            else
-                SearchSourceLanguage = -1;
+                if (comboBoxItem != null)
+                {
+                    int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
+                    SearchSourceLanguage = searchSourceLanguage;
+                }
+                else
+                    SearchSourceLanguage = -1;
 
-            LoadSavedWord();
+                LoadSavedWord();
+            }
         }
 
         #region Control
         private void MaxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
-            maxRowPerPage = Convert.ToInt32(tag);
+            ComboBox? comboBox = sender as ComboBox;
 
-            LoadSavedWord();
-            ScrollTop();
+            if (comboBox.IsDropDownOpen)
+            {
+                string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
+                maxRowPerPage = Convert.ToInt32(tag);
+
+                LoadSavedWord();
+                ScrollTop();
+            }
         }
 
         private void OrderBy_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            OrderBy = (e.AddedItems[0] as ComboBoxItem).Tag as string;
+            ComboBox? comboBox = sender as ComboBox;
 
-            LoadSavedWord();
-            ScrollTop();
+            if (comboBox.IsDropDownOpen)
+            {
+                OrderBy = (e.AddedItems[0] as ComboBoxItem).Tag as string;
+
+                LoadSavedWord();
+                ScrollTop();
+            }
         }
 
         private async void PageDown_click(object sender, RoutedEventArgs e)
