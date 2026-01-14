@@ -290,9 +290,6 @@ internal class HunspellHelper
         object reg = App.setting.RegLoadedHunspell.GetValue(langID.ToString());
         bool isInstalled = reg != null;
 
-        if (isInstalled)
-            CreateHunspellEngine(langID);
-
         return isInstalled;
     }
 

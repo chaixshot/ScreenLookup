@@ -132,6 +132,7 @@ namespace ScreenLookup.src.utils
                     if (HunspellHelper.IsInstalled(SourceLanguage))
                     {
                         hunSpell = true;
+                        HunspellHelper.CreateHunspellEngine(SourceLanguage);
 
                         RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                         key.SetValue("HunSpell", value.ToString());
