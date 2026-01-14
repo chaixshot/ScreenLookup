@@ -31,28 +31,29 @@ namespace ScreenLookup
                 mainWindow.Activate();
             }
 
-            ToggleTopmost(setting.Topmost);
 
             Ready = true;
+            ToggleTopmost();
 
             base.OnStartup(e);
         }
 
-        public static void ToggleTopmost(bool enabled)
+        public static void ToggleTopmost(bool? enabled = null)
         {
-            App.setting.Topmost = enabled;
+            if (enabled != null)
+                App.setting.Topmost = (bool)enabled;
 
             // Main Window
             Button mainButton = mainWindow.TopmostButton;
             SymbolIcon mainIcon = (SymbolIcon)mainButton?.Icon;
-            mainIcon.Filled = enabled;
-            mainWindow.Topmost = enabled;
+            mainIcon.Filled = App.setting.Topmost;
+            mainWindow.Topmost = App.setting.Topmost;
 
             // Capture Window
             Button captureButton = captureWindow.TopmostButton;
             SymbolIcon captureIcon = (SymbolIcon)captureButton?.Icon;
-            captureIcon.Filled = enabled;
-            captureWindow.Topmost = enabled;
+            captureIcon.Filled = App.setting.Topmost;
+            captureWindow.Topmost = App.setting.Topmost;
         }
 
         private void AppExit(object sender, ExitEventArgs e)
