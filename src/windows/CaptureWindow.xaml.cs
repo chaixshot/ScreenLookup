@@ -45,6 +45,7 @@ namespace ScreenLookup.src.windows
         {
             DataContext = App.setting;
             InitializeComponent();
+
             ResetDefaultState();
             LoadInstalledLanguage();
 
@@ -77,10 +78,6 @@ namespace ScreenLookup.src.windows
             {
                 TranlsateImageExpander();
             };
-
-            captureWindow.Left = -10000;
-            captureWindow.ShowWindow(true);
-            captureWindow.HideWindow();
         }
 
         public void LoadInstalledLanguage()
@@ -190,6 +187,9 @@ namespace ScreenLookup.src.windows
         {
             if (IsCapturing)
                 return;
+
+            if (!IsLoaded)
+                ShowWindow(true);
 
             HideWindow();
 
