@@ -1,4 +1,5 @@
-﻿using ScreenLookup.src.utils;
+﻿using ScreenLookup.src.pages;
+using ScreenLookup.src.utils;
 using ScreenLookup.src.windows;
 using System.IO;
 using System.Windows;
@@ -10,18 +11,28 @@ namespace ScreenLookup
     {
         public static readonly string tempFolder = Path.Combine(Path.GetTempPath(), "ScreenLookup");
         public static readonly string appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenLookup");
-        public static readonly Settings? setting = new();
-        public static readonly TrayIcon? trayIcon = new();
-        public static readonly MainWindow? mainWindow = new();
-        public static readonly CaptureWindow? captureWindow = new();
-        public static bool Ready = false;
+
+        public static Settings setting;
+        public static CaptureWindow captureWindow;
+        public static TrayIcon trayIcon;
+        public static MainWindow mainWindow;
+
+        public static SettingPage? settingPage;
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            trayIcon.Show();
-
             Directory.CreateDirectory(tempFolder);
             Directory.CreateDirectory(appDataFolder);
+
+            setting = new();
+
+            trayIcon = new();
+            trayIcon.Show();
+
+            mainWindow = new();
+            captureWindow = new();
+
+            setting.Load();
 
             if (setting.StartInBackground)
                 Notification.Show("ScreenLookup running in the background");
@@ -31,8 +42,6 @@ namespace ScreenLookup
                 mainWindow.Activate();
             }
 
-
-            Ready = true;
             ToggleTopmost();
 
             base.OnStartup(e);

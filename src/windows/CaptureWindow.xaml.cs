@@ -49,12 +49,6 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
             LoadInstalledLanguage();
 
-            if (App.setting.StartInBackground)
-            {
-                CreateTesseractEngine();
-                SelectConfigLanguage();
-            }
-
             Loaded += (s, e) =>
             {
                 ApplicationThemeManager.ApplySystemTheme();
@@ -104,6 +98,8 @@ namespace ScreenLookup.src.windows
 
             targetLanguageConfig.ItemsSource = targetItems;
             targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
+
+            SelectConfigLanguage();
         }
 
         public void CreateTesseractEngine()

@@ -15,22 +15,25 @@ namespace ScreenLookup.src.pages
             DataContext = App.setting;
             InitializeComponent();
 
+            LoadSourceAccuracyContent();
+            LoadSourceLanguageContent();
             LoadTargetLanguageContent();
-            LoadSourceAccuracys();
             LoadProvidersContent();
 
+            ButtonDownloadTesseracChanged();
+            ButtonDownloadHunspellChanged();
 
             captureShortcut.KeySet = App.setting.ShortcutKey;
 
             Loaded += (s, e) =>
             {
-                SelectSourceLanguageComboBox();
+                SelectSourceLanguage();
             };
+
+            App.settingPage = this;
         }
 
-        }
-
-        private void LoadSourceAccuracys()
+        private void LoadSourceAccuracyContent()
         {
             List<string> items = [];
 
@@ -55,7 +58,7 @@ namespace ScreenLookup.src.pages
             targetLanguage.ItemsSource = items;
         }
 
-        private void LoadSourceLanguageContent()
+        public void LoadSourceLanguageContent()
         {
             int langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
@@ -79,7 +82,7 @@ namespace ScreenLookup.src.pages
             items = items.OrderBy(o => o.Uid).ToList();
             sourceLanguage.ItemsSource = items;
 
-            SelectSourceLanguageComboBox();
+            SelectSourceLanguage();
         }
 
         private void LoadProvidersContent()
@@ -97,9 +100,11 @@ namespace ScreenLookup.src.pages
 
         private void ButtonDownloadTesseracChanged()
         {
+            downloadTesseract.IsEnabled = true;
             downloadTesseract.Visibility = Visibility.Visible;
             if (isLoadingTesseract)
             {
+                downloadTesseract.IsEnabled = false;
                 tesseractLoadingIcon.Visibility = Visibility.Visible;
                 tesseractLoadIcon.Visibility = Visibility.Collapsed;
             }
@@ -114,9 +119,11 @@ namespace ScreenLookup.src.pages
 
         private void ButtonDownloadHunspellChanged()
         {
+            downloadHunspell.IsEnabled = true;
             downloadHunspell.Visibility = Visibility.Visible;
             if (isLoadingHunspell)
             {
+                downloadHunspell.IsEnabled = false;
                 hunspellLoadingIcon.Visibility = Visibility.Visible;
                 hunspellLoadIcon.Visibility = Visibility.Collapsed;
             }
@@ -130,6 +137,19 @@ namespace ScreenLookup.src.pages
             }
         }
 
+        public void SelectSourceLanguage()
+        {
+            foreach (ComboBoxItem item in sourceLanguage.Items)
+            {
+                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
+                {
+                    sourceLanguage.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        #region Setting Buttons
         private async void DownloadTesseractButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = App.setting.SourceLanguage;
@@ -214,9 +234,10 @@ namespace ScreenLookup.src.pages
             SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
         }
 
-        private void ShortcutControl_KeySetChanged(object sender, EventArgs e)
+        private void HunSpell_Click(object sender, RoutedEventArgs e)
         {
-            App.setting.ShortcutKey = captureShortcut.KeySet;
+            if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
+                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
         }
 
         private async void ResetButton(object sender, RoutedEventArgs e)
@@ -231,6 +252,9 @@ namespace ScreenLookup.src.pages
                 await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
             }
         }
+        #endregion
+
+        #region Setting ComboBox
         private void SourceLanguageAccuracy_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox? comboBox = sender as ComboBox;
@@ -254,25 +278,12 @@ namespace ScreenLookup.src.pages
                 ButtonDownloadHunspellChanged();
             }
         }
+        #endregion
 
-        public void SelectSourceLanguageComboBox()
+        private void ShortcutControl_KeySetChanged(object sender, EventArgs e)
         {
-            foreach (ComboBoxItem item in sourceLanguage.Items)
-            {
-                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
-                {
-                    sourceLanguage.SelectedItem = item;
-                    break;
-                }
-            }
-        }
-
-        private void HunSpell_Click(object sender, RoutedEventArgs e)
-        {
-            if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
-                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
-
-        {
+            if (IsLoaded)
+                App.setting.ShortcutKey = captureShortcut.KeySet;
         }
     }
 }

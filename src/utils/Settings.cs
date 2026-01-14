@@ -18,30 +18,30 @@ namespace ScreenLookup.src.utils
         public readonly RegistryKey RegLoadedHunspell = ScreenLookupReg.CreateSubKey("InstalledHunspell");
         public readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
-        public bool topmost = RegSetting.GetValue("Topmost") == null || RegSetting.GetValue("Topmost").ToString() == "True";
-        public bool startupWithWindows = RegSetting.GetValue("StartupWithWindows") == null || RegSetting.GetValue("StartupWithWindows").ToString() == "True";
-        public bool startInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
-        public bool minimizeToTray = RegSetting.GetValue("MinimizeToTray") == null || RegSetting.GetValue("MinimizeToTray").ToString() == "True";
+        public bool topmost = true;
+        public bool startupWithWindows = true;
+        public bool startInBackground = false;
+        public bool minimizeToTray = true;
 
-        public int sourceLanguageAccuracy = RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguageAccuracy")) : 1;
-        public int sourceLanguage = RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguage")) : 29;
-        public bool hunSpell = RegSetting.GetValue("hunSpell") != null && RegSetting.GetValue("hunSpell").ToString() == "True";
-        public int targetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : 117;
-        public int translationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : 1;
-        public int ttsProvider = RegSetting.GetValue("TTSProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TTSProvider")) : 1;
+        public int sourceLanguageAccuracy = 1;
+        public int sourceLanguage = 29;
+        public bool hunSpell = false;
+        public int targetLanguage = 117;
+        public int translationProvider = 1;
+        public int ttsProvider = 1;
 
-        public ShortcutKeySet shortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : new ShortcutKeySet()
+        public ShortcutKeySet shortcutKey = new ShortcutKeySet()
         {
             Modifiers = { ModifierKeys.Alt },
             NonModifierKey = Key.Z,
         };
-        public bool lookupOnImage = RegSetting.GetValue("LookupOnImage") == null || RegSetting.GetValue("LookupOnImage").ToString() == "True";
-        public bool showImage = RegSetting.GetValue("ShowImage") == null || RegSetting.GetValue("ShowImage").ToString() == "True";
-        public bool showAuxiliary = RegSetting.GetValue("ShowAuxiliary") == null || RegSetting.GetValue("ShowAuxiliary").ToString() == "True";
-        public bool showHighlight = RegSetting.GetValue("ShowHighlight") == null || RegSetting.GetValue("ShowHighlight").ToString() == "True";
-        public bool closeLostFocus = RegSetting.GetValue("CloseLostFocus") == null || RegSetting.GetValue("CloseLostFocus").ToString() == "True";
-        public string fontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : "Segoe UI";
-        public int fontSizes = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : 14;
+        public bool lookupOnImage = true;
+        public bool showImage = true;
+        public bool showAuxiliary = true;
+        public bool showHighlight = true;
+        public bool closeLostFocus = true;
+        public string fontFace = "Segoe UI";
+        public int fontSizes = 14;
 
         public readonly string[] ProviderServices = [
             "Google",
@@ -57,6 +57,30 @@ namespace ScreenLookup.src.utils
             "Slow (Accurate)",
         ];
 
+        public void Load()
+        {
+            Topmost = RegSetting.GetValue("Topmost") != null ? RegSetting.GetValue("Topmost").ToString() == "True" : lookupOnImage;
+            StartupWithWindows = RegSetting.GetValue("StartupWithWindows") != null ? RegSetting.GetValue("StartupWithWindows").ToString() == "True" : startupWithWindows;
+            StartInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
+            MinimizeToTray = RegSetting.GetValue("MinimizeToTray") != null ? RegSetting.GetValue("MinimizeToTray").ToString() == "True" : minimizeToTray;
+
+            SourceLanguageAccuracy = RegSetting.GetValue("SourceLanguageAccuracy") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguageAccuracy")) : sourceLanguageAccuracy;
+            SourceLanguage = RegSetting.GetValue("SourceLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("SourceLanguage")) : sourceLanguage;
+            HunSpell = RegSetting.GetValue("hunSpell") != null && RegSetting.GetValue("hunSpell").ToString() == "True";
+            TargetLanguage = RegSetting.GetValue("TargetLanguage") != null ? Convert.ToInt32(RegSetting.GetValue("TargetLanguage")) : targetLanguage;
+            TranslationProvider = RegSetting.GetValue("TranslationProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TranslationProvider")) : translationProvider;
+            TTSProvider = RegSetting.GetValue("TTSProvider") != null ? Convert.ToInt32(RegSetting.GetValue("TTSProvider")) : ttsProvider;
+
+            ShortcutKey = RegSetting.GetValue("ShortcutKey") != null ? JsonSerializer.Deserialize<ShortcutKeySet>(RegSetting.GetValue("ShortcutKey").ToString()) : shortcutKey;
+            LookupOnImage = RegSetting.GetValue("LookupOnImage") != null ? RegSetting.GetValue("LookupOnImage").ToString() == "True" : lookupOnImage;
+            ShowImage = RegSetting.GetValue("ShowImage") != null ? RegSetting.GetValue("ShowImage").ToString() == "True" : showImage;
+            ShowAuxiliary = RegSetting.GetValue("ShowAuxiliary") != null ? RegSetting.GetValue("ShowAuxiliary").ToString() == "True" : showAuxiliary;
+            ShowHighlight = RegSetting.GetValue("ShowHighlight") != null ? RegSetting.GetValue("ShowHighlight").ToString() == "True" : showHighlight;
+            CloseLostFocus = RegSetting.GetValue("CloseLostFocus") != null ? RegSetting.GetValue("CloseLostFocus").ToString() == "True" : closeLostFocus;
+            FontFace = RegSetting.GetValue("FontFace") != null ? RegSetting.GetValue("FontFace").ToString() : fontFace;
+            FontSizeS = RegSetting.GetValue("FontSizeS") != null ? Convert.ToInt32(RegSetting.GetValue("FontSizeS")) : fontSizes;
+        }
+
         public int SourceLanguageAccuracy
         {
             get { return sourceLanguageAccuracy; }
@@ -69,6 +93,8 @@ namespace ScreenLookup.src.utils
 
                 App.captureWindow.LoadInstalledLanguage();
                 App.captureWindow.CreateTesseractEngine();
+
+                App.settingPage?.LoadSourceLanguageContent();
 
                 OnPropertyChanged();
             }
@@ -89,6 +115,8 @@ namespace ScreenLookup.src.utils
 
                 App.captureWindow.CreateTesseractEngine();
                 App.captureWindow.SelectConfigLanguage();
+
+                App.settingPage?.SelectSourceLanguage();
 
                 OnPropertyChanged();
             }
