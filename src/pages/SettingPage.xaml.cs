@@ -240,7 +240,7 @@ namespace ScreenLookup.src.pages
                 SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
         }
 
-        private async void ResetButton(object sender, RoutedEventArgs e)
+        private async void Reset__Click(object sender, RoutedEventArgs e)
         {
 
             bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This resets all settings and also deletes downloaded language files!", 0);

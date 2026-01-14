@@ -247,7 +247,7 @@
                 <CheckBox IsChecked="{Binding CloseLostFocus}" />
             </Controls:CardControl>
 
-            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFontSize24}">
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFont24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
                         <Controls:TextBlock Text="Font" />
@@ -287,15 +287,13 @@
                 FontWeight="SemiBold"
                 Text="Reset" />
 
-            <Controls:Card Margin="0,0,0,4">
-                <Controls:Button
-                    Margin="5,0,0,0"
-                    HorizontalAlignment="Left"
-                    Click="ResetButton"
-                    Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
-                                            Filled=False}"
-                    ToolTip="Reset" />
-            </Controls:Card>
+            <Controls:Button
+                Margin="5,0,0,0"
+                HorizontalAlignment="Left"
+                Click="Reset__Click"
+                Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
+                                        Filled=False}"
+                ToolTip="Reset" />
         </StackPanel>
     </Grid>
 </Page>
