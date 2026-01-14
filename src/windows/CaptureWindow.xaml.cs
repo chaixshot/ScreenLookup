@@ -677,6 +677,7 @@ namespace ScreenLookup.src.windows
 
             ChangeCaptureImage(CapturedImageEdited);
             SetWindowSize();
+            SetWindowPosition(new Point(this.Left, this.Top));
         }
         #endregion
 
