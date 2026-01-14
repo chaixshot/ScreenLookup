@@ -177,6 +177,11 @@ namespace ScreenLookup.src.utils
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("StartupWithWindows", value.ToString());
 
+                if (startupWithWindows)
+                    App.setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
+                else
+                    App.setting.RegAutorun.DeleteValue("ScreenLookup", false);
+
                 OnPropertyChanged();
             }
         }

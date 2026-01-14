@@ -19,7 +19,6 @@ namespace ScreenLookup.src.pages
             LoadSourceAccuracys();
             LoadProvidersContent();
 
-            ApplyStartupWithWindows();
 
             captureShortcut.KeySet = App.setting.ShortcutKey;
 
@@ -29,12 +28,6 @@ namespace ScreenLookup.src.pages
             };
         }
 
-        private void ApplyStartupWithWindows()
-        {
-            if (App.setting.StartupWithWindows)
-                App.setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
-            else
-                App.setting.RegAutorun.DeleteValue("ScreenLookup", false);
         }
 
         private void LoadSourceAccuracys()
@@ -278,11 +271,8 @@ namespace ScreenLookup.src.pages
         {
             if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
                 SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
-        }
 
-        private void StartupWithWindows_Changed(object sender, RoutedEventArgs e)
         {
-            ApplyStartupWithWindows();
         }
     }
 }
