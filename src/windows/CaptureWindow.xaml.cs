@@ -24,7 +24,7 @@ namespace ScreenLookup.src.windows
     {
         private bool IsCapturing = false;
         private Engine TesseractEngine;
-        private TesseractOCR.Page TesseractPage;
+        private string TesseractPageText;
 
         private DispatcherFrame ConfigDispatcher;
 
@@ -122,6 +122,7 @@ namespace ScreenLookup.src.windows
             TextToSpeech.StopTTS();
             ProcessImageCancelToken?.Cancel();
             TranslatesCancelToken?.Cancel();
+            TesseractPageText = string.Empty;
 
             EditRotate = 0;
             EditZoom = 1.0;
@@ -255,19 +256,17 @@ namespace ScreenLookup.src.windows
 
         private void ProcessImage()
         {
-            if (TesseractPage != null && !TesseractPage.IsDisposed)
-                TesseractPage.Dispose();
-
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(CapturedImageEdited), ProcessImageCancelToken.Token);
+                    TesseractOCR.Page TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(CapturedImageEdited), ProcessImageCancelToken.Token);
+                    TesseractPageText = TesseractPage.Text;
 
                     if (IsCapturing)
                     {
-                        if (string.IsNullOrWhiteSpace(TesseractPage.Text))
+                        if (string.IsNullOrWhiteSpace(TesseractPageText))
                         {
                             originalCard.Visibility = Visibility.Collapsed;
                             translatedCard.Visibility = Visibility.Collapsed;
@@ -275,7 +274,7 @@ namespace ScreenLookup.src.windows
                         else
                         {
                             // Original full message
-                            ocrText.Text = TesseractPage.Text;
+                            ocrText.Text = TesseractPageText;
 
                             // Original words card
                             List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage), ProcessImageCancelToken.Token);
@@ -292,7 +291,7 @@ namespace ScreenLookup.src.windows
                                     originalCard.Visibility = Visibility.Visible;
                                     translatedCard.Visibility = Visibility.Visible;
 
-                                    translationMessage.Set(TesseractPage.Text, App.setting.SourceLanguage, App.setting.TargetLanguage);
+                                    translationMessage.Set(TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage);
                                 }
 
                                 if (IsCapturing)
@@ -306,6 +305,7 @@ namespace ScreenLookup.src.windows
                             }
                         }
 
+                        TesseractPage.Dispose();
                         IsCapturing = false;
                     }
                 }));
@@ -317,7 +317,7 @@ namespace ScreenLookup.src.windows
             imageTranslatedExpanderContent.MinHeight = captureImage.Height;
             imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
 
-            await translationImage.Translate(TesseractPage.Text, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
+            await translationImage.Translate(TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
 
             HistoryLogger.Update(LastHistoryID, translationImage.Translated);
         }
