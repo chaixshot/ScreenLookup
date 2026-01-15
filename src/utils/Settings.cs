@@ -141,6 +141,7 @@ namespace ScreenLookup.src.utils
                 else
                 {
                     hunSpell = false;
+                    HunspellHelper.RemoveHunspellEngine();
 
                     RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                     key.SetValue("HunSpell", value.ToString());

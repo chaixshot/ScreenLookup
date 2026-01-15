@@ -312,6 +312,11 @@ internal class HunspellHelper
             SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error");
     }
 
+    public static void RemoveHunspellEngine()
+    {
+        HunspellEngine?.Dispose();
+    }
+
     public static string CorrectionWord(string word)
     {
         if (!HunspellEngine.Spell(word))
