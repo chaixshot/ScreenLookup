@@ -286,23 +286,40 @@ namespace ScreenLookup.src.pages
         #region Buttons
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            Button button = sender as Button;
             string word = button.Content.ToString();
             bool isYes = await DialogBox.Show($"Do you want to delete word \"{word}\"?", "This operation cannot be undone!", 0);
 
             if (isYes)
             {
                 SnackbarHost.Show(
-                title: word,
-                message: "Revmoed",
-                type: "success",
-                timeout: 2,
-                width: 130,
-                closeButton: false
+                    title: word,
+                    message: "Revmoed",
+                    type: "success",
+                    timeout: 2,
+                    width: 130,
+                    closeButton: false
                 );
                 SavedWordLogger.Remove(button.Tag.ToString());
                 LoadSavedWord();
             }
+        }
+
+        private async void SubtractScore_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            string word = button.Tag.ToString();
+
+            button.Visibility = Visibility.Collapsed;
+
+            SavedWordLogger.SubtractScore(word);
+            SnackbarHost.Show(
+                title: word,
+                message: "Score -1",
+                timeout: 2,
+                width: 130,
+                closeButton: false
+            );
         }
 
         private void Button_TTSWord(object sender, RoutedEventArgs e)

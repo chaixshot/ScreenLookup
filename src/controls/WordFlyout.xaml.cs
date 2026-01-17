@@ -279,7 +279,7 @@ namespace ScreenLookup.src.controls
                 timeout: 2,
                 width: 130,
                 closeButton: false
-                );
+            );
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)
@@ -287,7 +287,13 @@ namespace ScreenLookup.src.controls
             var button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
-            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false, showMainWindow: !IsCaptureWindow);
+            SnackbarHost.Show(
+                title: "Copied",
+                timeout: 1,
+                width: 110,
+                closeButton: false,
+                showMainWindow: !IsCaptureWindow
+            );
         }
 
         #endregion

@@ -4,6 +4,7 @@ using ScreenLookup.src.models;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Windows;
 
 namespace ScreenLookup.src.utils
 {
@@ -92,6 +93,20 @@ namespace ScreenLookup.src.utils
             command.ExecuteNonQuery();
         }
 
+        public static void SubtractScore(string originalWord)
+        {
+            string insertQuery = @"
+                UPDATE savedword
+                SET Score = Score-1
+                WHERE Original = @Original AND Score > 0; ";
+
+            using var command = new SqliteCommand(insertQuery, GetConnection());
+
+            command.Parameters.AddWithValue("@Original", originalWord);
+
+            command.ExecuteNonQuery();
+        }
+
         public static void Remove(string Id)
         {
             string insertQuery = @"
@@ -162,7 +177,7 @@ namespace ScreenLookup.src.utils
             int offset = Math.Max(0, (page - 1) * maxRow);
 
             using (var command = new SqliteCommand(@"
-                SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
+                SELECT Id, Original, Translated, SourceLanguage, TargetLanguage, Score
                 FROM savedword
                 WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')
                 ORDER BY 
@@ -189,6 +204,7 @@ namespace ScreenLookup.src.utils
                         Translated = reader.GetString(reader.GetOrdinal("Translated")),
                         SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
                         TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
+                        ScoreVisibility = Int32.Parse(reader.GetString(reader.GetOrdinal("Score"))) > 0 ? Visibility.Visible : Visibility.Collapsed,
                     });
                 }
             }

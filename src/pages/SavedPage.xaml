@@ -274,20 +274,36 @@
                             <DataGridTemplateColumn Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Controls:Button
-                                            Width="17"
-                                            Height="17"
-                                            Margin="0"
-                                            Padding="0"
-                                            HorizontalAlignment="Right"
-                                            Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
-                                            BorderThickness="0"
-                                            Click="Delete_click"
-                                            Content="{Binding Original}"
-                                            Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
-                                                                    Filled=False}"
-                                            Tag="{Binding Id}"
-                                            ToolTip="Delete" />
+                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <Controls:Button
+                                                Uid="{Binding Translated}"
+                                                Width="20"
+                                                Height="20"
+                                                Padding="0"
+                                                VerticalAlignment="Top"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                Click="SubtractScore_Click"
+                                                Icon="{wpfui:SymbolIcon Symbol=StarEmphasis24,
+                                                                        Filled=True}"
+                                                Tag="{Binding Original}"
+                                                ToolTip="-1 want to learn score"
+                                                Visibility="{Binding ScoreVisibility}" />
+
+                                            <Controls:Button
+                                                Width="17"
+                                                Height="17"
+                                                Margin="30,0,0,0"
+                                                Padding="0"
+                                                Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
+                                                BorderThickness="0"
+                                                Click="Delete_click"
+                                                Content="{Binding Original}"
+                                                Icon="{wpfui:SymbolIcon Symbol=Dismiss24,
+                                                                        Filled=False}"
+                                                Tag="{Binding Id}"
+                                                ToolTip="Delete" />
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
