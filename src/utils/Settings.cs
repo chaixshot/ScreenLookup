@@ -362,7 +362,7 @@ namespace ScreenLookup.src.utils
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("ShortcutKey", JsonSerializer.Serialize(value));
 
-                App.trayIcon?.SetupHoykey();
+                App.SetupHoykey();
 
                 OnPropertyChanged();
             }
