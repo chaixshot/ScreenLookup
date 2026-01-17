@@ -145,11 +145,12 @@ namespace ScreenLookup.src.controls
             word = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
             word = char.ToUpper(word.First()) + word[1..].ToLower(); // Capitalizing first letter
 
+            message = Regex.Replace(message, @"\s*([.!?。！、])\s*", "$1\n"); // Newline next sentence
+
             OriginalWord = word;
             OriginalMessage = message;
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
-
 
             IsOpen = true;
         }
