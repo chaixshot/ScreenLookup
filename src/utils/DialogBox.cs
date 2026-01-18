@@ -5,7 +5,7 @@ namespace ScreenLookup.src.utils
 {
     class DialogBox
     {
-        public static async Task<bool> Show(string title, string content, int type)
+        public static async Task<bool> Show(string title, string content, string leftButtonText, string rightButtonText)
         {
             var dialogHostContainer = App.mainWindow?.DialogHostContainer;
             var dialog = new ContentDialog
@@ -17,8 +17,8 @@ namespace ScreenLookup.src.utils
                     FontWeight = FontWeights.Regular
                 },
                 Content = content,
-                PrimaryButtonText = type == 0 ? "Yes" : "",
-                CloseButtonText = type == 0 ? "No" : "OK",
+                PrimaryButtonText = leftButtonText,
+                CloseButtonText = rightButtonText,
                 DefaultButton = ContentDialogButton.Close,
                 DialogHost = dialogHostContainer,
                 Padding = new Thickness(8, 4, 8, 8),

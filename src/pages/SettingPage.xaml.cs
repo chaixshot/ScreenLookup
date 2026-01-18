@@ -243,13 +243,13 @@ namespace ScreenLookup.src.pages
         private async void Reset__Click(object sender, RoutedEventArgs e)
         {
 
-            bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This resets all settings and also deletes downloaded language files!", 0);
+            bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This resets all settings and also deletes downloaded language files!", "Yes", "No");
             if (isYes)
             {
                 App.setting.Reset();
                 DownloadHelper.DeleteDownloadedAppData();
 
-                await DialogBox.Show("You must to restart this program to apply these changes", "", 1);
+                await DialogBox.Show("You must to restart this program to apply these changes", "", "", "OK");
             }
         }
         #endregion

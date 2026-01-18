@@ -211,7 +211,7 @@ namespace ScreenLookup.src.pages
 
         private async void Clear_click(object sender, RoutedEventArgs e)
         {
-            bool isYes = await DialogBox.Show("Do you want to delete all saved word?", "This operation cannot be undone!", 0);
+            bool isYes = await DialogBox.Show("Do you want to delete all saved word?", "This operation cannot be undone!", "Yes", "No");
 
             if (isYes)
             {
@@ -326,7 +326,7 @@ namespace ScreenLookup.src.pages
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            bool isYes = await DialogBox.Show($"Do you want to delete message?", "This operation cannot be undone!", 0);
+            bool isYes = await DialogBox.Show($"Do you want to delete message?", "This operation cannot be undone!", "Yes", "No");
 
             if (isYes)
             {
