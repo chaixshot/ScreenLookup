@@ -41,7 +41,7 @@
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show(ex.StackTrace);
+                SnackbarHost.Show("Translation Error", ex.StackTrace, SnackbarType.Error);
                 return "";
             }
         }

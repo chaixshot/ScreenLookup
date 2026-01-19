@@ -192,7 +192,7 @@ namespace ScreenLookup.src.windows
 
             if (!TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
             {
-                SnackbarHost.Show("Source Language", $"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting", "error");
+                SnackbarHost.Show("Source Language", $"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting", SnackbarType.Error);
                 Notification.Show($"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting");
                 return;
             }
@@ -713,7 +713,7 @@ namespace ScreenLookup.src.windows
             ToggleSwitch switchs = (ToggleSwitch)sender;
             if (switchs.Name == "hunSpell")
                 if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
-                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
+                    SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", SnackbarType.Error);
         }
         #endregion
     }

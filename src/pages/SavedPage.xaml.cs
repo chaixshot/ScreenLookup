@@ -235,11 +235,11 @@ namespace ScreenLookup.src.pages
                     await SavedWordLogger.ExportToCSV(saveFileDialog.FileName);
 
                     AppUtilities.OpenExplorer(saveFileDialog.FileName);
-                    SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", "success", width: 800);
+                    SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", SnackbarType.Success, width: 800);
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", "error", width: 800);
+                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", SnackbarType.Error, width: 800);
                 }
             }
         }
@@ -295,7 +295,7 @@ namespace ScreenLookup.src.pages
                 SnackbarHost.Show(
                     title: word,
                     message: "Revmoed",
-                    type: "success",
+                    type: SnackbarType.Success,
                     timeout: 2,
                     width: 130,
                     closeButton: false

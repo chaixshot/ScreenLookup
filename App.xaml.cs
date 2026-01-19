@@ -98,7 +98,7 @@ namespace ScreenLookup
             }
             catch
             {
-                SnackbarHost.Show("Lookup Shortcut", "Another application is already using the Lookup Shortcut.", "error", 99999, showMainWindow: true);
+                SnackbarHost.Show("Lookup Shortcut", "Another application is already using the Lookup Shortcut.", SnackbarType.Error, timeout: 99999, showMainWindow: true);
             }
         }
 

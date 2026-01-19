@@ -78,7 +78,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show("Error", $"Update Check Failed:\n\"{ex.Message}\"", type: "error");
+                SnackbarHost.Show("Error", $"Update Check Failed:\n\"{ex.Message}\"", type: SnackbarType.Error);
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace ScreenLookup.src.utils
                     }
                     catch (Exception ex)
                     {
-                        SnackbarHost.Show("Error", $"Open Browser Failed:\n\"{ex.Message}\"", type: "error");
+                        SnackbarHost.Show("Error", $"Open Browser Failed:\n\"{ex.Message}\"", type: SnackbarType.Error);
                     }
                 }
             }

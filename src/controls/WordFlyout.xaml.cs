@@ -257,7 +257,7 @@ namespace ScreenLookup.src.controls
             SnackbarHost.Show(
                 title: OriginalWord,
                 message: "Saved",
-                type: "success",
+                type: SnackbarType.Success,
                 timeout: 2,
                 width: 130,
                 closeButton: false

@@ -245,12 +245,12 @@ namespace ScreenLookup.src.pages
                     await HistoryLogger.ExportToCSV(saveFileDialog.FileName);
 
                     AppUtilities.OpenExplorer(saveFileDialog.FileName);
-                    SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", "success", width: 800);
+                    SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", SnackbarType.Success, width: 800);
 
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", "error", width: 800);
+                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", SnackbarType.Error, width: 800);
                 }
             }
         }
@@ -331,12 +331,12 @@ namespace ScreenLookup.src.pages
             if (isYes)
             {
                 SnackbarHost.Show(
-                title: "Message",
-                message: "Revmoed",
-                type: "success",
-                timeout: 2,
-                width: 130,
-                closeButton: false
+                    title: "Message",
+                    message: "Revmoed",
+                    type: SnackbarType.Success,
+                    timeout: 2,
+                    width: 130,
+                    closeButton: false
                 );
                 HistoryLogger.Remove(button.Tag.ToString());
                 LoadHistoryLogger();

@@ -162,7 +162,7 @@ namespace ScreenLookup.src.pages
 
             isLoadingTesseract = true;
             ButtonDownloadTesseracChanged();
-            SnackbarHost.Show("Source Language", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999, closeButton: false);
+            SnackbarHost.Show("Source Language", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy);
             string filePath = Path.Combine(App.tempFolder, pickedLanguageFile);
@@ -174,10 +174,10 @@ namespace ScreenLookup.src.pages
             {
                 await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
                 TesseractHelper.SaveInstalled(accID, langID);
-                SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
+                SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
             }
             else
-                SnackbarHost.Show("Source Language", $"Unable to download \"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", "error");
+                SnackbarHost.Show("Source Language", $"Unable to download \"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
             isLoadingTesseract = false;
             ButtonDownloadTesseracChanged();
@@ -191,13 +191,13 @@ namespace ScreenLookup.src.pages
 
             if (!HunspellHelper.LangList.TryGetValue(tessTag, out string? fileName))
             {
-                SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error");
+                SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", SnackbarType.Error);
                 return;
             }
 
             isLoadingHunspell = true;
             ButtonDownloadHunspellChanged();
-            SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", "info", 99999, closeButton: false);
+            SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
             // Download files
             foreach (string extension in new string[] { "aff", "dic" })
@@ -219,7 +219,7 @@ namespace ScreenLookup.src.pages
                 }
                 else
                 {
-                    SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", "error");
+                    SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
                     isLoadingHunspell = false;
                     ButtonDownloadHunspellChanged();
@@ -231,13 +231,13 @@ namespace ScreenLookup.src.pages
             isLoadingHunspell = false;
             HunspellHelper.SaveInstalled(langID);
             ButtonDownloadHunspellChanged();
-            SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", "success");
+            SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
         }
 
         private void HunSpell_Click(object sender, RoutedEventArgs e)
         {
             if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
-                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", "error");
+                SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", SnackbarType.Error);
         }
 
         private async void Reset__Click(object sender, RoutedEventArgs e)

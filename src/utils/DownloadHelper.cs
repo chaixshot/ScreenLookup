@@ -309,7 +309,7 @@ internal class HunspellHelper
             HunspellEngine = new Hunspell($"{FilePath}\\{nameTag}.aff", $"{FilePath}\\{nameTag}.dic");
         }
         else
-            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", "error");
+            SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", SnackbarType.Error);
     }
 
     public static void RemoveHunspellEngine()

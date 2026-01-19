@@ -8,31 +8,30 @@ namespace ScreenLookup.src.utils
         public static Snackbar? snackbarCapture;
         public static MainWindow? mainWindow = App.mainWindow;
 
-        public static void Show(string title = "", string message = "", string type = "info", int timeout = 5, int width = 500, bool showMainWindow = false, bool closeButton = true)
+        public static void Show(string title = "", string message = "", SnackbarType type = SnackbarType.Info, int timeout = 5, int width = 500, bool showMainWindow = false, bool closeButton = true)
         {
             ControlAppearance appearance;
             SymbolIcon icon;
             Snackbar? snackbar;
 
-            if (type == "warning")
+            switch (type)
             {
-                appearance = ControlAppearance.Caution;
-                icon = new SymbolIcon(SymbolRegular.Alert24);
-            }
-            else if (type == "success")
-            {
-                appearance = ControlAppearance.Success;
-                icon = new SymbolIcon(SymbolRegular.CheckmarkCircle24);
-            }
-            else if (type == "error")
-            {
-                appearance = ControlAppearance.Danger;
-                icon = new SymbolIcon(SymbolRegular.DismissCircle24);
-            }
-            else
-            {
-                appearance = ControlAppearance.Secondary;
-                icon = new SymbolIcon(SymbolRegular.Info24);
+                case SnackbarType.Warning:
+                    appearance = ControlAppearance.Caution;
+                    icon = new SymbolIcon(SymbolRegular.Alert24);
+                    break;
+                case SnackbarType.Success:
+                    appearance = ControlAppearance.Success;
+                    icon = new SymbolIcon(SymbolRegular.CheckmarkCircle24);
+                    break;
+                case SnackbarType.Error:
+                    appearance = ControlAppearance.Danger;
+                    icon = new SymbolIcon(SymbolRegular.DismissCircle24);
+                    break;
+                default:
+                    appearance = ControlAppearance.Secondary;
+                    icon = new SymbolIcon(SymbolRegular.Info24);
+                    break;
             }
 
             // Create a new Snackbar for both windows
@@ -65,5 +64,13 @@ namespace ScreenLookup.src.utils
             snackbarCapture.IsCloseButtonEnabled = closeButton;
             snackbarCapture.Show(true);
         }
+    }
+
+    public enum SnackbarType
+    {
+        Warning,
+        Error,
+        Success,
+        Info
     }
 }
