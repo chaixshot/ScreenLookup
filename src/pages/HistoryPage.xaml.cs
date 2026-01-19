@@ -221,7 +221,7 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void Refresh_click(object sender, RoutedEventArgs e)
+        private void Refresh_Click(object sender, RoutedEventArgs e)
         {
             LoadHistoryLogger();
             ScrollTop();
@@ -299,10 +299,13 @@ namespace ScreenLookup.src.pages
 
         private async void ReTranslate_Click(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            string Id = button.Tag.ToString();
+            Button? refreshButton = sender as Button;
+            StackPanel Parent = refreshButton.Parent as StackPanel;
+            ProgressRing Loading = Parent.FindName("Loading") as ProgressRing;
+            string Id = refreshButton.Tag.ToString();
 
-            button.Visibility = Visibility.Collapsed;
+            Loading.Visibility = Visibility.Visible;
+            refreshButton.Visibility = Visibility.Collapsed;
 
             foreach (var item in HistoryItems)
             {
@@ -311,7 +314,7 @@ namespace ScreenLookup.src.pages
                     string translatedText = await Translation.GetTranslated(item.Original, Int32.Parse(item.SourceLanguage), Int32.Parse(item.TargetLanguage));
 
                     if (string.IsNullOrEmpty(translatedText))
-                        button.Visibility = Visibility.Visible;
+                        refreshButton.Visibility = Visibility.Visible;
                     else
                         HistoryLogger.Update(Int32.Parse(item.Id), translatedText);
 

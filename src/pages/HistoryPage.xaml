@@ -120,7 +120,7 @@
                             x:Name="Refresh"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Right"
-                            Click="Refresh_click"
+                            Click="Refresh_Click"
                             Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise12,
                                                     Filled=False}"
                             ToolTip="Refresh" />
@@ -322,6 +322,17 @@
                                                     Margin="15,0,0,0"
                                                     Text="{Binding Translated}"
                                                     TextWrapping="Wrap" />
+
+                                                <wpfui:ProgressRing
+                                                    x:Name="Loading"
+                                                    Width="30"
+                                                    Height="30"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Top"
+                                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                                    IsIndeterminate="True"
+                                                    Visibility="Collapsed" />
+
                                                 <Controls:Button
                                                     Width="30"
                                                     Height="30"
