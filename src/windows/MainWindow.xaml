@@ -47,6 +47,7 @@
                 CloseClicked="CloseButton_Clicked"
                 Icon="{StaticResource AppIcon}"
                 MinimizeClicked="MinimizeButton_Clicked">
+
                 <Controls:TitleBar.Header>
                     <Controls:TextBlock
                         Padding="0"
@@ -54,6 +55,7 @@
                         FontSize="12"
                         Text="ScreenLookup" />
                 </Controls:TitleBar.Header>
+
                 <Controls:TitleBar.TrailingContent>
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <Controls:Button
@@ -91,9 +93,11 @@
                         NavigationCacheMode="Enabled"
                         TargetPageTag="Setting"
                         TargetPageType="{x:Type local:SettingPage}">
+
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="Setting" />
                         </Controls:NavigationViewItem.Content>
+
                         <Controls:NavigationViewItem.Icon>
                             <Controls:SymbolIcon Symbol="Settings24" />
                         </Controls:NavigationViewItem.Icon>
@@ -103,9 +107,11 @@
                         NavigationCacheMode="Enabled"
                         TargetPageTag="History"
                         TargetPageType="{x:Type local:HistoryPage}">
+
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="History" />
                         </Controls:NavigationViewItem.Content>
+
                         <Controls:NavigationViewItem.Icon>
                             <Controls:SymbolIcon Symbol="History24" />
                         </Controls:NavigationViewItem.Icon>
@@ -115,26 +121,32 @@
                         NavigationCacheMode="Enabled"
                         TargetPageTag="Saved"
                         TargetPageType="{x:Type local:SavedPage}">
+
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="Saved" />
                         </Controls:NavigationViewItem.Content>
+
                         <Controls:NavigationViewItem.Icon>
                             <Controls:SymbolIcon Symbol="Star24" />
                         </Controls:NavigationViewItem.Icon>
                     </Controls:NavigationViewItem>
+                </Controls:NavigationView.MenuItems>
 
+                <Controls:NavigationView.FooterMenuItems>
                     <Controls:NavigationViewItem
                         NavigationCacheMode="Enabled"
                         TargetPageTag="About"
                         TargetPageType="{x:Type local:InfoPage}">
+
                         <Controls:NavigationViewItem.Content>
                             <TextBlock Style="{StaticResource NavMenuContent}" Text="About" />
                         </Controls:NavigationViewItem.Content>
+
                         <Controls:NavigationViewItem.Icon>
                             <Controls:SymbolIcon Symbol="Info24" />
                         </Controls:NavigationViewItem.Icon>
                     </Controls:NavigationViewItem>
-                </Controls:NavigationView.MenuItems>
+                </Controls:NavigationView.FooterMenuItems>
 
                 <Controls:NavigationView.ContentOverlay>
                     <Grid>
