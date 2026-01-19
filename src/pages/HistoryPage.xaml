@@ -156,7 +156,7 @@
                     </StackPanel>
                 </Grid>
 
-                <xControls:WordFlyout x:Name="flayOut" IsCaptureWindow="False" />
+                <xControls:WordFlyout x:Name="flayOut" />
 
                 <Controls:Card
                     Grid.Row="2"

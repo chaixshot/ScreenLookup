@@ -41,12 +41,6 @@ namespace ScreenLookup.src.controls
         }
 
         #region
-        public bool IsCaptureWindow
-        {
-            get { return (bool)GetValue(IsCaptureWindowProperty); }
-            set { SetValue(IsCaptureWindowProperty, value); }
-        }
-
         public int SourceLanguage
         {
             get { return sourceLanguage; }
@@ -129,9 +123,6 @@ namespace ScreenLookup.src.controls
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        public static readonly DependencyProperty IsCaptureWindowProperty =
-            DependencyProperty.Register("IsCapture", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(false));
         #endregion
 
         public void Show(string word, string message, int sourceLang, int targetLang)
@@ -159,7 +150,7 @@ namespace ScreenLookup.src.controls
         {
             ResetDefaultState();
 
-            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
             SavedWordButtonStateChange(OriginalWord);
 
             ThreadPool.QueueUserWorkItem(_ =>
@@ -232,22 +223,22 @@ namespace ScreenLookup.src.controls
         #region Button Click
         private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(OriginalWord, SourceLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
         }
 
         private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translationWord.Translated, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translationWord.Translated, TargetLanguage);
         }
 
         private async void Button_OriginalMessageTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(OriginalMessage, SourceLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(OriginalMessage, SourceLanguage);
         }
 
         private async void Button_TranslatedMessageTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translationMessage.Translated, TargetLanguage, IsCaptureWindow ? "capture" : "main");
+            TextToSpeech.StartTTS(translationMessage.Translated, TargetLanguage);
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)
@@ -292,7 +283,6 @@ namespace ScreenLookup.src.controls
                 timeout: 1,
                 width: 110,
                 closeButton: false,
-                showMainWindow: !IsCaptureWindow
             );
         }
 

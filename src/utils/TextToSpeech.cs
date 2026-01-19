@@ -89,7 +89,7 @@ namespace ScreenLookup.src.utils
             TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
         }
 
-        public static async void StartTTS(string Text, int langID, string window = "main")
+        public static async void StartTTS(string Text, int langID)
         {
             StopTTS();
             PlayTTSCancelToken = new();
@@ -100,9 +100,9 @@ namespace ScreenLookup.src.utils
             if (!string.IsNullOrEmpty(errorMsg))
             {
                 if (errorMsg.Contains("Language not supported"))
-                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: SnackbarType.Error, showMainWindow: window == "main");
+                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: SnackbarType.Error);
                 else
-                    SnackbarHost.Show("Error", errorMsg, type: SnackbarType.Error, showMainWindow: window == "main");
+                    SnackbarHost.Show("Error", errorMsg, type: SnackbarType.Error);
             }
         }
 

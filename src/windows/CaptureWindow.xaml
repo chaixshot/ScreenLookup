@@ -39,10 +39,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <xControls:WordFlyout
-                x:Name="flayOut"
-                Grid.Row="5"
-                IsCaptureWindow="True" />
+            <xControls:WordFlyout x:Name="flayOut" Grid.Row="5" />
 
             <StackPanel x:Name="ImageControlPanel" Orientation="Horizontal">
                 <Controls:Button

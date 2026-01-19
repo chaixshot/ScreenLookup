@@ -589,12 +589,12 @@ namespace ScreenLookup.src.windows
 
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(ocrText.Text, App.setting.SourceLanguage, "capture");
+            TextToSpeech.StartTTS(ocrText.Text, App.setting.SourceLanguage);
         }
 
         private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(translationMessage.Translated, App.setting.TargetLanguage, "capture");
+            TextToSpeech.StartTTS(translationMessage.Translated, App.setting.TargetLanguage);
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)
