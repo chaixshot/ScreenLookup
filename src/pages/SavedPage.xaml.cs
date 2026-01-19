@@ -108,7 +108,7 @@ namespace ScreenLookup.src.pages
             List<ComboBoxItem> items = [];
             items.Add(new ComboBoxItem()
             {
-                Content = "",
+                Content = string.Empty,
                 Tag = -1,
             });
 
@@ -246,7 +246,7 @@ namespace ScreenLookup.src.pages
 
         private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-            string searchText = (sender as AutoSuggestBox)?.Text ?? "";
+            string searchText = (sender as AutoSuggestBox)?.Text ?? string.Empty;
 
             // Clear search by Ctrl+A and Delete and Enter
             if (string.IsNullOrEmpty(searchText))

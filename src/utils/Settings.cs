@@ -396,7 +396,7 @@ namespace ScreenLookup.src.utils
 
         public void Reset()
         {
-            ScreenLookupReg.DeleteSubKeyTree("");
+            ScreenLookupReg.DeleteSubKeyTree(string.Empty);
         }
     }
 }

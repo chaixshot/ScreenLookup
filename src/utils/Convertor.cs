@@ -39,7 +39,7 @@ namespace ScreenLookup.src.utils
                     if (item.Stop == 1) // New line
                         itemsForCard.Add(new CaptureWordsEntry()
                         {
-                            Word = "",
+                            Word = string.Empty,
                             Width = width,
                             Height = 0,
                             Padding = "0",
@@ -52,7 +52,7 @@ namespace ScreenLookup.src.utils
                     if (item.Stop == 2) // New paragraph
                         itemsForCard.Add(new CaptureWordsEntry()
                         {
-                            Word = "",
+                            Word = string.Empty,
                             Width = width,
                             Height = Double.NaN,
                             Padding = "0",
@@ -65,7 +65,7 @@ namespace ScreenLookup.src.utils
                     if (item.Stop == 3) // New block
                         itemsForCard.Add(new CaptureWordsEntry()
                         {
-                            Word = "",
+                            Word = string.Empty,
                             Width = width,
                             Height = Double.NaN,
                             Padding = "0",

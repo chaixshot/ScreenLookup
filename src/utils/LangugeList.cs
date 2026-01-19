@@ -18,10 +18,10 @@ namespace ScreenLookup.src.utils
         /// <returns>A string with the '_frak', '_old', '_latn', and '_vert' suffixes removed from the original tag, if present.</returns>
         public static string ClearTesseractTag(string tesseractTag)
         {
-            tesseractTag = tesseractTag.Replace("_frak", "");
-            tesseractTag = tesseractTag.Replace("_old", "");
-            tesseractTag = tesseractTag.Replace("_latn", "");
-            tesseractTag = tesseractTag.Replace("_vert", "");
+            tesseractTag = tesseractTag.Replace("_frak", string.Empty);
+            tesseractTag = tesseractTag.Replace("_old", string.Empty);
+            tesseractTag = tesseractTag.Replace("_latn", string.Empty);
+            tesseractTag = tesseractTag.Replace("_vert", string.Empty);
 
             return tesseractTag;
         }
@@ -137,7 +137,7 @@ namespace ScreenLookup.src.utils
                     "chi_tra" => new CultureInfo("zh-Hant"),
                     _ => new CultureInfo(tessLangTag)
                 };
-                string note = "";
+                string note = string.Empty;
 
                 if (tesseractTag == "dan_frak")
                     note = "(Fraktur)";

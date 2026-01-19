@@ -350,7 +350,7 @@ namespace ScreenLookup.src.windows
 
             AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
-            ocrText.Text = "";
+            ocrText.Text = string.Empty;
 
             originalScrollView.ScrollToTop();
 
@@ -439,11 +439,11 @@ namespace ScreenLookup.src.windows
                                 items.Add(new CaptureWordsSimplifiedEntry() { Word = text, Stop = 0 });
                             }
                         }
-                        items.Add(new CaptureWordsSimplifiedEntry() { Word = "", Stop = 1 });
+                        items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 1 });
                     }
-                    items.Add(new CaptureWordsSimplifiedEntry() { Word = "", Stop = 2 });
+                    items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 2 });
                 }
-                items.Add(new CaptureWordsSimplifiedEntry() { Word = "", Stop = 3 });
+                items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 3 });
             }
 
         skip:
@@ -460,7 +460,7 @@ namespace ScreenLookup.src.windows
 
             foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
             {
-                string fullTextBlock = "";
+                string fullTextBlock = string.Empty;
 
                 foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
                 {
@@ -506,7 +506,7 @@ namespace ScreenLookup.src.windows
 
         private async Task<int> AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords)
         {
-            return await HistoryLogger.Add(original, originalWords, "", App.setting.SourceLanguage, App.setting.TargetLanguage);
+            return await HistoryLogger.Add(original, originalWords, string.Empty, App.setting.SourceLanguage, App.setting.TargetLanguage);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
@@ -569,7 +569,7 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, "", sourceLang, App.setting.TargetLanguage);
+            flayOut.Show(word, string.Empty, sourceLang, App.setting.TargetLanguage);
         }
 
         private void Button_Message(object sender, RoutedEventArgs e)

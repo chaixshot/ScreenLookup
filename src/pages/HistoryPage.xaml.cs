@@ -120,7 +120,7 @@ namespace ScreenLookup.src.pages
             List<ComboBoxItem> items = [];
             items.Add(new ComboBoxItem()
             {
-                Content = "",
+                Content = string.Empty,
                 Tag = -1,
             });
 
@@ -257,7 +257,7 @@ namespace ScreenLookup.src.pages
 
         private void HistorySearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-            string searchText = (sender as AutoSuggestBox)?.Text ?? "";
+            string searchText = (sender as AutoSuggestBox)?.Text ?? string.Empty;
 
             // Clear search by Ctrl+A and Delete and Enter
             if (string.IsNullOrEmpty(searchText))
@@ -353,7 +353,7 @@ namespace ScreenLookup.src.pages
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, "", sourceLang, targetLang);
+            flayOut.Show(word, string.Empty, sourceLang, targetLang);
         }
 
         private void Button_MessageTTS(object sender, RoutedEventArgs e)

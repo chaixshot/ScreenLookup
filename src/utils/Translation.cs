@@ -42,7 +42,7 @@
             catch (Exception ex)
             {
                 SnackbarHost.Show("Translation Error", ex.StackTrace, SnackbarType.Error);
-                return "";
+                return string.Empty;
             }
         }
     }

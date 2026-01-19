@@ -20,8 +20,8 @@ namespace ScreenLookup.src.controls
 
         public int sourceLanguage = 1;
         public int targetLanguage = 1;
-        public string originalWord = "";
-        public string originalMessage = "";
+        public string originalWord = string.Empty;
+        public string originalMessage = string.Empty;
         public double width = double.NaN;
         public bool isOpen = false;
         private static CancellationTokenSource TranslatesCancelToken;

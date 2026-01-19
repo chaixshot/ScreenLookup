@@ -11,8 +11,8 @@ namespace ScreenLookup.src.controls
     {
         private readonly Dictionary<string, string> translatedCache = [];
 
-        private string Original = "";
-        public string Translated = "";
+        private string Original = string.Empty;
+        public string Translated = string.Empty;
 
         private int SourceLanguage;
         private int TargetLanguage;
@@ -91,13 +91,13 @@ namespace ScreenLookup.src.controls
             Refresh.Width = buttonWidth;
             Refresh.Height = buttonWidth;
 
-            TranslatedText.Text = "";
+            TranslatedText.Text = string.Empty;
             TranslatedText.Visibility = Visibility.Collapsed;
             Loading.Visibility = Visibility.Visible;
             Refresh.Visibility = Visibility.Collapsed;
 
-            Original = "";
-            Translated = "";
+            Original = string.Empty;
+            Translated = string.Empty;
 
             translatedScrollViewer.ScrollToTop();
         }

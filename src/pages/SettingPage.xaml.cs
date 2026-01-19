@@ -249,7 +249,7 @@ namespace ScreenLookup.src.pages
                 App.setting.Reset();
                 DownloadHelper.DeleteDownloadedAppData();
 
-                await DialogBox.Show("You must to restart this program to apply these changes", "", "", "OK");
+                await DialogBox.Show("You must to restart this program to apply these changes", string.Empty, string.Empty, "OK");
             }
         }
         #endregion

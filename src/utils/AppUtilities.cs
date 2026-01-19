@@ -50,7 +50,7 @@ namespace ScreenLookup.src.utils
             string latestVersionRaw = doc.RootElement.GetProperty("tag_name").GetString();
             string latestVersion = string.IsNullOrEmpty(latestVersionRaw)
                 ? String.Empty
-                : Regex.Replace(latestVersionRaw, @"[^0-9.]", "");
+                : Regex.Replace(latestVersionRaw, @"[^0-9.]", string.Empty);
 
             return latestVersion;
         }
