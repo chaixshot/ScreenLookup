@@ -282,7 +282,7 @@ namespace ScreenLookup.src.controls
                 title: "Copied",
                 timeout: 1,
                 width: 110,
-                closeButton: false,
+                closeButton: false
             );
         }
 
