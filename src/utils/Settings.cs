@@ -18,6 +18,7 @@ namespace ScreenLookup.src.utils
         public readonly RegistryKey RegLoadedHunspell = ScreenLookupReg.CreateSubKey("InstalledHunspell");
         public readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
 
+        public bool firstRun = true;
         public bool topmost = true;
         public bool startupWithWindows = true;
         public bool startInBackground = false;
@@ -59,6 +60,7 @@ namespace ScreenLookup.src.utils
 
         public void Load()
         {
+            FirstRun = RegSetting.GetValue("FirstRun") != null ? RegSetting.GetValue("FirstRun").ToString() == "True" : firstRun;
             Topmost = RegSetting.GetValue("Topmost") != null ? RegSetting.GetValue("Topmost").ToString() == "True" : lookupOnImage;
             StartupWithWindows = RegSetting.GetValue("StartupWithWindows") != null ? RegSetting.GetValue("StartupWithWindows").ToString() == "True" : startupWithWindows;
             StartInBackground = RegSetting.GetValue("StartInBackground") != null && RegSetting.GetValue("StartInBackground").ToString() == "True";
@@ -180,6 +182,7 @@ namespace ScreenLookup.src.utils
                 OnPropertyChanged();
             }
         }
+
         public int TTSProvider
         {
             get { return ttsProvider; }
@@ -299,6 +302,7 @@ namespace ScreenLookup.src.utils
                 OnPropertyChanged();
             }
         }
+
         public bool CloseLostFocus
         {
             get { return closeLostFocus; }
@@ -308,6 +312,20 @@ namespace ScreenLookup.src.utils
 
                 RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
                 key.SetValue("CloseLostFocus", value.ToString());
+
+                OnPropertyChanged();
+            }
+        }
+
+        public bool FirstRun
+        {
+            get { return firstRun; }
+            set
+            {
+                firstRun = value;
+
+                RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\ScreenLookup\\Settings\\");
+                key.SetValue("FirstRun", false);
 
                 OnPropertyChanged();
             }
@@ -326,6 +344,7 @@ namespace ScreenLookup.src.utils
                 OnPropertyChanged();
             }
         }
+
         public int FontSizeS
         {
             get { return fontSizes; }
@@ -339,6 +358,7 @@ namespace ScreenLookup.src.utils
                 OnPropertyChanged();
             }
         }
+
         public string FontFace
         {
             get { return fontFace; }
@@ -352,6 +372,7 @@ namespace ScreenLookup.src.utils
                 OnPropertyChanged();
             }
         }
+
         public ShortcutKeySet ShortcutKey
         {
             get { return shortcutKey; }

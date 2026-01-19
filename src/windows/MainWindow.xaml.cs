@@ -24,9 +24,13 @@ namespace ScreenLookup
                 ApplicationThemeManager.ApplySystemTheme();
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
 
-                this.RootNavigation.Navigate(typeof(SettingPage));
-
-                AppUtilities.ChackForUpdate();
+                if (App.setting.FirstRun)
+                    this.RootNavigation.Navigate(typeof(InfoPage));
+                else
+                {
+                    this.RootNavigation.Navigate(typeof(SettingPage));
+                    AppUtilities.ChackForUpdate();
+                }
             };
         }
 
