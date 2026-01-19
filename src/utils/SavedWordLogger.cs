@@ -127,15 +127,6 @@ namespace ScreenLookup.src.utils
                 Remove(original);
             else
             {
-                int attempt = 0;
-            start:
-                if (string.IsNullOrEmpty(translated))
-                    translated = await Translation.GetTranslated(original, sourceLanguage, targetLanguage);
-                if (string.IsNullOrEmpty(translated) && attempt < 5)
-                {
-                    attempt += 1;
-                    goto start;
-                }
                 Add(original, translated, sourceLanguage, targetLanguage);
             }
         }

@@ -245,16 +245,25 @@ namespace ScreenLookup.src.controls
         {
             string translated = translationWord.Translated;
 
-            SnackbarHost.Show(
-                title: OriginalWord,
-                message: "Saved",
-                type: SnackbarType.Success,
-                timeout: 2,
-                width: 130,
-                closeButton: false
-            );
-            SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
-            SavedWordButtonStateChange(OriginalWord);
+            if (string.IsNullOrEmpty(translated))
+                SnackbarHost.Show(
+                    title: "Error",
+                    message: "Translation is not yet complete",
+                    type: SnackbarType.Error
+                );
+            else
+            {
+                SnackbarHost.Show(
+                    title: OriginalWord,
+                    message: "Saved",
+                    type: SnackbarType.Success,
+                    timeout: 2,
+                    width: 130,
+                    closeButton: false
+                );
+                SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
+                SavedWordButtonStateChange(OriginalWord);
+            }
         }
 
         private void Button_WordAddScore(object sender, RoutedEventArgs e)
