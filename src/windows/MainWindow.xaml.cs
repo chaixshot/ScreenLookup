@@ -17,7 +17,7 @@ namespace ScreenLookup
         public MainWindow()
         {
             InitializeComponent();
-            WindowStateRestore(this, "Main");
+            WindowStateRestore();
 
             Loaded += (s, e) =>
             {
@@ -90,39 +90,40 @@ namespace ScreenLookup
         #region Window Persistence State
         private void MainWindow_BoundsChanged(object sender, EventArgs e)
         {
-            Window window = (Window)sender;
-            WindowStateSave(window, "Main");
+            WindowStateSave();
         }
 
-        private static void WindowStateSave(Window windows, string windowsType)
+        private void WindowStateSave()
         {
-            if (windows != null)
-            {
-                App.setting.RegWindowBounds.SetValue("Bounds", windows.RestoreBounds.ToString());
-            }
+            App.setting.RegWindowBounds.SetValue("Bounds", this.RestoreBounds.ToString());
+            App.setting.RegWindowBounds.SetValue("State", this.WindowState.ToString());
         }
 
-        private static void WindowStateRestore(Window windows, string windowsType)
+        private void WindowStateRestore()
         {
-            if (windows != null)
+            RegistryKey key = App.setting.RegWindowBounds;
+
+            if (key.GetValue("Bounds") != null)
             {
-                RegistryKey key = App.setting.RegWindowBounds;
-                if (key.GetValue("Bounds") != null)
+                Rect bounds = Rect.Parse(key.GetValue("Bounds").ToString());
+                if (!bounds.IsEmpty)
                 {
-                    Rect bounds = Rect.Parse(key.GetValue("Bounds").ToString());
-                    if (!bounds.IsEmpty)
-                    {
-                        windows.Top = bounds.Top;
-                        windows.Left = bounds.Left;
+                    this.Top = bounds.Top;
+                    this.Left = bounds.Left;
 
-                        // Restore the size only for a manually sized
-                        if (windows.SizeToContent == SizeToContent.Manual)
-                        {
-                            windows.Width = bounds.Width;
-                            windows.Height = bounds.Height;
-                        }
+                    // Restore the size only for a manually sized
+                    if (this.SizeToContent == SizeToContent.Manual)
+                    {
+                        this.Width = bounds.Width;
+                        this.Height = bounds.Height;
                     }
                 }
+            }
+
+            if (key.GetValue("State") != null)
+            {
+                string state = key.GetValue("State").ToString();
+                this.WindowState = state == "Maximized" ? WindowState.Maximized : WindowState.Normal;
             }
         }
         #endregion
