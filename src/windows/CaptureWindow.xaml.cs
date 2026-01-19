@@ -460,10 +460,10 @@ namespace ScreenLookup.src.windows
 
             foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
             {
-                string fullTextBlock = string.Empty;
-
                 foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
                 {
+                    string fullTextBlock = string.Empty;
+
                     foreach (XmlElement data in textLine.GetElementsByTagName("String"))
                     {
                         if (!IsCapturing)
@@ -471,10 +471,7 @@ namespace ScreenLookup.src.windows
 
                         fullTextBlock += data.GetAttribute("CONTENT") + " ";
                     }
-                }
 
-                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
-                {
                     foreach (XmlElement data in textLine.GetElementsByTagName("String"))
                     {
                         if (!IsCapturing)
