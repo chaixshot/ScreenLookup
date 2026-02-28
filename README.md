@@ -29,3 +29,4 @@ And if you found the same word again, you can **want to learn** score to make th
 <img width="700" height="500" alt="image" src="https://github.com/user-attachments/assets/af0eff0c-267c-4a1e-be83-c7c5d99cb563" />
 <img width="700" height="500" alt="image" src="https://github.com/user-attachments/assets/48d38a5d-57e4-4b09-9200-838bb828b6e0" />
 <img width="700" height="500" alt="image" src="https://github.com/user-attachments/assets/774574c0-3b30-4b43-9442-9fd803ddb5da" />
+<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/557f917c-e710-4630-9d8b-6baf6611fc60" />
