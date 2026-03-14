@@ -40,9 +40,7 @@ namespace ScreenLookup
 
             setting.Load();
 
-            if (setting.StartInBackground)
-                Notification.Show("ScreenLookup running in the background");
-            else
+            if (!setting.StartInBackground)
             {
                 mainWindow.Show();
                 mainWindow.Activate();
