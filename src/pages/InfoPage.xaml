@@ -29,8 +29,8 @@
                     Margin="5,0,0,5"
                     Content="Version X.X"
                     FontWeight="SemiBold"
-                    Icon="{wpfui:SymbolIcon Symbol=Info24}" />
-
+                    Icon="{wpfui:SymbolIcon Symbol=Info24}"
+                    NavigateUri="https://github.com/chaixshot/ScreenLookup/releases" />
                 <Controls:Card Grid.Row="1">
                     <StackPanel>
                         <TextBlock TextWrapping="Wrap">
