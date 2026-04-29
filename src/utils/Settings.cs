@@ -69,6 +69,10 @@ namespace ScreenLookup.src.utils
                 settings = JsonSerializer.Deserialize<Settings>(fileStream, new JsonSerializerOptions() { WriteIndented = true }) ?? new();
                 fileStream.Close();
 
+                Window = settings.Window;
+                LoadedTesseract = settings.loadedTesseract;
+                LoadedHunspell = settings.loadedHunspell;
+
                 FirstRun = settings.FirstRun;
                 Topmost = settings.Topmost;
                 StartupWithWindows = settings.StartupWithWindows;
@@ -90,10 +94,6 @@ namespace ScreenLookup.src.utils
                 CloseLostFocus = settings.CloseLostFocus;
                 FontFace = settings.FontFace;
                 FontSizeS = settings.FontSizeS;
-
-                Window = settings.Window;
-                LoadedTesseract = settings.loadedTesseract;
-                LoadedHunspell = settings.loadedHunspell;
             }
         }
 
