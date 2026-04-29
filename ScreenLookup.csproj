@@ -14,7 +14,6 @@
     <Authors>H@mer</Authors>
     <Copyright>Copyright (c) 2025 H@mer and other contributors</Copyright>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
