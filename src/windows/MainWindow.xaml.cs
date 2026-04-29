@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using ScreenLookup.src.pages;
+﻿using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Windows;
@@ -95,17 +94,16 @@ namespace ScreenLookup
 
         private void WindowStateSave()
         {
-            App.setting.RegWindowBounds.SetValue("Bounds", this.RestoreBounds.ToString());
-            App.setting.RegWindowBounds.SetValue("State", this.WindowState.ToString());
+            App.setting.Window["Bounds"] = this.RestoreBounds.ToString();
+            App.setting.Window["State"] = this.WindowState.ToString();
+            App.setting.Save();
         }
 
         private void WindowStateRestore()
         {
-            RegistryKey key = App.setting.RegWindowBounds;
-
-            if (key.GetValue("Bounds") != null)
+            if (App.setting.Window.ContainsKey("Bounds"))
             {
-                Rect bounds = Rect.Parse(key.GetValue("Bounds").ToString());
+                Rect bounds = Rect.Parse(App.setting.Window["Bounds"].ToString());
                 if (!bounds.IsEmpty)
                 {
                     this.Top = bounds.Top;
@@ -120,11 +118,8 @@ namespace ScreenLookup
                 }
             }
 
-            if (key.GetValue("State") != null)
-            {
-                string state = key.GetValue("State").ToString();
-                this.WindowState = state == "Maximized" ? WindowState.Maximized : WindowState.Normal;
-            }
+            if (App.setting.Window.ContainsKey("State"))
+                this.WindowState = App.setting.Window["State"] == "Maximized" ? WindowState.Maximized : WindowState.Normal;
         }
         #endregion
     }

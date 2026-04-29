@@ -246,7 +246,7 @@ namespace ScreenLookup.src.pages
             bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This resets all settings and also deletes downloaded language files!", "Yes", "No");
             if (isYes)
             {
-                App.setting.Reset();
+                Settings.Reset();
                 DownloadHelper.DeleteDownloadedAppData();
 
                 await DialogBox.Show("You must to restart this program to apply these changes", string.Empty, string.Empty, "OK");

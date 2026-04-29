@@ -1,5 +1,4 @@
 ﻿using HunspellSharp;
-using Microsoft.Win32;
 using ScreenLookup;
 using ScreenLookup.src.utils;
 using System.IO;
@@ -211,16 +210,13 @@ public class TesseractHelper
 
     public static bool IsInstalled(int accID, int langID)
     {
-        RegistryKey key = App.setting.RegLoadedTesseract.CreateSubKey(accID.ToString());
-        var reg = key.GetValue(LanguageList.GetTesseractTagFromID(langID));
-
-        return reg != null;
+        return App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}");
     }
 
     public static void SaveInstalled(int accID, int langID)
     {
-        RegistryKey key = App.setting.RegLoadedTesseract.CreateSubKey(accID.ToString());
-        key.SetValue(LanguageList.GetTesseractTagFromID(langID), true);
+        App.setting.LoadedTesseract.Add($"{accID},{langID}", true);
+        App.setting.Save();
 
         App.captureWindow.LoadInstalledLanguage();
         App.captureWindow.CreateTesseractEngine();
@@ -287,15 +283,13 @@ internal class HunspellHelper
 
     public static bool IsInstalled(int langID)
     {
-        object reg = App.setting.RegLoadedHunspell.GetValue(langID.ToString());
-        bool isInstalled = reg != null;
-
-        return isInstalled;
+        return App.setting.LoadedHunspell.ContainsKey(langID.ToString());
     }
 
     public static void SaveInstalled(int langID)
     {
-        App.setting.RegLoadedHunspell.SetValue(langID.ToString(), true);
+        App.setting.LoadedHunspell.Add(langID.ToString(), true);
+        App.setting.Save();
     }
 
     public static void CreateHunspellEngine(int langID)
