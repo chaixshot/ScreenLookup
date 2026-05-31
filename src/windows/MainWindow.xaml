@@ -130,6 +130,20 @@
                             <Controls:SymbolIcon Symbol="Star24" />
                         </Controls:NavigationViewItem.Icon>
                     </Controls:NavigationViewItem>
+
+                    <Controls:NavigationViewItem
+                        NavigationCacheMode="Enabled"
+                        TargetPageTag="Saved"
+                        TargetPageType="{x:Type local:FrameShotPage}">
+
+                        <Controls:NavigationViewItem.Content>
+                            <TextBlock Style="{StaticResource NavMenuContent}" Text="FrameShot" />
+                        </Controls:NavigationViewItem.Content>
+
+                        <Controls:NavigationViewItem.Icon>
+                            <Controls:SymbolIcon Symbol="Camera24" />
+                        </Controls:NavigationViewItem.Icon>
+                    </Controls:NavigationViewItem>
                 </Controls:NavigationView.MenuItems>
 
                 <Controls:NavigationView.FooterMenuItems>
