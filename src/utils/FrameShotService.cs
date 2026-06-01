@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Media;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -18,16 +17,10 @@ namespace ScreenLookup.src.utils
         // Config
         public uint LeftButtonId { get; set; } = (uint)EVRButtonId.k_EButton_Grip;
         public uint RightButtonId { get; set; } = (uint)EVRButtonId.k_EButton_Grip;
-        public uint LeftRecordButton { get; private set; } = 0;
-        public uint RightRecordButton { get; private set; } = 0;
-        public uint LeftVideoButton { get; private set; } = 0;
-        public uint RightVideoButton { get; private set; } = 0;
 
         // State
         public bool IsConnected { get; private set; }
         public bool IsFraming { get; private set; }
-        public bool IsRecording { get; private set; }
-        public bool IsVideoRecording { get; private set; }
         public string? LastError { get; private set; }
 
         // Events
@@ -54,54 +47,11 @@ namespace ScreenLookup.src.utils
         private bool _rightHeld;
         private bool _leftHeldPrev;
         private bool _rightHeldPrev;
-        private bool _leftRecHeld;
-        private bool _rightRecHeld;
-        private bool _leftVidHeld;
-        private bool _rightVidHeld;
-
-        private string _videoDeviceA = "";
-        private string _videoDeviceB = "";
-        private int _videoTargetW = 1920;
-        private int _videoTargetH = 1080;
-        private string _videoBitrateQuality = "medium";
-        private int _videoAudioKbps = 256;
-        private const int VIDEO_MAX_MS = 30_000;
-        private int _videoFps = 30;
-        private int _videoFrameMs = 1000 / 30;
-        private CancellationTokenSource? _videoCts;
-        private DateTime _videoStartUtc;
-        private System.Diagnostics.Process? _videoFfmpegProc;
-        private Stream? _videoFfmpegStdin;
-        private string? _videoEncodedPath;
-        private int _videoFrameCount;
-        private readonly object _videoRawLock = new();
-        private volatile bool _videoAutoStop;
-        private string? _videoSessionDir;
-        private NAudio.Wave.IWaveIn? _audioCapA;
-        private NAudio.Wave.IWaveIn? _audioCapB;
-        private NAudio.Wave.WaveFileWriter? _audioWriterA;
-        private NAudio.Wave.WaveFileWriter? _audioWriterB;
-
-        // Recording state
-        private const int GIF_MAX_MS = 8_000;
-        private const float RECORD_VISUAL_SCALE = 1.15f;
-        private int _gifFps = 10;
-        private int _gifMaxDim = 512;
-        private int GifFrameMs => 1000 / Math.Max(1, _gifFps);
-        private int GifMaxFrames => _gifFps * GIF_MAX_MS / 1000;
-        private readonly List<Bitmap> _recordFrames = new();
-        private CancellationTokenSource? _recordCts;
-        private Vector3 _recordHeadLocalOffset;
-        private float _recordLockedWidth;
-        private float _recordLockedHeight;
-        private System.Drawing.Rectangle _recordCrop;
-        private volatile bool _gifAutoStop;
 
         private Vector3 _lastLeftPos;
         private Vector3 _lastRightPos;
         private float _lastFrameWidth;
         private float _lastFrameHeight;
-        private bool _framingBasisLocked;
 
         // D3D11
         private ID3D11Device? _d3dDevice;
@@ -114,23 +64,17 @@ namespace ScreenLookup.src.utils
         private readonly object _d3dLock = new();
         private ID3D11Texture2D? _overlayTex;
         private ID3D11Texture2D? _stagingTex;
+        private ID3D11Texture2D? _mirrorStaging;
+        private ID3D11ShaderResourceView? _mirrorSrvObj;
         private const int FRAME_TEX_W = 1024;
         private const int FRAME_TEX_H = 1024;
-        private readonly byte[] _frameUploadBuf = new byte[FRAME_TEX_W * FRAME_TEX_H * 4];
+        private byte[] _rowBuffer = new byte[FRAME_TEX_W * 4];
         private Bitmap? _frameBitmap;
-        private int _lastDrawnW = -1;
-        private int _lastDrawnH = -1;
 
         private IntPtr _mirrorSrv = IntPtr.Zero;
-        private ID3D11ShaderResourceView? _mirrorSrvObj;
         private ID3D11Texture2D? _mirrorTexCached;
-        private ID3D11Texture2D? _mirrorStaging;
         private int _mirrorW;
         private int _mirrorH;
-        private Format _mirrorSrvFormat;
-
-        private static readonly string SoundDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "sounds");
-        private int _outputDeviceIndex = -1;
 
         public FrameShotService(Action<string> log)
         {
@@ -194,9 +138,9 @@ namespace ScreenLookup.src.utils
             if (!IsConnected) return;
             lock (_d3dLock)
             {
-                _mirrorStaging?.Dispose(); _mirrorTexCached?.Dispose(); _mirrorSrvObj?.Dispose();
+                _mirrorStaging?.Dispose(); _mirrorTexCached?.Dispose(); _mirrorSrvObj?.Dispose(); _mirrorStaging = null;
                 if (_mirrorSrv != IntPtr.Zero) OpenVR.Compositor?.ReleaseMirrorTextureD3D11(_mirrorSrv);
-                _stagingTex?.Dispose(); _overlayTex?.Dispose();
+                _stagingTex?.Dispose(); _overlayTex?.Dispose(); _mirrorSrv = IntPtr.Zero;
                 _d3dContext?.Dispose(); _d3dDevice?.Dispose();
             }
             OpenVR.Shutdown();
@@ -235,15 +179,17 @@ namespace ScreenLookup.src.utils
             _leftHeld = IsButtonHeld(_leftIdx, LeftButtonId);
             _rightHeld = IsButtonHeld(_rightIdx, RightButtonId);
 
+            Vector3 L = Vector3.Zero, R = Vector3.Zero;
             bool wasFraming = IsFraming;
+            bool isButtonCombo = _leftHeld && _rightHeld;
 
-            if (!(_leftHeld && _rightHeld))
+            if (isButtonCombo)
+                IsFraming = wasFraming || AreHandsWithinActivationRadius(out L, out R);
+            else
                 IsFraming = false;
-            else if (!wasFraming)
-                IsFraming = AreHandsWithinActivationRadius();
 
             if (IsFraming)
-                UpdateFrameAndRender();
+                UpdateFrameAndRender(L, R);
             else if (wasFraming)
             {
                 OpenVR.Overlay.HideOverlay(_overlayHandle);
@@ -266,21 +212,28 @@ namespace ScreenLookup.src.utils
             return _vrSystem!.GetControllerState(idx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()) && (s.ulButtonPressed & (1UL << (int)buttonId)) != 0;
         }
 
-        private bool AreHandsWithinActivationRadius()
+        private bool AreHandsWithinActivationRadius(out Vector3 L, out Vector3 R)
         {
+            L = R = Vector3.Zero;
             if (_leftIdx == OpenVR.k_unTrackedDeviceIndexInvalid || _rightIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
-            var L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
-            var R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
-            return (R - L).Length() <= App.setting.ActivationRadius / 100;
+            if (!_poses[_leftIdx].bPoseIsValid || !_poses[_rightIdx].bPoseIsValid) return false;
+
+            L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
+            R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
+            return (R - L).Length() <= App.setting.ActivationRadius / 100f;
         }
 
-        private void UpdateFrameAndRender()
+        private void UpdateFrameAndRender(Vector3 L, Vector3 R)
         {
             uint hmdIdx = (uint)OpenVR.k_unTrackedDeviceIndex_Hmd;
             if (!_poses[_leftIdx].bPoseIsValid || !_poses[_rightIdx].bPoseIsValid || !_poses[hmdIdx].bPoseIsValid) return;
 
-            var L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
-            var R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
+            if (L == Vector3.Zero && R == Vector3.Zero)
+            {
+                L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
+                R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
+            }
+
             var hmdM = _poses[hmdIdx].mDeviceToAbsoluteTracking;
             var hmdRot = RotFromMatrix(hmdM);
 
@@ -310,19 +263,20 @@ namespace ScreenLookup.src.utils
         {
             using (var g = Graphics.FromImage(_frameBitmap!))
             {
-                g.Clear(Color.Transparent);
-                using var pen = new Pen(Color.FromArgb(255, 130, 210, 255), 8f);
+                g.Clear(System.Drawing.Color.Transparent);
+                using var pen = new Pen(System.Drawing.Color.FromArgb(255, 130, 210, 255), 8f);
                 g.DrawRectangle(pen, 4, 4, drawW - 9, drawH - 9);
             }
-            var rect = new Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
+
+            var rect = new System.Drawing.Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
             var bData = _frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             lock (_d3dLock)
             {
                 var box = _d3dContext!.Map(_stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
                 for (int y = 0; y < FRAME_TEX_H; y++)
                 {
-                    Marshal.Copy(bData.Scan0 + y * bData.Stride, _frameUploadBuf, 0, FRAME_TEX_W * 4);
-                    Marshal.Copy(_frameUploadBuf, 0, box.DataPointer + (nint)((long)y * box.RowPitch), FRAME_TEX_W * 4);
+                    Marshal.Copy(bData.Scan0 + y * bData.Stride, _rowBuffer, 0, FRAME_TEX_W * 4);
+                    Marshal.Copy(_rowBuffer, 0, box.DataPointer + (nint)((long)y * box.RowPitch), FRAME_TEX_W * 4);
                 }
                 _d3dContext.Unmap(_stagingTex!, 0);
                 _d3dContext.CopyResource(_overlayTex!, _stagingTex!);
@@ -344,14 +298,16 @@ namespace ScreenLookup.src.utils
             Bitmap? mirrorBmp = null;
             lock (_d3dLock)
             {
+                if (_rowBuffer.Length < _mirrorW * 4) _rowBuffer = new byte[_mirrorW * 4];
+
                 _d3dContext!.CopyResource(_mirrorStaging!, _mirrorTexCached!);
                 var box = _d3dContext.Map(_mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
                 mirrorBmp = new Bitmap(_mirrorW, _mirrorH, PixelFormat.Format32bppArgb);
-                var bData = mirrorBmp.LockBits(new Rectangle(0, 0, _mirrorW, _mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                var bData = mirrorBmp.LockBits(new System.Drawing.Rectangle(0, 0, _mirrorW, _mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
                 for (int y = 0; y < _mirrorH; y++)
                 {
-                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), _frameUploadBuf, 0, _mirrorW * 4);
-                    Marshal.Copy(_frameUploadBuf, 0, bData.Scan0 + y * bData.Stride, _mirrorW * 4);
+                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), _rowBuffer, 0, _mirrorW * 4);
+                    Marshal.Copy(_rowBuffer, 0, bData.Scan0 + y * bData.Stride, _mirrorW * 4);
                 }
                 mirrorBmp.UnlockBits(bData);
                 _d3dContext.Unmap(_mirrorStaging!, 0);
@@ -359,17 +315,18 @@ namespace ScreenLookup.src.utils
 
             int outW = (int)MathF.Max(2, Vector2.Distance(new Vector2(corners[0].X, corners[0].Y), new Vector2(corners[1].X, corners[1].Y)));
             int outH = (int)MathF.Round(outW * (_lastFrameHeight / _lastFrameWidth));
-            using var outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb);
-            using (var g = Graphics.FromImage(outBmp))
+            using (var outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb))
             {
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                var mtx = new System.Drawing.Drawing2D.Matrix(new RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
-                mtx.Invert(); g.Transform = mtx;
-                g.DrawImage(mirrorBmp, 0, 0);
+                using (var g = Graphics.FromImage(outBmp))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    var mtx = new System.Drawing.Drawing2D.Matrix(new System.Drawing.RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
+                    mtx.Invert(); g.Transform = mtx;
+                    g.DrawImage(mirrorBmp, 0, 0);
+                }
+                OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone());
             }
-
-            // give a copy to listeners so we can safely dispose the local bitmap
-            OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone());
+            mirrorBmp.Dispose();
         }
 
         private bool EnsureMirrorPipeline()
