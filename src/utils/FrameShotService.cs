@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Media;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -232,13 +233,22 @@ namespace ScreenLookup.src.utils
 
                 if (rightHeldPrev && !rightHeld && leftHeld)
                 {
-                    SystemSounds.Asterisk.Play();
+                    PlaySound("Windows Pop-up Blocked.wav");
                     Task.Run(() => CaptureAndSave(leftTriggerHeld || rightTriggerHeld));
                 }
-                else
-                {
-                    SystemSounds.Hand.Play();
-                }
+            }
+        }
+
+        private void PlaySound(string soundName)
+        {
+            string windir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            string soundPath = Path.Combine(windir, "Media", soundName);
+
+            // Verify the file exists before attempting to play it
+            if (File.Exists(soundPath))
+            {
+                using SoundPlayer player = new(soundPath);
+                player.Play();
             }
         }
 
@@ -356,7 +366,7 @@ namespace ScreenLookup.src.utils
             {
                 byte[] localRowBuffer = new byte[mirrorW * 4];
                 Format mirrorFormat = mirrorTexCached!.Description.Format;
-                bool needsSwap = mirrorFormat == Format.R8G8B8A8_UNorm || 
+                bool needsSwap = mirrorFormat == Format.R8G8B8A8_UNorm ||
                                  mirrorFormat == Format.R8G8B8A8_UNorm_SRgb ||
                                  mirrorFormat == Format.R8G8B8A8_Typeless;
 
