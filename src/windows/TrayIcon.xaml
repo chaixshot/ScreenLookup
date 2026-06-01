@@ -47,6 +47,12 @@
                     </MenuItem.Icon>
                 </MenuItem>
 
+                <MenuItem Click="TrayItemFrameShot_Click" Header="FrameShot">
+                    <MenuItem.Icon>
+                        <Controls:SymbolIcon Symbol="Camera24" />
+                    </MenuItem.Icon>
+                </MenuItem>
+
                 <Separator />
 
                 <MenuItem

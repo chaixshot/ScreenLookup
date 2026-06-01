@@ -43,6 +43,13 @@ namespace ScreenLookup.src.windows
             App.mainWindow.RootNavigation.Navigate(typeof(SavedPage));
         }
 
+        private void TrayItemFrameShot_Click(object sender, RoutedEventArgs e)
+        {
+            App.mainWindow.ShowFromTray();
+            App.mainWindow.RootNavigation.Navigate(typeof(FrameShotPage));
+        }
+
+
         private void TrayItemCapture_Click(object sender, RoutedEventArgs e)
         {
             App.captureWindow.StartCaptureScreen();
