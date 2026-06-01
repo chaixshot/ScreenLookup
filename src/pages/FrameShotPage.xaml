@@ -74,6 +74,27 @@
                         Unchecked="HmdRotCheck_Changed" />
                 </Controls:CardControl>
 
+                <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=EyeLines24}">
+                    <Controls:CardControl.Header>
+                        <StackPanel Margin="5,0,0,0">
+                            <Controls:TextBlock Text="Eye Side" />
+                            <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Using eye to rendering picture" />
+                        </StackPanel>
+                    </Controls:CardControl.Header>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Controls:TextBlock Text="Left Eye" />
+                        <wpfui:ToggleSwitch
+                            x:Name="UseRightEye"
+                            Grid.Column="0"
+                            Margin="10,0"
+                            Checked="UseRightEye_Changed"
+                            Unchecked="UseRightEye_Changed" />
+                        <Controls:TextBlock Text="Right Eye" />
+                    </StackPanel>
+
+                </Controls:CardControl>
+
                 <Controls:Card>
                     <StackPanel>
                         <TextBlock FontWeight="SemiBold" Text="How to use" />

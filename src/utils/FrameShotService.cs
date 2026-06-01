@@ -451,9 +451,9 @@ namespace ScreenLookup.src.utils
             var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
             var hmdRot = RotFromMatrix(hmdM);
             var hmdPos = PosFromMatrix(hmdM);
-            var vp = ToMatrix4x4(vrSystem!.GetEyeToHeadTransform(EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
+            var vp = ToMatrix4x4(vrSystem!.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
             Matrix4x4.Invert(vp, out var view);
-            vp = view * ToMatrix4x4Proj(vrSystem.GetProjectionMatrix(EVREye.Eye_Left, 0.05f, 50f));
+            vp = view * ToMatrix4x4Proj(vrSystem.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));

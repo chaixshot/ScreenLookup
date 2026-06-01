@@ -18,6 +18,7 @@ namespace ScreenLookup.src.pages
                 // Initialize UI values
                 ActivationRadius.Value = App.setting.ActivationRadius;
                 HmdRotCheck.IsChecked = App.setting.UseHmdRotations;
+                UseRightEye.IsChecked = App.setting.UseRightEye;
             };
         }
 
@@ -97,6 +98,11 @@ namespace ScreenLookup.src.pages
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)
         {
             App.setting.UseHmdRotations = HmdRotCheck.IsChecked == true;
+        }
+
+        private void UseRightEye_Changed(object sender, RoutedEventArgs e)
+        {
+            App.setting.UseRightEye = UseRightEye.IsChecked == true;
         }
     }
 }

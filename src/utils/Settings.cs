@@ -47,6 +47,7 @@ namespace ScreenLookup.src.utils
 
         private int activationRadius = 15;
         private bool useHmdRotations = false;
+        private bool useRightEye = true;
 
         public readonly string[] ProviderServices = [
             "Google",
@@ -100,6 +101,7 @@ namespace ScreenLookup.src.utils
 
                 ActivationRadius = settings.activationRadius;
                 UseHmdRotations = settings.useHmdRotations;
+                UseRightEye = settings.useRightEye;
             }
         }
 
@@ -357,6 +359,16 @@ namespace ScreenLookup.src.utils
             {
                 useHmdRotations = value;
 
+                OnPropertyChanged();
+            }
+        }
+
+        public bool UseRightEye
+        {
+            get => useRightEye;
+            set
+            {
+                useRightEye = value;
                 OnPropertyChanged();
             }
         }
