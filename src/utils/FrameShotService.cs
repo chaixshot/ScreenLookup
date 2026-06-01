@@ -56,6 +56,7 @@ namespace ScreenLookup.src.utils
         private Vector3 lastRightPos;
         private float lastFrameWidth;
         private float lastFrameHeight;
+        private Quaternion lastHmdRot;
 
         // D3D11
         private ID3D11Device? d3dDevice;
@@ -234,7 +235,12 @@ namespace ScreenLookup.src.utils
                 if (rightHeldPrev && !rightHeld && leftHeld)
                 {
                     AppUtilities.PlaySound("screenshot.wav");
-                    Task.Run(() => CaptureAndSave(leftTriggerHeld || rightTriggerHeld));
+
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(10);
+                        CaptureAndSave(leftTriggerHeld || rightTriggerHeld);
+                    });
                 }
             }
         }
@@ -278,6 +284,7 @@ namespace ScreenLookup.src.utils
 
             var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
             var hmdRot = RotFromMatrix(hmdM);
+            lastHmdRot = hmdRot;
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
@@ -448,13 +455,12 @@ namespace ScreenLookup.src.utils
         {
             uint hmdIdx = (uint)OpenVR.k_unTrackedDeviceIndex_Hmd;
             var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
-            var hmdRot = RotFromMatrix(hmdM);
-            var hmdPos = PosFromMatrix(hmdM);
+
             var vp = ToMatrix4x4(vrSystem!.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
             Matrix4x4.Invert(vp, out var view);
             vp = view * ToMatrix4x4Proj(vrSystem.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
 
-            Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
+            Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, lastHmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
             Vector3 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
             Vector3 center = (lastLeftPos + lastRightPos) * 0.5f;
