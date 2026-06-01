@@ -1,4 +1,4 @@
-﻿using ScreenLookup.src.utils;
+﻿﻿using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -268,7 +268,7 @@ namespace ScreenLookup.src.controls
 
         private void Button_WordAddScore(object sender, RoutedEventArgs e)
         {
-            var scoreButton = sender as Button;
+            Button? scoreButton = sender as Button;
 
             scoreButton.Visibility = Visibility.Collapsed;
 
@@ -284,7 +284,7 @@ namespace ScreenLookup.src.controls
 
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            Button? button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(

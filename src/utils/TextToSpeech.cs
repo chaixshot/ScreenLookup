@@ -1,4 +1,4 @@
-﻿using NAudio.Wave;
+﻿﻿using NAudio.Wave;
 using System.IO;
 using GLanguage = GTranslate.Language;
 
@@ -94,7 +94,7 @@ namespace ScreenLookup.src.utils
             StopTTS();
             PlayTTSCancelToken = new();
 
-            var languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
+            GLanguage languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
             string errorMsg = await Task.Run(() => PlayTTS(Text, langID, PlayTTSCancelToken));
 
             if (!string.IsNullOrEmpty(errorMsg))

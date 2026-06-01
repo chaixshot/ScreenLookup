@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿﻿using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -40,12 +40,12 @@ namespace ScreenLookup.src.utils
 
         internal static async Task<string> GetLatestVersionAsync()
         {
-            using var client = new HttpClient()
+            using HttpClient client = new HttpClient()
             {
                 Timeout = TimeSpan.FromSeconds(3)
             };
             client.DefaultRequestHeaders.UserAgent.ParseAdd("ScreenLookup");
-            var response = await client.GetStringAsync(GitHubLatestReleaseApi);
+            string response = await client.GetStringAsync(GitHubLatestReleaseApi);
             using var doc = JsonDocument.Parse(response);
             string latestVersionRaw = doc.RootElement.GetProperty("tag_name").GetString();
             string latestVersion = string.IsNullOrEmpty(latestVersionRaw)
@@ -92,7 +92,7 @@ namespace ScreenLookup.src.utils
 
                 if (isYes)
                 {
-                    var url = GitHubReleasesUrl;
+                    string url = GitHubReleasesUrl;
                     try
                     {
                         Process.Start(new ProcessStartInfo

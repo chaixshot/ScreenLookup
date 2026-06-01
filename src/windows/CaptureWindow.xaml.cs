@@ -1,4 +1,4 @@
-﻿using ScreenGrab;
+﻿﻿using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.Drawing;
@@ -451,20 +451,20 @@ namespace ScreenLookup.src.windows
             byte[] fileBytes = ms.ToArray();
 
             // TesseractOCR
-            var img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
+            TesseractOCR.Pix.Image img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
             return TesseractEngine.Process(img);
         }
 
         private async Task<List<CaptureWordsSimplifiedEntry>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
         {
             List<CaptureWordsSimplifiedEntry> items = [];
-            foreach (var block in page.Layout)
+            foreach (TesseractOCR.Layout.Block block in page.Layout)
             {
-                foreach (var paragraph in block.Paragraphs)
+                foreach (TesseractOCR.Layout.Paragraph paragraph in block.Paragraphs)
                 {
-                    foreach (var textLine in paragraph.TextLines)
+                    foreach (TesseractOCR.Layout.TextLine textLine in paragraph.TextLines)
                     {
-                        foreach (var word in textLine.Words)
+                        foreach (TesseractOCR.Layout.Word word in textLine.Words)
                         {
                             if (!string.IsNullOrWhiteSpace(word.Text))
                             {
@@ -635,7 +635,7 @@ namespace ScreenLookup.src.windows
 
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            Button? button = sender as Button;
 
             Clipboard.SetText(button.Tag.ToString());
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
