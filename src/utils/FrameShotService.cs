@@ -22,8 +22,6 @@ namespace ScreenLookup.src.utils
         public uint RightRecordButton { get; private set; } = 0;
         public uint LeftVideoButton { get; private set; } = 0;
         public uint RightVideoButton { get; private set; } = 0;
-        public float ActivationRadius { get; set; } = 0.15f;
-        public bool UseHmdRotations { get; set; } = false;
 
         // State
         public bool IsConnected { get; private set; }
@@ -273,7 +271,7 @@ namespace ScreenLookup.src.utils
             if (_leftIdx == OpenVR.k_unTrackedDeviceIndexInvalid || _rightIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
             var L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
             var R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
-            return (R - L).Length() <= ActivationRadius;
+            return (R - L).Length() <= App.setting.ActivationRadius / 100;
         }
 
         private void UpdateFrameAndRender()

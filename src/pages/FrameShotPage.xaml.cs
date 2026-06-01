@@ -37,8 +37,8 @@ namespace ScreenLookup.src.pages
             }
 
             // Initialize UI values
-            RadiusSlider.Value = _frameShot.ActivationRadius;
-            HmdRotCheck.IsChecked = _frameShot.UseHmdRotations;
+            ActivationRadius.Value = App.setting.activationRadius;
+            HmdRotCheck.IsChecked = App.setting.useHmdRotations;
             UpdateStatusUI();
         }
 
@@ -101,20 +101,17 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void RadiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void ActivationRadius_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (_frameShot != null)
             {
-                _frameShot.ActivationRadius = (float)e.NewValue;
+                App.setting.ActivationRadius = (int)e.NewValue;
             }
         }
 
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)
         {
-            if (_frameShot != null && HmdRotCheck != null)
-            {
-                _frameShot.UseHmdRotations = HmdRotCheck.IsChecked ?? false;
-            }
+            App.setting.UseHmdRotations = HmdRotCheck.IsChecked == true;
         }
     }
 }

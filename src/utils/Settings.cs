@@ -45,6 +45,9 @@ namespace ScreenLookup.src.utils
         public Dictionary<string, bool> loadedTesseract = [];
         public Dictionary<string, bool> loadedHunspell = [];
 
+        public int activationRadius = 15;
+        public bool useHmdRotations = false;
+
         public readonly string[] ProviderServices = [
             "Google",
             "Google New",
@@ -94,6 +97,9 @@ namespace ScreenLookup.src.utils
                 CloseLostFocus = settings.CloseLostFocus;
                 FontFace = settings.FontFace;
                 FontSizeS = settings.FontSizeS;
+
+                ActivationRadius = settings.activationRadius;
+                UseHmdRotations = settings.useHmdRotations;
             }
         }
 
@@ -328,6 +334,28 @@ namespace ScreenLookup.src.utils
             set
             {
                 fontSizes = value;
+
+                OnPropertyChanged();
+            }
+        }
+
+        public int ActivationRadius
+        {
+            get => activationRadius;
+            set
+            {
+                activationRadius = value;
+
+                OnPropertyChanged();
+            }
+        }
+
+        public bool UseHmdRotations
+        {
+            get => useHmdRotations;
+            set
+            {
+                useHmdRotations = value;
 
                 OnPropertyChanged();
             }

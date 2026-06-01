@@ -49,18 +49,18 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Slider
-                                x:Name="RadiusSlider"
+                                x:Name="ActivationRadius"
                                 IsSnapToTickEnabled="True"
-                                Maximum="0.30"
-                                Minimum="0.05"
-                                TickFrequency="0.01"
-                                ValueChanged="RadiusSlider_ValueChanged"
+                                Maximum="30"
+                                Minimum="5"
+                                TickFrequency="1"
+                                ValueChanged="ActivationRadius_ValueChanged"
                                 Value="0.15" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat={}{0:F2}m}" />
+                                Text="{Binding ElementName=ActivationRadius, Path=Value, StringFormat={}{0} cm}" />
                         </Grid>
                     </StackPanel>
                 </Controls:Card>
