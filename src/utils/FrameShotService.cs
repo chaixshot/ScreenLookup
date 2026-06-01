@@ -69,6 +69,7 @@ namespace ScreenLookup.src.utils
         private ID3D11Texture2D? mirrorStaging;
         private ID3D11Texture2D? mirrorTexCached;
         private ID3D11ShaderResourceView? mirrorSrvObj;
+        private EVREye currentMirrorEye = (EVREye)(-1);
         private IntPtr mirrorSrv = IntPtr.Zero;
 
         // Rendering resources
@@ -164,6 +165,7 @@ namespace ScreenLookup.src.utils
                 stagingTex?.Dispose();
                 overlayTex?.Dispose();
                 mirrorSrv = IntPtr.Zero;
+                currentMirrorEye = (EVREye)(-1);
 
                 d3dContext?.Dispose();
                 d3dDevice?.Dispose();
@@ -418,16 +420,28 @@ namespace ScreenLookup.src.utils
 
         private bool EnsureMirrorPipeline()
         {
-            if (mirrorStaging != null)
+            var targetEye = App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left;
+            if (mirrorStaging != null && currentMirrorEye == targetEye)
                 return true;
 
-            var srv = IntPtr.Zero;
-            if (OpenVR.Compositor.GetMirrorTextureD3D11(EVREye.Eye_Left, d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None)
-                return false;
+            lock (d3dLock)
+            {
+                mirrorStaging?.Dispose();
+                mirrorTexCached?.Dispose();
+                mirrorSrvObj?.Dispose();
+                if (mirrorSrv != IntPtr.Zero)
+                    OpenVR.Compositor?.ReleaseMirrorTextureD3D11(mirrorSrv);
 
-            mirrorSrv = srv;
-            mirrorSrvObj = new ID3D11ShaderResourceView(srv);
-            mirrorTexCached = mirrorSrvObj.Resource.QueryInterface<ID3D11Texture2D>();
+                var srv = IntPtr.Zero;
+                if (OpenVR.Compositor.GetMirrorTextureD3D11(targetEye, d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None)
+                    return false;
+
+                mirrorSrv = srv;
+                mirrorSrvObj = new ID3D11ShaderResourceView(srv);
+                mirrorTexCached = mirrorSrvObj.Resource.QueryInterface<ID3D11Texture2D>();
+                currentMirrorEye = targetEye;
+            }
+
             var desc = mirrorTexCached.Description;
             mirrorW = (int)desc.Width; mirrorH = (int)desc.Height;
 
