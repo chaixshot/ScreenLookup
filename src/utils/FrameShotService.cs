@@ -354,18 +354,36 @@ namespace ScreenLookup.src.utils
             Bitmap? mirrorBmp = null;
             lock (d3dLock)
             {
-                if (rowBuffer.Length < mirrorW * 4)
-                    rowBuffer = new byte[mirrorW * 4];
+                byte[] localRowBuffer = new byte[mirrorW * 4];
+                Format mirrorFormat = mirrorTexCached!.Description.Format;
+                bool needsSwap = mirrorFormat == Format.R8G8B8A8_UNorm || 
+                                 mirrorFormat == Format.R8G8B8A8_UNorm_SRgb ||
+                                 mirrorFormat == Format.R8G8B8A8_Typeless;
 
                 d3dContext!.CopyResource(mirrorStaging!, mirrorTexCached!);
                 var box = d3dContext.Map(mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
                 mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
                 var bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+
                 for (int y = 0; y < mirrorH; y++)
                 {
-                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), rowBuffer, 0, mirrorW * 4);
-                    Marshal.Copy(rowBuffer, 0, bData.Scan0 + y * bData.Stride, mirrorW * 4);
+                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), localRowBuffer, 0, mirrorW * 4);
+
+                    for (int x = 0; x < mirrorW; x++)
+                    {
+                        int i = x * 4;
+                        if (needsSwap)
+                        {
+                            byte r = localRowBuffer[i];
+                            localRowBuffer[i] = localRowBuffer[i + 2];
+                            localRowBuffer[i + 2] = r;
+                        }
+                        localRowBuffer[i + 3] = 255; // Force opaque alpha
+                    }
+
+                    Marshal.Copy(localRowBuffer, 0, bData.Scan0 + y * bData.Stride, mirrorW * 4);
                 }
+
                 mirrorBmp.UnlockBits(bData);
                 d3dContext.Unmap(mirrorStaging!, 0);
             }
