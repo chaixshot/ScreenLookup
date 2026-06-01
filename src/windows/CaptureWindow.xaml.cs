@@ -254,6 +254,45 @@ namespace ScreenLookup.src.windows
             ProcessImage();
         }
 
+        public async void StartCaptureVR(Bitmap? image)
+        {
+            if (IsCapturing)
+                return;
+
+            ShowWindow(true);
+            HideWindow();
+
+            if (!TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
+            {
+                SnackbarHost.Show("Source Language", $"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting", SnackbarType.Error);
+                Notification.Show($"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting");
+                return;
+            }
+
+            IsCapturing = true;
+            ProcessImageCancelToken = new();
+            TranslatesCancelToken = new();
+
+            ResetDefaultState();
+
+            if (image == null)
+            {
+                IsCapturing = false;
+                return;
+            }
+
+            CapturedImage = image;
+            CapturedImageEdited = CapturedImage;
+
+            ShowWindow(false);
+            ChangeCaptureImage(CapturedImageEdited);
+
+            SetWindowSize();
+            SetWindowPosition();
+
+            ProcessImage();
+        }
+
         private void ProcessImage()
         {
             ThreadPool.QueueUserWorkItem(_ =>
