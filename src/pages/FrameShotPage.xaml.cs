@@ -74,7 +74,7 @@ namespace ScreenLookup.src.pages
                     {
                         Dispatcher.BeginInvoke(new Action(async () =>
                         {
-                            App.captureWindow.StartCaptureVR(image, triggerHeld);
+                            App.captureWindow.StartCaptureScreen(image, triggerHeld);
                         }));
                     });
                 };

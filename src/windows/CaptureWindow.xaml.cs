@@ -26,7 +26,7 @@ namespace ScreenLookup.src.windows
         private Engine TesseractEngine;
         private string TesseractPageText;
 
-        private DispatcherFrame ConfigDispatcher;
+        private DispatcherFrame? ConfigDispatcher;
 
         private int LastHistoryID;
 
@@ -114,6 +114,7 @@ namespace ScreenLookup.src.windows
         {
             IsCapturing = false;
             ConfigDispatcher?.Continue = false;
+            ConfigDispatcher = null;
             flayOut.IsOpen = false;
             flayOut.ClearCache();
             translationImage.Clear();
@@ -180,10 +181,10 @@ namespace ScreenLookup.src.windows
             this.Activate();
         }
 
-        public async void StartCaptureScreen()
+        public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)
         {
             if (IsCapturing)
-                return;
+                HideWindow();
 
             if (!IsLoaded)
                 ShowWindow(true);
@@ -203,7 +204,14 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
 
             // Screenshot
-            (Bitmap? image, bool isRightMouse, Point startPoint, Point endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
+            bool isVR = image != null;
+            Point startPoint;
+            Point endPoint;
+            if (image == null)
+            {
+                (image, isRightMouse, startPoint, endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
+                AppUtilities.PlaySound("screenshot.wav");
+            }
 
             if (image == null)
             {
@@ -214,96 +222,56 @@ namespace ScreenLookup.src.windows
             CapturedImage = image;
             CapturedImageEdited = CapturedImage;
 
+            // Option mode
             if (isRightMouse)
             {
                 ConfigDispatcher = new DispatcherFrame();
 
+                DispatcherFrame cache = ConfigDispatcher;
+
                 SetWindowSize();
-                SetWindowPosition(new()
-                {
-                    X = endPoint.X - (this.ActualWidth / 2),
-                    Y = endPoint.Y - (this.ActualHeight * 2),
-                });
+                if (isVR)
+                    SetWindowPosition();
+                else
+                    SetWindowPosition(new()
+                    {
+                        X = endPoint.X - (this.ActualWidth / 2),
+                        Y = endPoint.Y - (this.ActualHeight * 2),
+                    });
                 ShowWindow(true);
+
                 Dispatcher.PushFrame(ConfigDispatcher);
 
-                if (!IsCapturing)
+                if (cache != ConfigDispatcher)
                     return;
             }
 
             ShowWindow(false);
             ChangeCaptureImage(CapturedImageEdited);
+
             if (App.setting.LookupOnImage)
             {
-                Point gotoPoint = endPoint;
-
-                if (endPoint.X > startPoint.X)
-                    gotoPoint.X -= endPoint.X - startPoint.X;
-                if (endPoint.Y > startPoint.Y)
-                    gotoPoint.Y -= endPoint.Y - startPoint.Y;
-
                 SetWindowSize();
-                SetWindowPosition(gotoPoint);
+
+                if (isVR)
+                    SetWindowPosition();
+                else
+                {
+                    Point gotoPoint = endPoint;
+
+                    if (endPoint.X > startPoint.X)
+                        gotoPoint.X -= endPoint.X - startPoint.X;
+                    if (endPoint.Y > startPoint.Y)
+                        gotoPoint.Y -= endPoint.Y - startPoint.Y;
+
+                    SetWindowPosition(gotoPoint);
+                }
             }
             else
             {
                 SetWindowSize();
                 SetWindowPosition();
             }
-
-            ProcessImage();
-        }
-
-        public async void StartCaptureVR(Bitmap? image, bool triggerHeld)
-        {
-            if (IsCapturing)
-                return;
-
-            if (!IsLoaded)
-                ShowWindow(true);
-
-            HideWindow();
-
-            if (!TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
-            {
-                SnackbarHost.Show("Source Language", $"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting", SnackbarType.Error);
-                Notification.Show($"You have to download {LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)} in the setting");
-                return;
-            }
-
-            IsCapturing = true;
-            ProcessImageCancelToken = new();
-            TranslatesCancelToken = new();
-
-            ResetDefaultState();
-
-            if (image == null)
-            {
-                IsCapturing = false;
-                return;
-            }
-
-            CapturedImage = image;
-            CapturedImageEdited = CapturedImage;
-
-            if (triggerHeld)
-            {
-                ConfigDispatcher = new DispatcherFrame();
-
-                SetWindowSize();
-                SetWindowPosition();
-                ShowWindow(true);
-                Dispatcher.PushFrame(ConfigDispatcher);
-
-                if (!IsCapturing)
-                    return;
-            }
-
-            ShowWindow(false);
-            ChangeCaptureImage(CapturedImageEdited);
-
-            SetWindowSize();
-            SetWindowPosition();
 
             ProcessImage();
         }
