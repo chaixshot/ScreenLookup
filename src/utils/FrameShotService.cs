@@ -222,7 +222,14 @@ namespace ScreenLookup.src.utils
             bool isButtonCombo = leftHeld && rightHeld;
 
             if (isButtonCombo)
-                IsFraming = wasFraming || AreHandsWithinActivationRadius(out L, out R);
+            {
+                bool isInRange = AreHandsWithinActivationRadius(out L, out R);
+
+                if (!wasFraming && isInRange)
+                    AppUtilities.PlaySound("ready.wav");
+
+                IsFraming = wasFraming || isInRange;
+            }
             else
                 IsFraming = false;
 

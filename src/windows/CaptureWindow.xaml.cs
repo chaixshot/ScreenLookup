@@ -209,6 +209,7 @@ namespace ScreenLookup.src.windows
             Point endPoint;
             if (image == null)
             {
+                AppUtilities.PlaySound("ready.wav");
                 (image, isRightMouse, startPoint, endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
                 AppUtilities.PlaySound("screenshot.wav");
             }
