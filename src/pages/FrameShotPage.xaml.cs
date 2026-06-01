@@ -13,33 +13,12 @@ namespace ScreenLookup.src.pages
         {
             InitializeComponent();
 
-            // Use static instances to persist state across page navigation
-            if (FrameShot == null)
+            Loaded += (s, e) =>
             {
-                FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
-
-                // Hook events
-                FrameShot.OnStateUpdate += (state) =>
-                {
-                    Dispatcher.Invoke(UpdateStatusUI);
-                };
-
-                FrameShot.OnPhotoSaved += (image) =>
-                {
-                    ThreadPool.QueueUserWorkItem(_ =>
-                    {
-                        Dispatcher.BeginInvoke(new Action(async () =>
-                        {
-                            App.captureWindow.StartCaptureVR(image);
-                        }));
-                    });
-                };
-            }
-
-            // Initialize UI values
-            ActivationRadius.Value = App.setting.activationRadius;
-            HmdRotCheck.IsChecked = App.setting.useHmdRotations;
-            UpdateStatusUI();
+                // Initialize UI values
+                ActivationRadius.Value = App.setting.ActivationRadius;
+                HmdRotCheck.IsChecked = App.setting.UseHmdRotations;
+            };
         }
 
         private void UpdateStatusUI()
@@ -62,9 +41,7 @@ namespace ScreenLookup.src.pages
 
         private void Connect_Click(object sender, RoutedEventArgs e)
         {
-            if (FrameShot == null) return;
-
-            if (FrameShot.IsConnected)
+            if (FrameShot != null && FrameShot.IsConnected)
             {
                 // If already connected, disconnect the overlay
                 FrameShot.Disconnect();
@@ -74,14 +51,33 @@ namespace ScreenLookup.src.pages
                 return;
             }
             else
-            {
-                Connect();
-            }
+                TryConnect();
         }
 
-        private void Connect()
+        private void TryConnect()
         {
-            if (FrameShot == null) return;
+            // Use static instances to persist state across page navigation
+            if (FrameShot == null)
+            {
+                FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
+
+                // Hook events
+                FrameShot.OnStateUpdate += (state) =>
+                {
+                    Dispatcher.Invoke(UpdateStatusUI);
+                };
+
+                FrameShot.OnPhotoSaved += (image, triggerHeld) =>
+                {
+                    ThreadPool.QueueUserWorkItem(_ =>
+                    {
+                        Dispatcher.BeginInvoke(new Action(async () =>
+                        {
+                            App.captureWindow.StartCaptureVR(image, triggerHeld);
+                        }));
+                    });
+                };
+            }
 
             if (FrameShot.Connect())
             {
@@ -89,13 +85,7 @@ namespace ScreenLookup.src.pages
                 UpdateStatusUI();
             }
             else
-            {
-                System.Windows.MessageBox.Show(
-                    $"SteamVR Connection Failed:\n{FrameShot.LastError}",
-                    "FrameShot Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
+                SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
         }
 
         private void ActivationRadius_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
