@@ -65,22 +65,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SteamVR">
-      <HintPath>libs\SteamVR.dll</HintPath>
-    </Reference>
-    <Reference Include="SteamVR_Actions">
-      <HintPath>libs\SteamVR_Actions.dll</HintPath>
-    </Reference>
-    <Reference Include="Valve.Newtonsoft.Json">
-      <HintPath>libs\Valve.Newtonsoft.Json.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="openvr_api.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="src\images\applicationIcon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Update="src\images\applicationIcon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="third-party\bin\win64\openvr_api.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
