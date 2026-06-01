@@ -133,7 +133,7 @@
 
                     <Controls:NavigationViewItem
                         NavigationCacheMode="Enabled"
-                        TargetPageTag="Saved"
+                        TargetPageTag="FrameShot (VR Capture)"
                         TargetPageType="{x:Type local:FrameShotPage}">
 
                         <Controls:NavigationViewItem.Content>
