@@ -15,38 +15,38 @@ namespace ScreenLookup.src.utils
         public static readonly FileInfo settingFile = new($"{App.appDataFolder}/setting.json");
         public readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
 
-        public bool firstRun = true;
-        public bool topmost = true;
-        public bool startupWithWindows = true;
-        public bool startInBackground = false;
-        public bool minimizeToTray = true;
+        private bool firstRun = true;
+        private bool topmost = true;
+        private bool startupWithWindows = true;
+        private bool startInBackground = false;
+        private bool minimizeToTray = true;
 
-        public int sourceLanguageAccuracy = 1;
-        public int sourceLanguage = 29;
-        public bool hunSpell = false;
-        public int targetLanguage = 117;
-        public int translationProvider = 1;
-        public int ttsProvider = 1;
+        private int sourceLanguageAccuracy = 1;
+        private int sourceLanguage = 29;
+        private bool hunSpell = false;
+        private int targetLanguage = 117;
+        private int translationProvider = 1;
+        private int ttsProvider = 1;
 
-        public ShortcutKeySet shortcutKey = new()
+        private ShortcutKeySet shortcutKey = new()
         {
             Modifiers = { ModifierKeys.Alt },
             NonModifierKey = Key.Z,
         };
-        public bool lookupOnImage = true;
-        public bool showImage = true;
-        public bool showAuxiliary = true;
-        public bool showHighlight = true;
-        public bool closeLostFocus = true;
-        public string fontFace = "Segoe UI";
-        public int fontSizes = 14;
+        private bool lookupOnImage = true;
+        private bool showImage = true;
+        private bool showAuxiliary = true;
+        private bool showHighlight = true;
+        private bool closeLostFocus = true;
+        private string fontFace = "Segoe UI";
+        private int fontSizes = 14;
 
         public Dictionary<string, string> window = [];
         public Dictionary<string, bool> loadedTesseract = [];
         public Dictionary<string, bool> loadedHunspell = [];
 
-        public int activationRadius = 15;
-        public bool useHmdRotations = false;
+        private int activationRadius = 15;
+        private bool useHmdRotations = false;
 
         public readonly string[] ProviderServices = [
             "Google",

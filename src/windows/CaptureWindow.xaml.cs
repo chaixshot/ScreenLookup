@@ -1,4 +1,4 @@
-﻿﻿using ScreenGrab;
+﻿using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.Drawing;
@@ -527,7 +527,7 @@ namespace ScreenLookup.src.windows
                             Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
                             Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
                             Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 5,
-                            SourceLanguage = App.setting.sourceLanguage,
+                            SourceLanguage = App.setting.SourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
                         });
@@ -579,7 +579,7 @@ namespace ScreenLookup.src.windows
                 }
             }
 
-            targetLanguageConfig.SelectedIndex = App.setting.targetLanguage;
+            targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
         }
 
         private void CloseTranslatedExpanded()

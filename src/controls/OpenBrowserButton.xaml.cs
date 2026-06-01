@@ -66,7 +66,7 @@ namespace ScreenLookup.src.controls
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
         {
-            switch (App.setting.translationProvider)
+            switch (App.setting.TranslationProvider)
             {
                 case 4:
                     Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}") { UseShellExecute = true });
