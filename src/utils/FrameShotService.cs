@@ -14,9 +14,12 @@ namespace ScreenLookup.src.utils
     {
         public static FrameShotService? Instance { get; private set; }
 
+        private const int FRAME_TEX_W = 1024;
+        private const int FRAME_TEX_H = 1024;
+
         // Config
-        public uint LeftButtonId { get; set; } = (uint)EVRButtonId.k_EButton_Grip;
-        public uint RightButtonId { get; set; } = (uint)EVRButtonId.k_EButton_Grip;
+        public uint GripButtonId = (uint)EVRButtonId.k_EButton_Grip;
+        public uint TriggerButtonId = (uint)EVRButtonId.k_EButton_SteamVR_Trigger;
 
         // State
         public bool IsConnected { get; private set; }
@@ -26,82 +29,83 @@ namespace ScreenLookup.src.utils
         // Events
         public event Action<object>? OnStateUpdate;
         public event Action? OnVRQuit;
-        public event Action<Bitmap?> OnPhotoSaved;
+        public event Action<Bitmap?, bool>? OnPhotoSaved;
 
-        // OpenVR
-        private CVRSystem? _vrSystem;
-        private ulong _overlayHandle;
-        private CancellationTokenSource? _cts;
-        private Task? _pollTask;
-        private bool _running;
-        private bool _disposed;
-        private readonly Action<string> _log;
+        // OpenVR context
+        private CVRSystem? vrSystem;
+        private ulong overlayHandle;
+        private CancellationTokenSource? cts;
+        private Task? pollTask;
+        private bool running;
+        private readonly Action<string> log;
 
-        // Controller tracking
-        private uint _leftIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
-        private uint _rightIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
-        private readonly TrackedDevicePose_t[] _poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        // Tracking
+        private uint leftIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
+        private uint rightIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
+        private readonly TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
 
         // Button state
-        private bool _leftHeld;
-        private bool _rightHeld;
-        private bool _leftHeldPrev;
-        private bool _rightHeldPrev;
+        private bool leftHeld;
+        private bool rightHeld;
+        private bool leftTriggerHeld;
+        private bool rightTriggerHeld;
+        private bool leftHeldPrev;
+        private bool rightHeldPrev;
 
-        private Vector3 _lastLeftPos;
-        private Vector3 _lastRightPos;
-        private float _lastFrameWidth;
-        private float _lastFrameHeight;
+        // Geometry cache
+        private Vector3 lastLeftPos;
+        private Vector3 lastRightPos;
+        private float lastFrameWidth;
+        private float lastFrameHeight;
 
         // D3D11
-        private ID3D11Device? _d3dDevice;
-        private ID3D11DeviceContext? _d3dContext;
-        public ID3D11Device? Device => _d3dDevice;
-        public ID3D11DeviceContext? Context => _d3dContext;
+        private ID3D11Device? d3dDevice;
+        private ID3D11DeviceContext? d3dContext;
+        private readonly object d3dLock = new();
 
-        public ID3D11Device? GetDevice() => _d3dDevice;
+        private ID3D11Texture2D? overlayTex;
+        private ID3D11Texture2D? stagingTex;
+        private ID3D11Texture2D? mirrorStaging;
+        private ID3D11Texture2D? mirrorTexCached;
+        private ID3D11ShaderResourceView? mirrorSrvObj;
+        private IntPtr mirrorSrv = IntPtr.Zero;
 
-        private readonly object _d3dLock = new();
-        private ID3D11Texture2D? _overlayTex;
-        private ID3D11Texture2D? _stagingTex;
-        private ID3D11Texture2D? _mirrorStaging;
-        private ID3D11ShaderResourceView? _mirrorSrvObj;
-        private const int FRAME_TEX_W = 1024;
-        private const int FRAME_TEX_H = 1024;
-        private byte[] _rowBuffer = new byte[FRAME_TEX_W * 4];
-        private Bitmap? _frameBitmap;
+        // Rendering resources
+        private byte[] rowBuffer = new byte[FRAME_TEX_W * 4];
+        private Bitmap? frameBitmap;
+        private int mirrorW;
+        private int mirrorH;
 
-        private IntPtr _mirrorSrv = IntPtr.Zero;
-        private ID3D11Texture2D? _mirrorTexCached;
-        private int _mirrorW;
-        private int _mirrorH;
+        public ID3D11Device? Device => d3dDevice;
+        public ID3D11DeviceContext? Context => d3dContext;
 
         public FrameShotService(Action<string> log)
         {
-            _log = log;
+            this.log = log;
             Instance = this;
         }
 
         public bool Connect()
         {
-            if (IsConnected) return true;
+            if (IsConnected)
+                return true;
+
             try
             {
                 var err = EVRInitError.None;
-                _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
+                vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
                 if (err != EVRInitError.None)
                 {
                     LastError = $"OpenVR init failed: {err}";
                     return false;
                 }
 
-                OpenVR.Overlay.CreateOverlay("screenlookup.frameshot", "ScreenLookup FrameShot", ref _overlayHandle);
-                OpenVR.Overlay.SetOverlayAlpha(_overlayHandle, 1.0f);
+                OpenVR.Overlay.CreateOverlay("screenlookup.frameshot", "ScreenLookup FrameShot", ref overlayHandle);
+                OpenVR.Overlay.SetOverlayAlpha(overlayHandle, 1.0f);
 
-                D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None,
-                    [FeatureLevel.Level_11_0], out _d3dDevice, out _d3dContext);
+                D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, [FeatureLevel.Level_11_0], out d3dDevice, out d3dContext);
 
-                _overlayTex = _d3dDevice!.CreateTexture2D(new Texture2DDescription
+                overlayTex = d3dDevice!.CreateTexture2D(new Texture2DDescription
                 {
                     Width = FRAME_TEX_W,
                     Height = FRAME_TEX_H,
@@ -112,7 +116,8 @@ namespace ScreenLookup.src.utils
                     Usage = ResourceUsage.Default,
                     BindFlags = BindFlags.ShaderResource,
                 });
-                _stagingTex = _d3dDevice.CreateTexture2D(new Texture2DDescription
+
+                stagingTex = d3dDevice.CreateTexture2D(new Texture2DDescription
                 {
                     Width = FRAME_TEX_W,
                     Height = FRAME_TEX_H,
@@ -123,39 +128,65 @@ namespace ScreenLookup.src.utils
                     Usage = ResourceUsage.Staging,
                     CPUAccessFlags = CpuAccessFlags.Write,
                 });
-                _frameBitmap = new Bitmap(FRAME_TEX_W, FRAME_TEX_H, PixelFormat.Format32bppArgb);
+
+                frameBitmap = new Bitmap(FRAME_TEX_W, FRAME_TEX_H, PixelFormat.Format32bppArgb);
 
                 IsConnected = true;
                 EmitState();
+
                 return true;
             }
-            catch (Exception ex) { LastError = ex.Message; return false; }
+            catch (Exception ex)
+            {
+                LastError = ex.Message;
+                return false;
+            }
         }
 
         public void Disconnect()
         {
             StopPolling();
-            if (!IsConnected) return;
-            lock (_d3dLock)
+
+            if (!IsConnected)
+                return;
+
+            lock (d3dLock)
             {
-                _mirrorStaging?.Dispose(); _mirrorTexCached?.Dispose(); _mirrorSrvObj?.Dispose(); _mirrorStaging = null;
-                if (_mirrorSrv != IntPtr.Zero) OpenVR.Compositor?.ReleaseMirrorTextureD3D11(_mirrorSrv);
-                _stagingTex?.Dispose(); _overlayTex?.Dispose(); _mirrorSrv = IntPtr.Zero;
-                _d3dContext?.Dispose(); _d3dDevice?.Dispose();
+                mirrorStaging?.Dispose();
+                mirrorTexCached?.Dispose();
+                mirrorSrvObj?.Dispose();
+                mirrorStaging = null;
+
+                if (mirrorSrv != IntPtr.Zero)
+                    OpenVR.Compositor?.ReleaseMirrorTextureD3D11(mirrorSrv);
+
+                stagingTex?.Dispose();
+                overlayTex?.Dispose();
+                mirrorSrv = IntPtr.Zero;
+
+                d3dContext?.Dispose();
+                d3dDevice?.Dispose();
             }
+
             OpenVR.Shutdown();
             IsConnected = false;
         }
 
         public void StartPolling()
         {
-            if (_running) return;
-            _cts = new CancellationTokenSource();
-            _running = true;
-            _pollTask = PollLoopAsync(_cts.Token);
+            if (running)
+                return;
+
+            cts = new CancellationTokenSource();
+            running = true;
+            pollTask = PollLoopAsync(cts.Token);
         }
 
-        public void StopPolling() { _running = false; _cts?.Cancel(); }
+        public void StopPolling()
+        {
+            running = false;
+            cts?.Cancel();
+        }
 
         private async Task PollLoopAsync(CancellationToken ct)
         {
@@ -168,20 +199,25 @@ namespace ScreenLookup.src.utils
 
         private void ProcessFrame()
         {
-            if (_vrSystem == null) return;
-            _vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0, _poses);
+            if (vrSystem == null)
+                return;
 
-            _leftIdx = _vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-            _rightIdx = _vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+            vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0, poses);
 
-            _leftHeldPrev = _leftHeld;
-            _rightHeldPrev = _rightHeld;
-            _leftHeld = IsButtonHeld(_leftIdx, LeftButtonId);
-            _rightHeld = IsButtonHeld(_rightIdx, RightButtonId);
+            leftIdx = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+            rightIdx = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+
+            leftHeldPrev = leftHeld;
+            rightHeldPrev = rightHeld;
+
+            leftHeld = IsButtonHeld(leftIdx, GripButtonId);
+            rightHeld = IsButtonHeld(rightIdx, GripButtonId);
+            leftTriggerHeld = IsButtonHeld(leftIdx, TriggerButtonId);
+            rightTriggerHeld = IsButtonHeld(rightIdx, TriggerButtonId);
 
             Vector3 L = Vector3.Zero, R = Vector3.Zero;
             bool wasFraming = IsFraming;
-            bool isButtonCombo = _leftHeld && _rightHeld;
+            bool isButtonCombo = leftHeld && rightHeld;
 
             if (isButtonCombo)
                 IsFraming = wasFraming || AreHandsWithinActivationRadius(out L, out R);
@@ -192,11 +228,12 @@ namespace ScreenLookup.src.utils
                 UpdateFrameAndRender(L, R);
             else if (wasFraming)
             {
-                OpenVR.Overlay.HideOverlay(_overlayHandle);
-                if (_rightHeldPrev && !_rightHeld && _leftHeld)
+                OpenVR.Overlay.HideOverlay(overlayHandle);
+
+                if (rightHeldPrev && !rightHeld && leftHeld)
                 {
                     SystemSounds.Asterisk.Play();
-                    Task.Run(CaptureAndSave);
+                    Task.Run(() => CaptureAndSave(leftTriggerHeld || rightTriggerHeld));
                 }
                 else
                 {
@@ -207,34 +244,42 @@ namespace ScreenLookup.src.utils
 
         private bool IsButtonHeld(uint idx, uint buttonId)
         {
-            if (idx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
+            if (idx == OpenVR.k_unTrackedDeviceIndexInvalid)
+                return false;
+
             var s = new VRControllerState_t();
-            return _vrSystem!.GetControllerState(idx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()) && (s.ulButtonPressed & (1UL << (int)buttonId)) != 0;
+
+            return vrSystem!.GetControllerState(idx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()) &&
+                   (s.ulButtonPressed & (1UL << (int)buttonId)) != 0;
         }
 
         private bool AreHandsWithinActivationRadius(out Vector3 L, out Vector3 R)
         {
             L = R = Vector3.Zero;
-            if (_leftIdx == OpenVR.k_unTrackedDeviceIndexInvalid || _rightIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
-            if (!_poses[_leftIdx].bPoseIsValid || !_poses[_rightIdx].bPoseIsValid) return false;
 
-            L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
-            R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
+            if (leftIdx == OpenVR.k_unTrackedDeviceIndexInvalid || rightIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
+            if (!poses[leftIdx].bPoseIsValid || !poses[rightIdx].bPoseIsValid) return false;
+
+            L = PosFromMatrix(poses[leftIdx].mDeviceToAbsoluteTracking);
+            R = PosFromMatrix(poses[rightIdx].mDeviceToAbsoluteTracking);
+
             return (R - L).Length() <= App.setting.ActivationRadius / 100f;
         }
 
         private void UpdateFrameAndRender(Vector3 L, Vector3 R)
         {
             uint hmdIdx = (uint)OpenVR.k_unTrackedDeviceIndex_Hmd;
-            if (!_poses[_leftIdx].bPoseIsValid || !_poses[_rightIdx].bPoseIsValid || !_poses[hmdIdx].bPoseIsValid) return;
+
+            if (!poses[leftIdx].bPoseIsValid || !poses[rightIdx].bPoseIsValid || !poses[hmdIdx].bPoseIsValid)
+                return;
 
             if (L == Vector3.Zero && R == Vector3.Zero)
             {
-                L = PosFromMatrix(_poses[_leftIdx].mDeviceToAbsoluteTracking);
-                R = PosFromMatrix(_poses[_rightIdx].mDeviceToAbsoluteTracking);
+                L = PosFromMatrix(poses[leftIdx].mDeviceToAbsoluteTracking);
+                R = PosFromMatrix(poses[rightIdx].mDeviceToAbsoluteTracking);
             }
 
-            var hmdM = _poses[hmdIdx].mDeviceToAbsoluteTracking;
+            var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
             var hmdRot = RotFromMatrix(hmdM);
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
@@ -245,23 +290,31 @@ namespace ScreenLookup.src.utils
             float widthM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R - L, hmdRight)));
             float heightM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R - L, hmdUp)));
 
-            _lastLeftPos = L; _lastRightPos = R;
-            _lastFrameWidth = widthM; _lastFrameHeight = heightM;
+            lastLeftPos = L;
+            lastRightPos = R;
+            lastFrameWidth = widthM;
+            lastFrameHeight = heightM;
 
             int drawW = FRAME_TEX_W;
             int drawH = (int)MathF.Round(FRAME_TEX_W * (heightM / widthM));
-            if (drawH > FRAME_TEX_H) { drawH = FRAME_TEX_H; drawW = (int)MathF.Round(FRAME_TEX_H / (heightM / widthM)); }
+
+            if (drawH > FRAME_TEX_H)
+            {
+                drawH = FRAME_TEX_H;
+                drawW = (int)MathF.Round(FRAME_TEX_H / (heightM / widthM));
+            }
 
             DrawFrameTexture(drawW, drawH);
-            OpenVR.Overlay.SetOverlayWidthInMeters(_overlayHandle, widthM);
+            OpenVR.Overlay.SetOverlayWidthInMeters(overlayHandle, widthM);
+
             var transform = new HmdMatrix34_t { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = center.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = center.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = center.Z };
-            OpenVR.Overlay.SetOverlayTransformAbsolute(_overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
-            OpenVR.Overlay.ShowOverlay(_overlayHandle);
+            OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
+            OpenVR.Overlay.ShowOverlay(overlayHandle);
         }
 
         private void DrawFrameTexture(int drawW, int drawH)
         {
-            using (var g = Graphics.FromImage(_frameBitmap!))
+            using (var g = Graphics.FromImage(frameBitmap!))
             {
                 g.Clear(System.Drawing.Color.Transparent);
                 using var pen = new Pen(System.Drawing.Color.FromArgb(255, 130, 210, 255), 8f);
@@ -269,102 +322,124 @@ namespace ScreenLookup.src.utils
             }
 
             var rect = new System.Drawing.Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
-            var bData = _frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            lock (_d3dLock)
+            var bData = frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            lock (d3dLock)
             {
-                var box = _d3dContext!.Map(_stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
+                var box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
                 for (int y = 0; y < FRAME_TEX_H; y++)
                 {
-                    Marshal.Copy(bData.Scan0 + y * bData.Stride, _rowBuffer, 0, FRAME_TEX_W * 4);
-                    Marshal.Copy(_rowBuffer, 0, box.DataPointer + (nint)((long)y * box.RowPitch), FRAME_TEX_W * 4);
+                    Marshal.Copy(bData.Scan0 + y * bData.Stride, rowBuffer, 0, FRAME_TEX_W * 4);
+                    Marshal.Copy(rowBuffer, 0, box.DataPointer + (nint)((long)y * box.RowPitch), FRAME_TEX_W * 4);
                 }
-                _d3dContext.Unmap(_stagingTex!, 0);
-                _d3dContext.CopyResource(_overlayTex!, _stagingTex!);
+                d3dContext.Unmap(stagingTex!, 0);
+                d3dContext.CopyResource(overlayTex!, stagingTex!);
             }
-            _frameBitmap.UnlockBits(bData);
+            frameBitmap.UnlockBits(bData);
+
             var bounds = new VRTextureBounds_t { uMin = 0f, vMin = 0f, uMax = (float)drawW / FRAME_TEX_W, vMax = (float)drawH / FRAME_TEX_H };
-            OpenVR.Overlay.SetOverlayTextureBounds(_overlayHandle, ref bounds);
-            var vrTex = new Texture_t { handle = _overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
-            OpenVR.Overlay.SetOverlayTexture(_overlayHandle, ref vrTex);
+            OpenVR.Overlay.SetOverlayTextureBounds(overlayHandle, ref bounds);
+
+            var vrTex = new Texture_t { handle = overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
+            OpenVR.Overlay.SetOverlayTexture(overlayHandle, ref vrTex);
         }
 
-        public void CaptureAndSave()
+        public void CaptureAndSave(bool isTriggerHeld)
         {
-            if (!EnsureMirrorPipeline()) return;
+            if (!EnsureMirrorPipeline())
+                return;
 
-            var corners = ProjectFrameCorners(_mirrorW, _mirrorH);
+            var corners = ProjectFrameCorners(mirrorW, mirrorH);
             if (corners == null) return;
 
             Bitmap? mirrorBmp = null;
-            lock (_d3dLock)
+            lock (d3dLock)
             {
-                if (_rowBuffer.Length < _mirrorW * 4) _rowBuffer = new byte[_mirrorW * 4];
+                if (rowBuffer.Length < mirrorW * 4)
+                    rowBuffer = new byte[mirrorW * 4];
 
-                _d3dContext!.CopyResource(_mirrorStaging!, _mirrorTexCached!);
-                var box = _d3dContext.Map(_mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                mirrorBmp = new Bitmap(_mirrorW, _mirrorH, PixelFormat.Format32bppArgb);
-                var bData = mirrorBmp.LockBits(new System.Drawing.Rectangle(0, 0, _mirrorW, _mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                for (int y = 0; y < _mirrorH; y++)
+                d3dContext!.CopyResource(mirrorStaging!, mirrorTexCached!);
+                var box = d3dContext.Map(mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
+                var bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                for (int y = 0; y < mirrorH; y++)
                 {
-                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), _rowBuffer, 0, _mirrorW * 4);
-                    Marshal.Copy(_rowBuffer, 0, bData.Scan0 + y * bData.Stride, _mirrorW * 4);
+                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), rowBuffer, 0, mirrorW * 4);
+                    Marshal.Copy(rowBuffer, 0, bData.Scan0 + y * bData.Stride, mirrorW * 4);
                 }
                 mirrorBmp.UnlockBits(bData);
-                _d3dContext.Unmap(_mirrorStaging!, 0);
+                d3dContext.Unmap(mirrorStaging!, 0);
             }
 
             int outW = (int)MathF.Max(2, Vector2.Distance(new Vector2(corners[0].X, corners[0].Y), new Vector2(corners[1].X, corners[1].Y)));
-            int outH = (int)MathF.Round(outW * (_lastFrameHeight / _lastFrameWidth));
+            int outH = (int)MathF.Round(outW * (lastFrameHeight / lastFrameWidth));
+
             using (var outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb))
             {
                 using (var g = Graphics.FromImage(outBmp))
                 {
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    var mtx = new System.Drawing.Drawing2D.Matrix(new System.Drawing.RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
+                    var mtx = new System.Drawing.Drawing2D.Matrix(new RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
                     mtx.Invert(); g.Transform = mtx;
                     g.DrawImage(mirrorBmp, 0, 0);
                 }
-                OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone());
+
+                OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone(), isTriggerHeld);
             }
             mirrorBmp.Dispose();
         }
 
         private bool EnsureMirrorPipeline()
         {
-            if (_mirrorStaging != null) return true;
+            if (mirrorStaging != null)
+                return true;
+
             var srv = IntPtr.Zero;
-            if (OpenVR.Compositor.GetMirrorTextureD3D11(EVREye.Eye_Left, _d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None) return false;
-            _mirrorSrv = srv;
-            _mirrorSrvObj = new ID3D11ShaderResourceView(srv);
-            _mirrorTexCached = _mirrorSrvObj.Resource.QueryInterface<ID3D11Texture2D>();
-            var desc = _mirrorTexCached.Description;
-            _mirrorW = (int)desc.Width; _mirrorH = (int)desc.Height;
-            _mirrorStaging = _d3dDevice.CreateTexture2D(new Texture2DDescription { Width = (uint)_mirrorW, Height = (uint)_mirrorH, MipLevels = 1, ArraySize = 1, Format = desc.Format, SampleDescription = new SampleDescription(1, 0), Usage = ResourceUsage.Staging, CPUAccessFlags = CpuAccessFlags.Read });
+            if (OpenVR.Compositor.GetMirrorTextureD3D11(EVREye.Eye_Left, d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None)
+                return false;
+
+            mirrorSrv = srv;
+            mirrorSrvObj = new ID3D11ShaderResourceView(srv);
+            mirrorTexCached = mirrorSrvObj.Resource.QueryInterface<ID3D11Texture2D>();
+            var desc = mirrorTexCached.Description;
+            mirrorW = (int)desc.Width; mirrorH = (int)desc.Height;
+
+            mirrorStaging = d3dDevice.CreateTexture2D(new Texture2DDescription
+            {
+                Width = (uint)mirrorW,
+                Height = (uint)mirrorH,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = desc.Format,
+                SampleDescription = new SampleDescription(1, 0),
+                Usage = ResourceUsage.Staging,
+                CPUAccessFlags = CpuAccessFlags.Read
+            });
             return true;
         }
 
         private PointF[]? ProjectFrameCorners(int mw, int mh)
         {
             uint hmdIdx = (uint)OpenVR.k_unTrackedDeviceIndex_Hmd;
-            var hmdM = _poses[hmdIdx].mDeviceToAbsoluteTracking;
+            var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
             var hmdRot = RotFromMatrix(hmdM);
             var hmdPos = PosFromMatrix(hmdM);
-            var vp = ToMatrix4x4(_vrSystem!.GetEyeToHeadTransform(EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
+            var vp = ToMatrix4x4(vrSystem!.GetEyeToHeadTransform(EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
             Matrix4x4.Invert(vp, out var view);
-            vp = view * ToMatrix4x4Proj(_vrSystem.GetProjectionMatrix(EVREye.Eye_Left, 0.05f, 50f));
+            vp = view * ToMatrix4x4Proj(vrSystem.GetProjectionMatrix(EVREye.Eye_Left, 0.05f, 50f));
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
             Vector3 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
-            Vector3 center = (_lastLeftPos + _lastRightPos) * 0.5f;
-            float hw = _lastFrameWidth * 0.5f, hh = _lastFrameHeight * 0.5f;
+            Vector3 center = (lastLeftPos + lastRightPos) * 0.5f;
+            float hw = lastFrameWidth * 0.5f, hh = lastFrameHeight * 0.5f;
 
             Vector3[] worldCorners = { center - hmdRight * hw + hmdUp * hh, center + hmdRight * hw + hmdUp * hh, center + hmdRight * hw - hmdUp * hh, center - hmdRight * hw - hmdUp * hh };
             var pts = new PointF[4];
             for (int i = 0; i < 4; i++)
             {
                 var clip = Vector4.Transform(new Vector4(worldCorners[i], 1f), vp);
-                if (clip.W <= 0) return null;
+                if (clip.W <= 0)
+                    return null;
                 pts[i] = new PointF((clip.X / clip.W * 0.5f + 0.5f) * mw, (1f - (clip.Y / clip.W * 0.5f + 0.5f)) * mh);
             }
             return pts;
@@ -374,12 +449,21 @@ namespace ScreenLookup.src.utils
         private static Quaternion RotFromMatrix(in HmdMatrix34_t m)
         {
             float tr = m.m0 + m.m5 + m.m10;
-            if (tr > 0f) { float s = MathF.Sqrt(tr + 1f) * 2f; return Quaternion.Normalize(new Quaternion((m.m9 - m.m6) / s, (m.m2 - m.m8) / s, (m.m4 - m.m1) / s, 0.25f * s)); }
+
+            if (tr > 0f)
+            {
+                float s = MathF.Sqrt(tr + 1f) * 2f;
+                return Quaternion.Normalize(new Quaternion((m.m9 - m.m6) / s, (m.m2 - m.m8) / s, (m.m4 - m.m1) / s, 0.25f * s));
+            }
+
             return Quaternion.Identity;
         }
         private static Matrix4x4 ToMatrix4x4(in HmdMatrix34_t m) => new(m.m0, m.m4, m.m8, 0, m.m1, m.m5, m.m9, 0, m.m2, m.m6, m.m10, 0, m.m3, m.m7, m.m11, 1);
         private static Matrix4x4 ToMatrix4x4Proj(in HmdMatrix44_t m) => new(m.m0, m.m4, m.m8, m.m12, m.m1, m.m5, m.m9, m.m13, m.m2, m.m6, m.m10, m.m14, m.m3, m.m7, m.m11, m.m15);
         private void EmitState() => OnStateUpdate?.Invoke(new { connected = IsConnected, framing = IsFraming });
-        public void Dispose() { Disconnect(); _frameBitmap?.Dispose(); }
+        public void Dispose()
+        {
+            Disconnect(); frameBitmap?.Dispose();
+        }
     }
 }

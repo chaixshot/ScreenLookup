@@ -254,12 +254,14 @@ namespace ScreenLookup.src.windows
             ProcessImage();
         }
 
-        public async void StartCaptureVR(Bitmap? image)
+        public async void StartCaptureVR(Bitmap? image, bool triggerHeld)
         {
             if (IsCapturing)
                 return;
 
-            ShowWindow(true);
+            if (!IsLoaded)
+                ShowWindow(true);
+
             HideWindow();
 
             if (!TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
@@ -283,6 +285,19 @@ namespace ScreenLookup.src.windows
 
             CapturedImage = image;
             CapturedImageEdited = CapturedImage;
+
+            if (triggerHeld)
+            {
+                ConfigDispatcher = new DispatcherFrame();
+
+                SetWindowSize();
+                SetWindowPosition();
+                ShowWindow(true);
+                Dispatcher.PushFrame(ConfigDispatcher);
+
+                if (!IsCapturing)
+                    return;
+            }
 
             ShowWindow(false);
             ChangeCaptureImage(CapturedImageEdited);
