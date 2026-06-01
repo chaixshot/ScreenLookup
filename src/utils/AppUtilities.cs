@@ -1,4 +1,6 @@
-﻿﻿using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Media;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -65,6 +67,18 @@ namespace ScreenLookup.src.utils
                 Arguments = args
             };
             Process.Start(info);
+        }
+
+        internal static void PlaySound(string soundName)
+        {
+            string soundPath = Path.Combine(Environment.CurrentDirectory, "src\\sounds", soundName);
+
+            // Verify the file exists before attempting to play it
+            if (File.Exists(soundPath))
+            {
+                using SoundPlayer player = new(soundPath);
+                player.Play();
+            }
         }
 
         internal static async void ChackForUpdate()

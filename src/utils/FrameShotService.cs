@@ -1,7 +1,5 @@
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Media;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Valve.VR;
@@ -235,22 +233,9 @@ namespace ScreenLookup.src.utils
 
                 if (rightHeldPrev && !rightHeld && leftHeld)
                 {
-                    PlaySound("Windows Pop-up Blocked.wav");
+                    AppUtilities.PlaySound("screenshot.wav");
                     Task.Run(() => CaptureAndSave(leftTriggerHeld || rightTriggerHeld));
                 }
-            }
-        }
-
-        private void PlaySound(string soundName)
-        {
-            string windir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            string soundPath = Path.Combine(windir, "Media", soundName);
-
-            // Verify the file exists before attempting to play it
-            if (File.Exists(soundPath))
-            {
-                using SoundPlayer player = new(soundPath);
-                player.Play();
             }
         }
 
