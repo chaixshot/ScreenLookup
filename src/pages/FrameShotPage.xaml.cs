@@ -24,9 +24,7 @@ namespace ScreenLookup.src.pages
 
         private void UpdateStatusUI()
         {
-            if (FrameShot == null) return;
-
-            if (FrameShot.IsConnected)
+            if (FrameShot?.IsConnected == true)
             {
                 StatusDot.Fill = Brushes.Green;
                 StatusText.Text = FrameShot.IsFraming ? "Framing..." : "Connected";
@@ -35,7 +33,7 @@ namespace ScreenLookup.src.pages
             else
             {
                 StatusDot.Fill = Brushes.Red;
-                StatusText.Text = FrameShot.LastError ?? "Not Connected";
+                StatusText.Text = FrameShot?.LastError ?? "Not Connected";
                 StatusButton.Content = "Connect to SteamVR";
             }
         }
@@ -98,7 +96,7 @@ namespace ScreenLookup.src.pages
 
         private void ActivationRadius_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (FrameShot != null)
+            if (IsLoaded)
                 App.setting.ActivationRadius = (int)e.NewValue;
         }
 
