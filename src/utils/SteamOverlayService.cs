@@ -1,6 +1,8 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Valve.VR;
@@ -87,6 +89,9 @@ namespace ScreenLookup.src.utils
             {
                 overlay.SetOverlayFromFile(_thumbnailHandle, thumbnailPath);
             }
+
+            // Ensure alpha transparency is handled correctly (WPF uses premultiplied alpha)
+            overlay.SetOverlayFlag(_dashboardHandle, VROverlayFlags.IsPremultiplied, true);
 
             //overlay.SetOverlayFlag(_dashboardHandle, VROverlayFlags.IgnoreTextureAlpha, true);
 
@@ -258,7 +263,43 @@ namespace ScreenLookup.src.utils
 
                     drawingContext.PushTransform(new TranslateTransform(offsetX, offsetY));
                     drawingContext.PushTransform(new ScaleTransform(finalScale, finalScale));
+
+                    // Draw the main UI content
                     drawingContext.DrawRectangle(new VisualBrush(uiElement), null, new Rect(0, 0, uiWidth, uiHeight));
+
+                    // Popups (Flyouts, Menus, Tooltips) reside in separate Win32 windows (HWNDs).
+                    // We must find their RootVisuals and composite them manually onto our texture.
+                    try
+                    {
+                        Point uiScreenPos = uiElement.PointToScreen(new Point(0, 0));
+                        foreach (PresentationSource source in PresentationSource.CurrentSources)
+                        {
+                            Visual root = source.RootVisual;
+                            // "PopupRoot" is the internal root visual for all WPF Popups
+                            if (root != null && root.GetType().Name == "PopupRoot" && root is FrameworkElement element && element.IsVisible)
+                            {
+                                Point popupScreenPos = element.PointToScreen(new Point(0, 0));
+                                double relX = popupScreenPos.X - uiScreenPos.X;
+                                double relY = popupScreenPos.Y - uiScreenPos.Y;
+
+                                // Draw the popup at its relative screen position
+                                drawingContext.DrawRectangle(new VisualBrush(root), null, new Rect(relX, relY, element.ActualWidth, element.ActualHeight));
+                            }
+                        }
+                    }
+                    catch (InvalidOperationException) { /* Handle cases where visuals are detached during iteration */ }
+
+                    // Adorners (Shadows, Snackbars, etc.) usually reside in the Adorner Layer.
+                    AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(uiElement);
+                    if (adornerLayer != null)
+                    {
+                        // Ensure the AdornerLayer is aligned correctly with the uiElement
+                        Point offset = uiElement.TranslatePoint(new Point(0, 0), adornerLayer);
+                        VisualBrush adornerBrush = new VisualBrush(adornerLayer);
+                        adornerBrush.Viewbox = new Rect(offset.X, offset.Y, uiWidth, uiHeight);
+                        adornerBrush.ViewboxUnits = BrushMappingMode.Absolute;
+                        drawingContext.DrawRectangle(adornerBrush, null, new Rect(0, 0, uiWidth, uiHeight));
+                    }
                 }
                 renderTarget.Render(drawingVisual);
 
