@@ -1,7 +1,6 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -125,7 +124,7 @@ namespace ScreenLookup.src.utils
                 ProcessInput();
 
                 // Draw the current visual frames out to VR space
-                RenderFrame();
+                parentWindow.Dispatcher.Invoke(RenderFrame);
 
                 await Task.Delay(11, ct);
             }

@@ -22,6 +22,7 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
+        private bool IsVR = false;
         private bool IsCapturing = false;
         private Engine TesseractEngine;
         private string TesseractPageText;
@@ -206,7 +207,7 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
 
             // Screenshot
-            bool isVR = image != null;
+            IsVR = image != null;
             Point startPoint;
             Point endPoint;
             if (image == null)
@@ -233,7 +234,7 @@ namespace ScreenLookup.src.windows
                 DispatcherFrame cache = ConfigDispatcher;
 
                 SetWindowSize();
-                if (isVR)
+                if (IsVR)
                     SetWindowPosition();
                 else
                     SetWindowPosition(new()
@@ -256,7 +257,7 @@ namespace ScreenLookup.src.windows
             {
                 SetWindowSize();
 
-                if (isVR)
+                if (IsVR)
                     SetWindowPosition();
                 else
                 {
@@ -278,9 +279,8 @@ namespace ScreenLookup.src.windows
 
             ProcessImage();
 
-            if (SteamOverlay == null)
+            if (IsVR && SteamOverlay == null)
             {
-                // Instantiate using the new SteamOverlay field name
                 SteamOverlay = new SteamOverlayService(
                     parentWindow: this,
                     uiElement: MainGrid
@@ -600,7 +600,7 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, string.Empty, sourceLang, App.setting.TargetLanguage);
+            flayOut.Show(word, string.Empty, sourceLang, App.setting.TargetLanguage, IsVR);
         }
 
         private void Button_Message(object sender, RoutedEventArgs e)
@@ -613,7 +613,7 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage);
+            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage, IsVR);
 
             CloseTranslatedExpanded();
         }

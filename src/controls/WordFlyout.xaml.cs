@@ -1,4 +1,4 @@
-﻿﻿using ScreenLookup.src.utils;
+﻿using ScreenLookup.src.utils;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -23,7 +23,9 @@ namespace ScreenLookup.src.controls
         public string originalWord = string.Empty;
         public string originalMessage = string.Empty;
         public double width = double.NaN;
+        public double height = double.NaN;
         public bool isOpen = false;
+        private bool _isBoundary = false;
         private static CancellationTokenSource TranslatesCancelToken;
 
         public WordFlyout()
@@ -91,6 +93,16 @@ namespace ScreenLookup.src.controls
             }
         }
 
+        public double HeightX
+        {
+            get { return height; }
+            set
+            {
+                height = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsOpen
         {
             get { return isOpen; }
@@ -125,11 +137,12 @@ namespace ScreenLookup.src.controls
         }
         #endregion
 
-        public void Show(string word, string message, int sourceLang, int targetLang)
+        public void Show(string word, string message, int sourceLang, int targetLang, bool isBoundary = false)
         {
             IsOpen = false;
             FontSizeS = FontSizeS;
             FontFace = FontFace;
+            _isBoundary = isBoundary;
 
             FollowMouse();
 
@@ -169,6 +182,10 @@ namespace ScreenLookup.src.controls
                     // Message
                     await translationMessage.Translate(OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken);
 
+                    if (_isBoundary)
+                    {
+                        UpdatePositionBoundary();
+                    }
                 }));
             });
         }
@@ -184,6 +201,24 @@ namespace ScreenLookup.src.controls
 
             mTransform.X = MousePosotion.X - 50;
             mTransform.Y = MousePosotion.Y - 40;
+
+            if (_isBoundary)
+            {
+                UpdatePositionBoundary();
+            }
+        }
+
+        private void UpdatePositionBoundary()
+        {
+            if (App.captureWindow == null) return;
+
+            WidthX = App.captureWindow.ActualWidth - 50;
+            HeightX = App.captureWindow.ActualHeight - 50;
+
+            UpdateLayout();
+
+            mTransform.X = 0;
+            mTransform.Y = App.captureWindow.ActualHeight - 50;
         }
 
         private void ResetDefaultState()
