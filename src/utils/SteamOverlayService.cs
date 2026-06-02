@@ -197,52 +197,31 @@ namespace ScreenLookup.src.utils
 
                 if (uiWidth <= 0 || uiHeight <= 0) return;
 
-                int canvasWidth = 1000;
-                int canvasHeight = 1000;
+                float resolution = 3000;
+                int canvasWidth = (int)resolution;
+                int canvasHeight = (int)resolution;
 
                 // Calculate aspect ratio aspect (Width / Height)
                 float aspectRatio = (float)(uiWidth / uiHeight);
 
-                if (uiWidth >= uiHeight)
+                // Landscape layout logic (Width is dominant)
+                double scale = Math.Min(resolution / uiWidth, resolution / uiHeight);
+                canvasWidth = (int)Math.Round(uiWidth * scale);
+                canvasHeight = (int)Math.Round(uiHeight * scale);
+
+                // Dynamically adjust SteamVR physical width for landscape 
+                // Standard SteamVR dashboard view height maps to ~0.7031 meters
+                float baseDashboardHeightMeters = (uiWidth >= uiHeight ? 4f : 5f) / (16.0f / 9.0f);
+                overlay.SetOverlayWidthInMeters(_dashboardHandle, baseDashboardHeightMeters * aspectRatio);
+
+                // FIX: X scale must equal the aspect ratio, Y scale is 1.0f
+                // The mouse scale should represent the logical pixel dimensions of the UI element.
+                HmdVector2_t mouseScale = new()
                 {
-                    // Landscape layout logic (Width is dominant)
-                    double scale = Math.Min(1000.0 / uiWidth, 1000.0 / uiHeight);
-                    canvasWidth = (int)Math.Round(uiWidth * scale);
-                    canvasHeight = (int)Math.Round(uiHeight * scale);
-
-                    // Dynamically adjust SteamVR physical width for landscape 
-                    // Standard SteamVR dashboard view height maps to ~0.7031 meters
-                    const float baseDashboardHeightMeters = 3f / (16.0f / 9.0f);
-                    overlay.SetOverlayWidthInMeters(_dashboardHandle, baseDashboardHeightMeters * aspectRatio);
-
-                    // FIX: X scale must equal the aspect ratio, Y scale is 1.0f
-                    // The mouse scale should represent the logical pixel dimensions of the UI element.
-                    HmdVector2_t mouseScale = new()
-                    {
-                        v0 = (float)uiWidth,
-                        v1 = (float)uiHeight
-                    };
-                    overlay.SetOverlayMouseScale(_dashboardHandle, ref mouseScale);
-                }
-                else
-                {
-                    // Portrait layout logic (Height is dominant)
-                    // The canvas dimensions are already calculated to maintain aspect ratio.
-                    // The physical width in meters is set based on the aspect ratio.
-                    // The mouse scale should represent the logical pixel dimensions of the UI element.
-
-                    // Set SteamVR dashboard width based on portrait aspect ratio
-                    const float baseDashboardHeightMeters = 3f / (16.0f / 9.0f);
-                    overlay.SetOverlayWidthInMeters(_dashboardHandle, baseDashboardHeightMeters * aspectRatio);
-
-                    // The mouse scale should represent the logical pixel dimensions of the UI element.
-                    HmdVector2_t mouseScale = new()
-                    {
-                        v0 = (float)uiWidth,
-                        v1 = (float)uiHeight
-                    };
-                    overlay.SetOverlayMouseScale(_dashboardHandle, ref mouseScale);
-                }
+                    v0 = (float)uiWidth,
+                    v1 = (float)uiHeight
+                };
+                overlay.SetOverlayMouseScale(_dashboardHandle, ref mouseScale);
 
                 // Render onto the canvas
                 RenderTargetBitmap renderTarget = new(canvasWidth, canvasHeight, 96, 96, PixelFormats.Pbgra32);
@@ -366,6 +345,7 @@ namespace ScreenLookup.src.utils
             if (_isInitialized)
             {
                 var overlay = OpenVR.Overlay;
+
                 if (overlay != null)
                 {
                     if (_dashboardHandle != OpenVR.k_ulOverlayHandleInvalid)
@@ -374,6 +354,8 @@ namespace ScreenLookup.src.utils
                     if (_thumbnailHandle != OpenVR.k_ulOverlayHandleInvalid)
                         overlay.DestroyOverlay(_thumbnailHandle);
                 }
+
+                StopPolling();
 
                 _overlayTex?.Dispose();
                 _stagingTex?.Dispose();

@@ -42,7 +42,7 @@ namespace ScreenLookup.src.windows
 
         private readonly Dictionary<string, string> translatedCache = [];
 
-        private SteamOverlayService SteamOverlay;
+        private SteamOverlayService? SteamOverlay;
 
         public CaptureWindow()
         {
@@ -128,6 +128,9 @@ namespace ScreenLookup.src.windows
             TranslatesCancelToken?.Cancel();
             TesseractPageText = string.Empty;
 
+            SteamOverlay?.Dispose();
+            SteamOverlay = null;
+
             EditRotate = 0;
             EditZoom = 1.0;
 
@@ -182,6 +185,14 @@ namespace ScreenLookup.src.windows
 
             this.Show();
             this.Activate();
+
+            if (IsVR)
+            {
+                SteamOverlay = new SteamOverlayService(
+                    parentWindow: this,
+                    uiElement: MainGrid
+                );
+            }
         }
 
         public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)
@@ -278,14 +289,6 @@ namespace ScreenLookup.src.windows
             }
 
             ProcessImage();
-
-            if (IsVR && SteamOverlay == null)
-            {
-                SteamOverlay = new SteamOverlayService(
-                    parentWindow: this,
-                    uiElement: MainGrid
-                );
-            }
         }
 
         private void ProcessImage()
