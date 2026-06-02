@@ -113,7 +113,7 @@ namespace ScreenLookup.src.windows
                 TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
         }
 
-        private void HideWindow()
+        public void HideWindow()
         {
             IsCapturing = false;
             ConfigDispatcher?.Continue = false;
@@ -139,7 +139,7 @@ namespace ScreenLookup.src.windows
             this.Hide();
         }
 
-        private void ShowWindow(bool IsConfig)
+        public void ShowWindow(bool IsConfig)
         {
             if (IsConfig)
             {
@@ -190,7 +190,7 @@ namespace ScreenLookup.src.windows
             {
                 SteamOverlay = new SteamOverlayService(
                     parentWindow: this,
-                    uiElement: MainGrid
+                    uiElement: IsConfig ? configMenu : MainGrid
                 );
             }
         }

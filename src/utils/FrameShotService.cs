@@ -232,7 +232,10 @@ namespace ScreenLookup.src.utils
                 bool isInRange = AreHandsWithinActivationRadius(out L, out R);
 
                 if (!wasFraming && isInRange)
+                {
                     AppUtilities.PlaySound("ready.wav");
+                    App.captureWindow.HideWindow();
+                }
 
                 IsFraming = wasFraming || isInRange;
             }
