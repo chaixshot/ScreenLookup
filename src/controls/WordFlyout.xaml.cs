@@ -217,8 +217,8 @@ namespace ScreenLookup.src.controls
 
             UpdateLayout();
 
-            mTransform.X = 0;
-            mTransform.Y = App.captureWindow.ActualHeight - 50;
+            mTransform.X = 20;
+            mTransform.Y = App.captureWindow.ActualHeight - 80;
         }
 
         private void ResetDefaultState()
