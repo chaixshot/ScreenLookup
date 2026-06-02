@@ -89,6 +89,9 @@ namespace ScreenLookup.src.pages
             if (FrameShot?.IsConnected == true)
             {
                 FrameShot.Disconnect();
+                FrameShot.Dispose();
+                FrameShot = null;
+
                 UpdateStatusUI();
             }
         }
