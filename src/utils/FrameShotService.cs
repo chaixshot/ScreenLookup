@@ -146,10 +146,14 @@ namespace ScreenLookup.src.utils
 
         public void Disconnect()
         {
-            StopPolling();
-
             if (!IsConnected)
                 return;
+
+            StopPolling();
+
+            // Wait for the polling task to finish to avoid accessing native pointers during/after Shutdown
+            if (pollTask != null && !pollTask.IsCompleted)
+                pollTask.Wait(TimeSpan.FromMilliseconds(500));
 
             lock (d3dLock)
             {
@@ -201,13 +205,15 @@ namespace ScreenLookup.src.utils
 
         private void ProcessFrame()
         {
-            if (vrSystem == null)
+            // Use the global static System property to check if OpenVR is still initialized
+            var system = OpenVR.System;
+            if (system == null || !IsConnected)
                 return;
 
-            vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0, poses);
+            system.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0.0f, poses);
 
-            leftIdx = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-            rightIdx = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+            leftIdx = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+            rightIdx = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
 
             leftHeldPrev = leftHeld;
             rightHeldPrev = rightHeld;
@@ -254,12 +260,13 @@ namespace ScreenLookup.src.utils
 
         private bool IsButtonHeld(uint idx, uint buttonId)
         {
-            if (idx == OpenVR.k_unTrackedDeviceIndexInvalid)
+            var system = OpenVR.System;
+            if (idx == OpenVR.k_unTrackedDeviceIndexInvalid || system == null)
                 return false;
 
             var s = new VRControllerState_t();
 
-            return vrSystem!.GetControllerState(idx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()) &&
+            return system.GetControllerState(idx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()) &&
                    (s.ulButtonPressed & (1UL << (int)buttonId)) != 0;
         }
 
@@ -460,12 +467,15 @@ namespace ScreenLookup.src.utils
 
         private PointF[]? ProjectFrameCorners(int mw, int mh)
         {
-            uint hmdIdx = (uint)OpenVR.k_unTrackedDeviceIndex_Hmd;
+            var system = OpenVR.System;
+            if (system == null) return null;
+
+            uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
             var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
 
-            var vp = ToMatrix4x4(vrSystem!.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
+            var vp = ToMatrix4x4(system.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
             Matrix4x4.Invert(vp, out var view);
-            vp = view * ToMatrix4x4Proj(vrSystem.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
+            vp = view * ToMatrix4x4Proj(system.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, lastHmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
