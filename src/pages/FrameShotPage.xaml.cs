@@ -42,14 +42,9 @@ namespace ScreenLookup.src.pages
 
         private void Connect_Click(object sender, RoutedEventArgs e)
         {
-            if (FrameShot != null && FrameShot.IsConnected)
+            if (FrameShot?.IsConnected == true)
             {
-                // If already connected, disconnect the overlay
-                FrameShot.Disconnect();
-
-                UpdateStatusUI();
-
-                return;
+                TryDisconnect();
             }
             else
                 TryConnect();
@@ -89,6 +84,15 @@ namespace ScreenLookup.src.pages
                 SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
         }
 
+        private void TryDisconnect()
+        {
+            if (FrameShot?.IsConnected == true)
+            {
+                FrameShot.Disconnect();
+                UpdateStatusUI();
+            }
+        }
+
         private void ActivationRadius_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (FrameShot != null)
@@ -102,6 +106,9 @@ namespace ScreenLookup.src.pages
 
         private void UseRightEye_Changed(object sender, RoutedEventArgs e)
         {
+            if (FrameShot?.IsConnected == true)
+                TryDisconnect();
+
             App.setting.UseRightEye = UseRightEye.IsChecked == true;
         }
     }
