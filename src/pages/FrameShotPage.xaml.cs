@@ -8,6 +8,7 @@ namespace ScreenLookup.src.pages
     public partial class FrameShotPage : Page
     {
         private static FrameShotService? FrameShot;
+        public static SteamOverlayService? SteamOverlay;
 
         public FrameShotPage()
         {
@@ -76,6 +77,12 @@ namespace ScreenLookup.src.pages
             if (FrameShot.Connect())
             {
                 FrameShot.StartPolling();
+
+                SteamOverlay = new SteamOverlayService(
+                    parentWindow: App.captureWindow,
+                    uiElement: App.captureWindow.configMenu
+                );
+
                 UpdateStatusUI();
             }
             else
@@ -89,6 +96,9 @@ namespace ScreenLookup.src.pages
                 FrameShot.Disconnect();
                 FrameShot.Dispose();
                 FrameShot = null;
+
+                SteamOverlay?.Dispose();
+                SteamOverlay = null;
 
                 UpdateStatusUI();
             }

@@ -1,5 +1,6 @@
 ﻿using ScreenGrab;
 using ScreenLookup.src.models;
+using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
 using System.Drawing;
 using System.IO;
@@ -41,8 +42,6 @@ namespace ScreenLookup.src.windows
         private double EditZoom = 1.0;
 
         private readonly Dictionary<string, string> translatedCache = [];
-
-        private SteamOverlayService? SteamOverlay;
 
         public CaptureWindow()
         {
@@ -128,9 +127,6 @@ namespace ScreenLookup.src.windows
             TranslatesCancelToken?.Cancel();
             TesseractPageText = string.Empty;
 
-            SteamOverlay?.Dispose();
-            SteamOverlay = null;
-
             EditRotate = 0;
             EditZoom = 1.0;
 
@@ -187,12 +183,7 @@ namespace ScreenLookup.src.windows
             this.Activate();
 
             if (IsVR)
-            {
-                SteamOverlay = new SteamOverlayService(
-                    parentWindow: this,
-                    uiElement: IsConfig ? configMenu : MainGrid
-                );
-            }
+                FrameShotPage.SteamOverlay?.SetWindow(this, IsConfig ? configMenu : MainGrid);
         }
 
         public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)
