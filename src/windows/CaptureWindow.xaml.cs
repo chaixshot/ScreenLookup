@@ -41,6 +41,8 @@ namespace ScreenLookup.src.windows
 
         private readonly Dictionary<string, string> translatedCache = [];
 
+        private SteamOverlayService SteamOverlay;
+
         public CaptureWindow()
         {
             DataContext = App.setting;
@@ -275,6 +277,15 @@ namespace ScreenLookup.src.windows
             }
 
             ProcessImage();
+
+            if (SteamOverlay == null)
+            {
+                // Instantiate using the new SteamOverlay field name
+                SteamOverlay = new SteamOverlayService(
+                    parentWindow: this,
+                    uiElement: MainGrid
+                );
+            }
         }
 
         private void ProcessImage()

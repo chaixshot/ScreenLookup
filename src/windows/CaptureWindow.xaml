@@ -27,7 +27,7 @@
     WindowStyle="None"
     mc:Ignorable="d">
 
-    <Grid Margin="15,0,15,20">
+    <Grid x:Name="MainGrid" Margin="15,0,15,20">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
