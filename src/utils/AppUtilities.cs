@@ -15,6 +15,8 @@ namespace ScreenLookup.src.utils
         public const string GitHubReleasesUrl = "https://github.com/chaixshot/ScreenLookup/releases";
         public const string GitHubLatestReleaseApi = "https://api.github.com/repos/chaixshot/ScreenLookup/releases/latest";
 
+        private static SoundPlayer soundPlayer;
+
         internal static bool IsPackaged()
         {
             try
@@ -76,8 +78,9 @@ namespace ScreenLookup.src.utils
             // Verify the file exists before attempting to play it
             if (File.Exists(soundPath))
             {
-                using SoundPlayer player = new(soundPath);
-                player.Play();
+                soundPlayer ??= new(soundPath);
+                soundPlayer.SoundLocation = soundPath;
+                soundPlayer.Play();
             }
         }
 
