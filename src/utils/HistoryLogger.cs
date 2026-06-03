@@ -15,7 +15,7 @@ namespace ScreenLookup.src.utils
         public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
 
         private static SqliteConnection _sharedConnection;
-        private static readonly object _connectionLock = new object();
+        private static readonly object _connectionLock = new();
 
         static HistoryLogger()
         {

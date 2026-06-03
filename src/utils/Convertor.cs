@@ -126,7 +126,7 @@ namespace ScreenLookup.src.utils
                 }
             }
 
-            Bitmap rotated = new Bitmap((int)newImgWidth, (int)newImgHeight, source.PixelFormat);
+            Bitmap rotated = new((int)newImgWidth, (int)newImgHeight, source.PixelFormat);
             Graphics g = Graphics.FromImage(rotated);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.TranslateTransform(originX, originY); // offset the origin to our calculated values

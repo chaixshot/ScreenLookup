@@ -13,7 +13,7 @@ namespace ScreenLookup.src.utils
         public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
 
         private static SqliteConnection _sharedConnection;
-        private static readonly object _connectionLock = new object();
+        private static readonly object _connectionLock = new();
 
         static SavedWordLogger()
         {
@@ -24,7 +24,7 @@ namespace ScreenLookup.src.utils
         {
             GetConnection();
 
-            using SqliteCommand command = new SqliteCommand(@"
+            using SqliteCommand command = new(@"
                 CREATE TABLE IF NOT EXISTS savedword (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     Original TEXT,
@@ -69,7 +69,7 @@ namespace ScreenLookup.src.utils
                 INSERT INTO savedword (Original, Translated, SourceLanguage, TargetLanguage)
                 VALUES (@Original, @Translated, @SourceLanguage, @TargetLanguage)";
 
-            using SqliteCommand command = new SqliteCommand(insertQuery, GetConnection());
+            using SqliteCommand command = new(insertQuery, GetConnection());
 
             command.Parameters.AddWithValue("@Original", originalWord);
             command.Parameters.AddWithValue("@Translated", translatedWord);
@@ -86,7 +86,7 @@ namespace ScreenLookup.src.utils
                 SET Score = Score+1
                 WHERE Original = @Original; ";
 
-            using SqliteCommand command = new SqliteCommand(insertQuery, GetConnection());
+            using SqliteCommand command = new(insertQuery, GetConnection());
 
             command.Parameters.AddWithValue("@Original", originalWord);
 
@@ -100,7 +100,7 @@ namespace ScreenLookup.src.utils
                 SET Score = Score-1
                 WHERE Original = @Original AND Score > 0; ";
 
-            using SqliteCommand command = new SqliteCommand(insertQuery, GetConnection());
+            using SqliteCommand command = new(insertQuery, GetConnection());
 
             command.Parameters.AddWithValue("@Original", originalWord);
 
@@ -112,7 +112,7 @@ namespace ScreenLookup.src.utils
             string insertQuery = @"
                  DELETE FROM savedword WHERE Id = @Id or Original = @Id";
 
-            using SqliteCommand command = new SqliteCommand(insertQuery, GetConnection());
+            using SqliteCommand command = new(insertQuery, GetConnection());
 
             command.Parameters.AddWithValue("@Id", Id);
 
@@ -134,7 +134,7 @@ namespace ScreenLookup.src.utils
         public static void Clear()
         {
             string selectQuery = "DELETE FROM savedword; DELETE FROM sqlite_sequence WHERE NAME='savedword'";
-            using SqliteCommand command = new SqliteCommand(selectQuery, GetConnection());
+            using SqliteCommand command = new(selectQuery, GetConnection());
             command.ExecuteNonQuery();
         }
 
@@ -143,7 +143,7 @@ namespace ScreenLookup.src.utils
             string selectQuery = @"
                  SELECT 1 FROM savedword WHERE Original = @Original LIMIT 1";
 
-            using SqliteCommand command = new SqliteCommand(selectQuery, GetConnection());
+            using SqliteCommand command = new(selectQuery, GetConnection());
             command.Parameters.AddWithValue("@Original", originalWord);
             using SqliteDataReader reader = await command.ExecuteReaderAsync();
             return await reader.ReadAsync();
@@ -152,9 +152,9 @@ namespace ScreenLookup.src.utils
         public static async Task<(List<SavedWordEntry>, int)> LoadAsync(
             int page, int maxRow, string searchText, int searchSourceLanguage, string orderBy)
         {
-            List<SavedWordEntry> history = new List<SavedWordEntry>();
+            List<SavedWordEntry> history = new();
             int totalCount = 0;
-            using (SqliteCommand command = new SqliteCommand(@"
+            using (SqliteCommand command = new(@"
                 SELECT COUNT(*) 
                 FROM savedword
                 WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')", GetConnection()))
@@ -167,7 +167,7 @@ namespace ScreenLookup.src.utils
             int maxPage = Math.Max(1, (int)Math.Ceiling(totalCount / (double)maxRow));
             int offset = Math.Max(0, (page - 1) * maxRow);
 
-            using (SqliteCommand command = new SqliteCommand(@"
+            using (SqliteCommand command = new(@"
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage, Score
                 FROM savedword
                 WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')
@@ -204,13 +204,13 @@ namespace ScreenLookup.src.utils
 
         public static async Task ExportToCSV(string filePath)
         {
-            List<SavedWordEntry> history = new List<SavedWordEntry>();
+            List<SavedWordEntry> history = new();
 
             string selectQuery = @"
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
                 FROM savedword";
 
-            using (SqliteCommand command = new SqliteCommand(selectQuery, GetConnection()))
+            using (SqliteCommand command = new(selectQuery, GetConnection()))
             using (SqliteDataReader reader = await command.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())

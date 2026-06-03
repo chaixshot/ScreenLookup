@@ -44,7 +44,7 @@ namespace ScreenLookup.src.utils
 
         internal static async Task<string> GetLatestVersionAsync()
         {
-            using HttpClient client = new HttpClient()
+            using HttpClient client = new()
             {
                 Timeout = TimeSpan.FromSeconds(3)
             };

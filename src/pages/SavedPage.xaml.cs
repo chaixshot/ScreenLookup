@@ -220,7 +220,7 @@ namespace ScreenLookup.src.pages
 
         private async void Export_click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            Microsoft.Win32.SaveFileDialog saveFileDialog = new()
             {
                 Filter = "CSV (*.csv)|*.csv|All file (*.*)|*.*",
                 DefaultExt = ".csv",
