@@ -101,7 +101,7 @@ namespace ScreenLookup.src.utils
                     return false;
                 }
 
-                OpenVR.Overlay.CreateOverlay("screenlookup.frameshot", "ScreenLookup FrameShot", ref overlayHandle);
+                OpenVR.Overlay.CreateOverlay("ScreenLookup.FrameShot", "ScreenLookup FrameShot", ref overlayHandle);
                 OpenVR.Overlay.SetOverlayAlpha(overlayHandle, 1.0f);
 
                 D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, [FeatureLevel.Level_11_0], out d3dDevice, out d3dContext);

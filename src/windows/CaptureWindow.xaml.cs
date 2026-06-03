@@ -216,7 +216,6 @@ namespace ScreenLookup.src.windows
             {
                 AppUtilities.PlaySound("ready.wav");
                 (image, isRightMouse, startPoint, endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
-                AppUtilities.PlaySound("screenshot.wav");
             }
 
             if (image == null)
@@ -224,6 +223,8 @@ namespace ScreenLookup.src.windows
                 IsCapturing = false;
                 return;
             }
+            if (!IsVR)
+                AppUtilities.PlaySound("screenshot.wav");
 
             CapturedImage = image;
             CapturedImageEdited = CapturedImage;
