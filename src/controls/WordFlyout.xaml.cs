@@ -36,7 +36,7 @@ namespace ScreenLookup.src.controls
             flayOut.Opened += OnOpen;
             flayOut.Closed += OnClose;
 
-            this.Unloaded += (s, e) =>
+            Unloaded += (s, e) =>
             {
                 ClearCache();
             };
@@ -183,9 +183,7 @@ namespace ScreenLookup.src.controls
                     await translationMessage.Translate(OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken);
 
                     if (_isBoundary)
-                    {
                         UpdatePositionBoundary();
-                    }
                 }));
             });
         }

@@ -176,14 +176,14 @@ namespace ScreenLookup.src.windows
                     translatedCard.Visibility = Visibility.Visible;
                 }
 
-                this.Topmost = App.setting.Topmost;
+                this.Topmost = App.setting.Topmost || IsVR;
             }
 
             this.Show();
             this.Activate();
 
             if (IsVR)
-                FrameShotPage.SteamOverlay?.SetWindow(this, IsConfig ? configMenu : MainGrid);
+                FrameShotPage.SteamOverlay?.SetWindow(this);
         }
 
         public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)
@@ -208,23 +208,24 @@ namespace ScreenLookup.src.windows
             TranslatesCancelToken = new();
             ResetDefaultState();
 
-            // Screenshot
             IsVR = image != null;
+
             Point startPoint;
             Point endPoint;
-            if (image == null)
+
+            // Desktop mode screenshot
+            if (!IsVR)
             {
                 AppUtilities.PlaySound("ready.wav");
                 (image, isRightMouse, startPoint, endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
-            }
 
-            if (image == null)
-            {
-                IsCapturing = false;
-                return;
-            }
-            if (!IsVR)
+                if (image == null)
+                {
+                    IsCapturing = false;
+                    return;
+                }
                 AppUtilities.PlaySound("screenshot.wav");
+            }
 
             CapturedImage = image;
             CapturedImageEdited = CapturedImage;
