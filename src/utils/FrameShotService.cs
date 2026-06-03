@@ -256,7 +256,7 @@ namespace ScreenLookup.src.utils
                     // This safely lets the window finish hiding and executes the capture on the UI thread.
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
-                        await Task.Delay(10);
+                        await Task.Delay(100);
 
                         CaptureAndSave(leftTriggerHeld || rightTriggerHeld);
                     }));

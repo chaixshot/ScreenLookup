@@ -47,26 +47,26 @@ namespace ScreenLookup.src.utils
 
         private readonly object d3dLock = new();
         private Window targetWindow;
+        private IntPtr targetHwnd = IntPtr.Zero;
 
         private CancellationTokenSource? cts;
         private Task? pollTask;
         private bool running;
-        private IntPtr targetHwnd = IntPtr.Zero;
 
         private bool isOverlayDirty = true;
-        private byte[]? rowBuffer;
+
+        // Persistent reusable buffers to eliminate GC churn completely
+        private Bitmap? sharedCaptureBmp;
+        private Graphics? sharedCaptureGraphics;
 
         public bool IsInitialized => isInitialized;
 
         public SteamOverlayService()
         {
-            // Initialize OpenVR context and register the overlay handle safely
             if (Initialize())
             {
                 SetWindow();
                 SetVisible(false);
-
-                // Kick off background polling and graphics work
                 StartPolling();
             }
         }
@@ -83,7 +83,9 @@ namespace ScreenLookup.src.utils
                 overlay.ShowOverlay(overlayHandle);
             }
             else
+            {
                 overlay.HideOverlay(overlayHandle);
+            }
         }
 
         public void SetWindow()
@@ -123,7 +125,6 @@ namespace ScreenLookup.src.utils
                 return false;
             }
 
-            // Establish core tracking pipeline behaviors
             overlay.SetOverlayInputMethod(overlayHandle, VROverlayInputMethod.Mouse);
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.ShowTouchPadScrollWheel, true);
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.MakeOverlaysInteractiveIfVisible, true);
@@ -136,78 +137,57 @@ namespace ScreenLookup.src.utils
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
-            // Get the current HMD (Headset) pose from OpenVR
             TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
             OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, poses);
 
-            // HMD is always device index 0
             TrackedDevicePose_t hmdPose = poses[OpenVR.k_unTrackedDeviceIndex_Hmd];
-
-            if (!hmdPose.bPoseIsValid) return; // Don't update if tracking is lost
+            if (!hmdPose.bPoseIsValid) return;
 
             HmdMatrix34_t hmdMatrix = hmdPose.mDeviceToAbsoluteTracking;
 
-            // Extract the raw looking direction vector from the HMD matrix
             float rawForwardX = -hmdMatrix.m2;
             float rawForwardZ = -hmdMatrix.m10;
-
-            // Project onto the horizontal plane (X/Z) and normalize to remove pitch/roll
             float horizontalLength = (float)Math.Sqrt(rawForwardX * rawForwardX + rawForwardZ * rawForwardZ);
 
-            // Safety check in case the user is looking perfectly straight up or down
             if (horizontalLength < 0.001f)
             {
-                // Use default fallback forward vector if tracking vector collapses
                 rawForwardX = 0f;
                 rawForwardZ = -1f;
                 horizontalLength = 1f;
             }
 
-            // Cleaned horizontal forward direction
             float fX = rawForwardX / horizontalLength;
-            float fY = 0f; // Force vertical forward movement to zero
+            float fY = 0f;
             float fZ = rawForwardZ / horizontalLength;
 
-            // Calculate a stable right vector perpendicular to our clean forward vector and the true world up (0, 1, 0)
             float rX = -fZ;
             float rY = 0f;
             float rZ = fX;
 
-            // True world Up vector (Keeps the overlay vertically straight)
             float uX = 0f;
             float uY = 1f;
             float uZ = 0f;
 
-            // Calculate the position in front of the HMD using our flattened coordinate system
             float posX = hmdMatrix.m3 + (rX * offsetX) + (uX * offsetY) + (fX * offsetZ);
-            float posY = hmdMatrix.m7 + (rY * offsetX) + (uY * offsetY) + (fY * offsetZ); // Modifies height relative to world horizon
+            float posY = hmdMatrix.m7 + (rY * offsetX) + (uY * offsetY) + (fY * offsetZ);
             float posZ = hmdMatrix.m11 + (rZ * offsetX) + (uZ * offsetY) + (fZ * offsetZ);
 
-            // Build the final transform matrix using our cleaned horizontal alignment vectors
             HmdMatrix34_t transform = new()
             {
-                // Right Vector
                 m0 = rX,
                 m4 = rY,
                 m8 = rZ,
-
-                // Up Vector (Locked straight up to the world ceiling)
                 m1 = uX,
                 m5 = uY,
                 m9 = uZ,
-
-                // Forward Vector
-                m2 = -fX,  // OpenVR expects negated forward vector components for matrix calculation
+                m2 = -fX,
                 m6 = -fY,
                 m10 = -fZ,
-
-                // Apply the calculated absolute position
                 m3 = posX,
                 m7 = posY,
                 m11 = posZ
             };
 
-            // Send to OpenVR
             OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
         }
 
@@ -232,10 +212,9 @@ namespace ScreenLookup.src.utils
             while (!ct.IsCancellationRequested)
             {
                 ProcessInput();
-                // Direct UI execution frame dispatch synchronization via UI Thread Dispatcher
-                targetWindow.Dispatcher.Invoke(RenderFrame);
+                RenderFrame();
 
-                await Task.Delay(16, ct); // Cap around ~60Hz
+                await Task.Delay(16, ct); // Targets roughly ~60Hz
             }
         }
         #endregion
@@ -243,10 +222,6 @@ namespace ScreenLookup.src.utils
         public void ProcessInput()
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
-
-            bool isVisible = false;
-            targetWindow.Dispatcher.Invoke(() => isVisible = targetWindow.IsVisible);
-            if (!isVisible) return;
 
             VREvent_t vrEvent = new();
             uint eventSize = (uint)Marshal.SizeOf<VREvent_t>();
@@ -258,9 +233,8 @@ namespace ScreenLookup.src.utils
                     case EVREventType.VREvent_MouseMove:
                         targetWindow.Dispatcher.Invoke(() =>
                         {
-                            if (isVisible)
+                            if (targetWindow.IsVisible)
                             {
-                                // Flip coordinate space tracking back onto desktop layout directions
                                 double correctedY = targetWindow.ActualHeight - vrEvent.data.mouse.y;
                                 Point screenPoint = targetWindow.PointToScreen(new Point(vrEvent.data.mouse.x, correctedY));
                                 SetCursorPos((int)screenPoint.X, (int)screenPoint.Y);
@@ -293,145 +267,150 @@ namespace ScreenLookup.src.utils
             CVROverlay overlay = OpenVR.Overlay;
             if (overlay == null || !isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
+            // Query necessary configuration markers from the UI Thread quickly
+            int uiWidth = 0, uiHeight = 0;
             bool isVisible = false;
-            targetWindow.Dispatcher.Invoke(() => isVisible = targetWindow.IsVisible);
+            RECT rect = new();
 
-            if (isVisible)
+            targetWindow.Dispatcher.Invoke(() =>
             {
-                // If there are no dirty state adjustments pending, keep previous payload active inside compositor memory
-                if (!isOverlayDirty) return;
-
-                try
+                isVisible = targetWindow.IsVisible;
+                if (isVisible)
                 {
-                    double uiWidth = 0, uiHeight = 0;
-                    RECT rect = new();
+                    GetWindowRect(targetHwnd, out rect);
+                    uiWidth = rect.Right - rect.Left;
+                    uiHeight = rect.Bottom - rect.Top;
+                }
+            });
 
-                    targetWindow.Dispatcher.Invoke(() =>
+            if (!isVisible || uiWidth <= 0 || uiHeight <= 0) return;
+            if (!isOverlayDirty) return;
+
+            try
+            {
+                // Manage persistent, zero-allocation buffers
+                if (sharedCaptureBmp == null || sharedCaptureBmp.Width != uiWidth || sharedCaptureBmp.Height != uiHeight)
+                {
+                    sharedCaptureGraphics?.Dispose();
+                    sharedCaptureBmp?.Dispose();
+
+                    sharedCaptureBmp = new Bitmap(uiWidth, uiHeight, PixelFormat.Format32bppPArgb);
+                    sharedCaptureGraphics = Graphics.FromImage(sharedCaptureBmp);
+                    isOverlayDirty = true;
+                }
+
+                // Capture screen coordinates inside the required window dispatcher thread loop
+                targetWindow.Dispatcher.Invoke(() =>
+                {
+                    IntPtr hdc = sharedCaptureGraphics!.GetHdc();
+                    PrintWindow(targetHwnd, hdc, 0x02);
+                    sharedCaptureGraphics.ReleaseHdc(hdc);
+
+                    // Composite Popups manually onto the main bitmap payload context
+                    foreach (PresentationSource source in PresentationSource.CurrentSources)
                     {
-                        GetWindowRect(targetHwnd, out rect);
-                        uiWidth = rect.Right - rect.Left;
-                        uiHeight = rect.Bottom - rect.Top;
-                    });
-
-                    if (uiWidth <= 0 || uiHeight <= 0) return;
-
-                    using Bitmap captureBmp = new((int)uiWidth, (int)uiHeight, PixelFormat.Format32bppPArgb);
-                    using (Graphics g = Graphics.FromImage(captureBmp))
-                    {
-                        IntPtr hdc = g.GetHdc();
-                        targetWindow.Dispatcher.Invoke(() => PrintWindow(targetHwnd, hdc, 0x02));
-                        g.ReleaseHdc(hdc);
-
-                        // Window pop-up compositing iteration mapping logic
-                        try
+                        if (source is HwndSource hwndSource && hwndSource.Handle != targetHwnd &&
+                            hwndSource.RootVisual is FrameworkElement element && element.IsVisible &&
+                            element.GetType().Name == "PopupRoot")
                         {
-                            targetWindow.Dispatcher.Invoke(() =>
+                            GetWindowRect(hwndSource.Handle, out RECT pRect);
+                            int pW = pRect.Right - pRect.Left;
+                            int pH = pRect.Bottom - pRect.Top;
+
+                            if (pW > 0 && pH > 0)
                             {
-                                foreach (PresentationSource source in PresentationSource.CurrentSources)
+                                using Bitmap popupBmp = new(pW, pH, PixelFormat.Format32bppPArgb);
+                                using (Graphics gP = Graphics.FromImage(popupBmp))
                                 {
-                                    if (source is HwndSource hwndSource && hwndSource.Handle != targetHwnd &&
-                                        hwndSource.RootVisual is FrameworkElement element && element.IsVisible &&
-                                        element.GetType().Name == "PopupRoot")
-                                    {
-                                        GetWindowRect(hwndSource.Handle, out RECT pRect);
-                                        int pW = pRect.Right - pRect.Left;
-                                        int pH = pRect.Bottom - pRect.Top;
-
-                                        if (pW > 0 && pH > 0)
-                                        {
-                                            using Bitmap popupBmp = new(pW, pH, PixelFormat.Format32bppPArgb);
-                                            using (Graphics gP = Graphics.FromImage(popupBmp))
-                                            {
-                                                IntPtr hdcP = gP.GetHdc();
-                                                PrintWindow(hwndSource.Handle, hdcP, 0x02);
-                                                gP.ReleaseHdc(hdcP);
-                                            }
-                                            g.DrawImage(popupBmp, pRect.Left - rect.Left, pRect.Top - rect.Top);
-                                        }
-                                    }
+                                    IntPtr hdcP = gP.GetHdc();
+                                    PrintWindow(hwndSource.Handle, hdcP, 0x02);
+                                    gP.ReleaseHdc(hdcP);
                                 }
-                            });
+                                sharedCaptureGraphics.DrawImage(popupBmp, pRect.Left - rect.Left, pRect.Top - rect.Top);
+                            }
                         }
-                        catch { /* Thread protection guard against changing framework target visual trees */ }
                     }
+                });
 
-                    int canvasWidth = (int)Math.Round(uiWidth);
-                    int canvasHeight = (int)Math.Round(uiHeight);
-                    float widthInMeters = 2f;
+                // Window meter calculation transformations logic
+                float widthInMeters = 2f;
+                if (uiHeight > uiWidth)
+                    widthInMeters *= ((float)uiWidth / uiHeight);
 
-                    if (uiHeight > uiWidth)
-                        widthInMeters *= ((float)(uiWidth / (float)uiHeight));
+                bool menuVisible = false;
+                targetWindow.Dispatcher.Invoke(() => menuVisible = App.captureWindow.configMenu.IsVisible);
+                if (menuVisible) widthInMeters = 1f;
 
-                    if (App.captureWindow.configMenu.IsVisible)
-                        widthInMeters = 1f;
+                overlay.SetOverlayWidthInMeters(overlayHandle, widthInMeters);
 
-                    overlay.SetOverlayWidthInMeters(overlayHandle, widthInMeters);
+                HmdVector2_t mouseScale = new() { v0 = (float)uiWidth, v1 = (float)uiHeight };
+                overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
 
-                    HmdVector2_t mouseScale = new() { v0 = (float)uiWidth, v1 = (float)uiHeight };
-                    overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
-
-                    lock (d3dLock)
-                    {
-                        if (overlayTex == null || overlayTex.Description.Width != (uint)canvasWidth || overlayTex.Description.Height != (uint)canvasHeight)
-                        {
-                            overlayTex?.Dispose();
-                            stagingTex?.Dispose();
-
-                            Texture2DDescription desc = new()
-                            {
-                                Width = (uint)canvasWidth,
-                                Height = (uint)canvasHeight,
-                                MipLevels = 1,
-                                ArraySize = 1,
-                                Format = Format.B8G8R8A8_UNorm,
-                                SampleDescription = new SampleDescription(1, 0),
-                                Usage = ResourceUsage.Default,
-                                BindFlags = BindFlags.ShaderResource
-                            };
-                            overlayTex = d3dDevice!.CreateTexture2D(desc);
-
-                            desc.Usage = ResourceUsage.Staging;
-                            desc.BindFlags = BindFlags.None;
-                            desc.CPUAccessFlags = CpuAccessFlags.Write;
-                            stagingTex = d3dDevice.CreateTexture2D(desc);
-                            rowBuffer = new byte[canvasWidth * 4];
-                        }
-
-                        MappedSubresource box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
-
-                        using Bitmap scaledBmp = new(canvasWidth, canvasHeight, PixelFormat.Format32bppPArgb);
-                        using (Graphics g = Graphics.FromImage(scaledBmp))
-                        {
-                            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                            g.DrawImage(captureBmp, 0, 0, canvasWidth, canvasHeight);
-                        }
-
-                        BitmapData? bData = scaledBmp.LockBits(new Rectangle(0, 0, canvasWidth, canvasHeight), ImageLockMode.ReadOnly, scaledBmp.PixelFormat);
-                        for (int y = 0; y < canvasHeight; y++)
-                        {
-                            Marshal.Copy(bData.Scan0 + y * bData.Stride, rowBuffer!, 0, canvasWidth * 4);
-                            Marshal.Copy(rowBuffer!, 0, box.DataPointer + (nint)((long)y * box.RowPitch), canvasWidth * 4);
-                        }
-                        scaledBmp.UnlockBits(bData);
-
-                        d3dContext.Unmap(stagingTex!, 0);
-                        d3dContext.CopyResource(overlayTex!, stagingTex!);
-
-                        Texture_t tex = new()
-                        {
-                            handle = overlayTex!.NativePointer,
-                            eType = ETextureType.DirectX,
-                            eColorSpace = EColorSpace.Auto
-                        };
-
-                        overlay.SetOverlayTexture(overlayHandle, ref tex);
-                        isOverlayDirty = false;
-                    }
-                }
-                catch (Exception ex)
+                // Map resource context directly on the asynchronous task thread
+                lock (d3dLock)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SteamVR] Frame rendering crashed: {ex.Message}");
+                    if (overlayTex == null || overlayTex.Description.Width != (uint)uiWidth || overlayTex.Description.Height != (uint)uiHeight)
+                    {
+                        overlayTex?.Dispose();
+                        stagingTex?.Dispose();
+
+                        Texture2DDescription desc = new()
+                        {
+                            Width = (uint)uiWidth,
+                            Height = (uint)uiHeight,
+                            MipLevels = 1,
+                            ArraySize = 1,
+                            Format = Format.B8G8R8A8_UNorm,
+                            SampleDescription = new SampleDescription(1, 0),
+                            Usage = ResourceUsage.Default,
+                            BindFlags = BindFlags.ShaderResource
+                        };
+                        overlayTex = d3dDevice!.CreateTexture2D(desc);
+
+                        desc.Usage = ResourceUsage.Staging;
+                        desc.BindFlags = BindFlags.None;
+                        desc.CPUAccessFlags = CpuAccessFlags.Write;
+                        stagingTex = d3dDevice.CreateTexture2D(desc);
+                    }
+
+                    // Map the staging texture memory address 
+                    MappedSubresource box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
+                    BitmapData bData = sharedCaptureBmp.LockBits(new Rectangle(0, 0, uiWidth, uiHeight), ImageLockMode.ReadOnly, sharedCaptureBmp.PixelFormat);
+
+                    long linesize = uiWidth * 4;
+
+                    // High-performance pointer arithmetic memory copy block
+                    unsafe
+                    {
+                        for (int y = 0; y < uiHeight; y++)
+                        {
+                            byte* sourceRowPtr = (byte*)bData.Scan0 + (y * bData.Stride);
+                            byte* destRowPtr = (byte*)box.DataPointer + (y * box.RowPitch);
+
+                            Buffer.MemoryCopy(sourceRowPtr, destRowPtr, linesize, linesize);
+                        }
+                    }
+
+                    sharedCaptureBmp.UnlockBits(bData);
+                    d3dContext.Unmap(stagingTex!, 0);
+
+                    // Hardware accelerated update copy
+                    d3dContext.CopyResource(overlayTex!, stagingTex!);
+
+                    Texture_t tex = new()
+                    {
+                        handle = overlayTex!.NativePointer,
+                        eType = ETextureType.DirectX,
+                        eColorSpace = EColorSpace.Auto
+                    };
+
+                    overlay.SetOverlayTexture(overlayHandle, ref tex);
+                    isOverlayDirty = false;
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SteamVR] Frame rendering encountered error: {ex.Message}");
             }
         }
 
@@ -448,6 +427,9 @@ namespace ScreenLookup.src.utils
                     {
                         overlay.DestroyOverlay(overlayHandle);
                     }
+
+                    sharedCaptureGraphics?.Dispose();
+                    sharedCaptureBmp?.Dispose();
 
                     overlayTex?.Dispose();
                     stagingTex?.Dispose();
