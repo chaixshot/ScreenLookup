@@ -252,11 +252,14 @@ namespace ScreenLookup.src.utils
                 {
                     AppUtilities.PlaySound("screenshot.wav");
 
-                    Task.Run(async () =>
+                    // Invoke on the WPF UI thread with an asynchronous Background priority.
+                    // This safely lets the window finish hiding and executes the capture on the UI thread.
+                    App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
                         await Task.Delay(10);
+
                         CaptureAndSave(leftTriggerHeld || rightTriggerHeld);
-                    });
+                    }));
                 }
             }
         }

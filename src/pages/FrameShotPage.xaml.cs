@@ -78,7 +78,7 @@ namespace ScreenLookup.src.pages
             {
                 FrameShot.StartPolling();
 
-                SteamOverlay = new SteamOverlayService(App.captureWindow);
+                SteamOverlay = new SteamOverlayService();
 
                 UpdateStatusUI();
             }

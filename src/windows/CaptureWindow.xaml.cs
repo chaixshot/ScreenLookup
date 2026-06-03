@@ -133,6 +133,11 @@ namespace ScreenLookup.src.windows
             this.Left = -10000;
 
             this.Hide();
+
+            if (IsVR)
+            {
+                FrameShotPage.SteamOverlay?.SetVisible(false);
+            }
         }
 
         public void ShowWindow(bool IsConfig)
@@ -183,7 +188,11 @@ namespace ScreenLookup.src.windows
             this.Activate();
 
             if (IsVR)
-                FrameShotPage.SteamOverlay?.SetWindow(this);
+            {
+                FrameShotPage.SteamOverlay?.SetWindow();
+                FrameShotPage.SteamOverlay?.SetVisible(true);
+            }
+
         }
 
         public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)
