@@ -33,6 +33,9 @@ namespace ScreenLookup.src.utils
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
 
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         private const uint MOUSEEVENTF_LEFTUP = 0x0004;
 
@@ -318,6 +321,7 @@ namespace ScreenLookup.src.utils
                     case EVREventType.VREvent_MouseButtonDown:
                         if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                         {
+                            BringWindowToFront();
                             targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0));
                             isOverlayDirty = true;
                         }
@@ -326,6 +330,7 @@ namespace ScreenLookup.src.utils
                     case EVREventType.VREvent_MouseButtonUp:
                         if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                         {
+                            BringWindowToFront();
                             targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0));
                             isOverlayDirty = true;
                         }
@@ -708,6 +713,21 @@ namespace ScreenLookup.src.utils
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SteamVR] Frame rendering encountered error: {ex.Message}");
+            }
+        }
+
+        private void BringWindowToFront()
+        {
+            if (targetHwnd != IntPtr.Zero)
+            {
+                targetWindow.Dispatcher.Invoke(() =>
+                {
+                    // Optional: If the window is minimized, restore it first
+                    if (targetWindow.WindowState == WindowState.Minimized)
+                        targetWindow.WindowState = WindowState.Normal;
+
+                    SetForegroundWindow(targetHwnd);
+                });
             }
         }
 

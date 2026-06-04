@@ -223,6 +223,16 @@ namespace ScreenLookup.src.windows
                 AppUtilities.PlaySound("screenshot.wav");
             }
 
+
+
+
+
+            IsVR = true; //!! Debug
+
+
+
+
+
             CapturedImage = image;
             CapturedImageEdited = CapturedImage;
 
