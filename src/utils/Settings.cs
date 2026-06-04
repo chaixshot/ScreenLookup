@@ -50,6 +50,7 @@ namespace ScreenLookup.src.utils
         private float overlayDistance = 2f;
         private float overlayScale = 2f;
         private int overlayScrollSpeed = 60;
+        private int overlayCurve = 15;
         private int activationRadius = 15;
         private bool useHmdRotations = false;
         private bool useRightEye = true;
@@ -110,6 +111,7 @@ namespace ScreenLookup.src.utils
                 OverlayDistance = settings.overlayDistance;
                 OverlayScale = settings.overlayScale;
                 OverlayScrollSpeed = settings.overlayScrollSpeed;
+                OverlayCurve = settings.overlayCurve;
                 ActivationRadius = settings.activationRadius;
                 UseHmdRotations = settings.useHmdRotations;
                 UseRightEye = settings.useRightEye;
@@ -399,6 +401,16 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayScrollSpeed = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int OverlayCurve
+        {
+            get => overlayCurve;
+            set
+            {
+                overlayCurve = value;
                 OnPropertyChanged();
             }
         }

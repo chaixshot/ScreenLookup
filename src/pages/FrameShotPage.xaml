@@ -204,6 +204,35 @@
                 </StackPanel>
             </Controls:Card>
 
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Overlay Curve" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How curved the overlay should be" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="OverlayCurve"
+                            IsSnapToTickEnabled="True"
+                            Maximum="100"
+                            Minimum="0"
+                            TickFrequency="1"
+                            ValueChanged="OverlayCurve_ValueChanged"
+                            Value="15" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=OverlayCurve, Path=Value, StringFormat={}{0} %}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">

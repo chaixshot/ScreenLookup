@@ -145,6 +145,11 @@ namespace ScreenLookup.src.pages
                 App.setting.OverlayScrollSpeed = (int)e.NewValue;
         }
 
+        private void OverlayCurve_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.OverlayCurve = (int)e.NewValue;
+        }
 
         private void FrameOffset_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {

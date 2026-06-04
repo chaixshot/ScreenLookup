@@ -260,6 +260,7 @@ namespace ScreenLookup.src.utils
             adjustedTransform.m11 += (cachedAnchorTransform.m8 * vrShiftX);
 
             OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref adjustedTransform);
+            OpenVR.Overlay.SetOverlayCurvature(overlayHandle, (float)App.setting.OverlayCurve / 100f);
         }
 
         #region Polling Architecture Loop
