@@ -145,6 +145,13 @@ namespace ScreenLookup.src.pages
                 App.setting.OverlayScrollSpeed = (int)e.NewValue;
         }
 
+
+        private void FrameOffset_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.FrameOffset = (int)e.NewValue;
+        }
+
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)
         {
             App.setting.UseHmdRotations = HmdRotCheck.IsChecked == true;

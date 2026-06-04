@@ -236,8 +236,36 @@
                         Unchecked="UseRightEye_Changed" />
                     <Controls:TextBlock Text="Right Eye" />
                 </StackPanel>
-
             </Controls:CardControl>
+
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Frame Offset" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How to offset the frame inside the controller positions" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="FrameOffset"
+                            IsSnapToTickEnabled="True"
+                            Maximum="15"
+                            Minimum="0"
+                            TickFrequency="1"
+                            ValueChanged="FrameOffset_ValueChanged"
+                            Value="5" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=FrameOffset, Path=Value, StringFormat={}{0} cm}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
 
             <TextBlock
                 Margin="5,0,0,5"

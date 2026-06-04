@@ -215,13 +215,13 @@ namespace ScreenLookup.src.utils
             leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
             rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
 
-            Vector3 L = Vector3.Zero, R = Vector3.Zero;
+            Vector3 L_Coords = Vector3.Zero, R_Coords = Vector3.Zero;
             bool wasFraming = IsFraming;
             bool isButtonCombo = leftHeld && rightHeld;
 
             if (isButtonCombo)
             {
-                bool isInRange = inputService.TryGetHandPositions(App.setting.ActivationRadius, out L, out R);
+                bool isInRange = inputService.TryGetHandPositions(App.setting.ActivationRadius, out L_Coords, out R_Coords);
 
                 if (!wasFraming && isInRange)
                 {
@@ -235,7 +235,7 @@ namespace ScreenLookup.src.utils
                 IsFraming = false;
 
             if (IsFraming)
-                UpdateFrameAndRender(L, R);
+                UpdateFrameAndRender(L_Coords, R_Coords);
             else if (wasFraming)
             {
                 OpenVR.Overlay.HideOverlay(overlayHandle);
@@ -253,7 +253,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        private void UpdateFrameAndRender(Vector3 L, Vector3 R)
+        private void UpdateFrameAndRender(Vector3 L_Coords, Vector3 R_Coords)
         {
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
             var poses = inputService.Poses;
@@ -263,10 +263,10 @@ namespace ScreenLookup.src.utils
                 !poses[hmdIdx].bPoseIsValid)
                 return;
 
-            if (L == Vector3.Zero && R == Vector3.Zero)
+            if (L_Coords == Vector3.Zero && R_Coords == Vector3.Zero)
             {
-                L = VRInputService.PosFromMatrix(poses[inputService.LeftControllerIdx].mDeviceToAbsoluteTracking);
-                R = VRInputService.PosFromMatrix(poses[inputService.RightControllerIdx].mDeviceToAbsoluteTracking);
+                L_Coords = VRInputService.PosFromMatrix(poses[inputService.LeftControllerIdx].mDeviceToAbsoluteTracking);
+                R_Coords = VRInputService.PosFromMatrix(poses[inputService.RightControllerIdx].mDeviceToAbsoluteTracking);
             }
 
             var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
@@ -276,13 +276,17 @@ namespace ScreenLookup.src.utils
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
             Vector3 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
-            Vector3 center = (L + R) * 0.5f;
 
-            float widthM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R - L, hmdRight)));
-            float heightM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R - L, hmdUp)));
+            L_Coords += (hmdRight * ((float)App.setting.FrameOffset / 100f)); // Adjust L_Coords and R_Coords positions to expand the frame slightly beyond controller center
+            R_Coords -= (hmdRight * ((float)App.setting.FrameOffset / 100f)); // Left controller moves LEFT (negative right vector), Right controller moves RIGHT (positive right vector)
 
-            lastLeftPos = L;
-            lastRightPos = R;
+            Vector3 center = (L_Coords + R_Coords) * 0.5f;
+
+            float widthM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R_Coords - L_Coords, hmdRight)));
+            float heightM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R_Coords - L_Coords, hmdUp)));
+
+            lastLeftPos = L_Coords;
+            lastRightPos = R_Coords;
             lastFrameWidth = widthM;
             lastFrameHeight = heightM;
 
@@ -308,7 +312,7 @@ namespace ScreenLookup.src.utils
             using (var g = Graphics.FromImage(frameBitmap!))
             {
                 g.Clear(System.Drawing.Color.Transparent);
-                using var pen = new Pen(System.Drawing.Color.FromArgb(255, 130, 210, 255), 8f);
+                using var pen = new Pen(System.Drawing.Color.FromArgb(255, 218, 96, 255), 8f);
                 g.DrawRectangle(pen, 4, 4, drawW - 9, drawH - 9);
             }
 

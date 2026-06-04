@@ -53,6 +53,7 @@ namespace ScreenLookup.src.utils
         private int activationRadius = 15;
         private bool useHmdRotations = false;
         private bool useRightEye = true;
+        private int frameOffset = 5;
 
         public readonly string[] ProviderServices = [
             "Google",
@@ -112,6 +113,7 @@ namespace ScreenLookup.src.utils
                 ActivationRadius = settings.activationRadius;
                 UseHmdRotations = settings.useHmdRotations;
                 UseRightEye = settings.useRightEye;
+                FrameOffset = settings.frameOffset;
             }
         }
 
@@ -429,6 +431,16 @@ namespace ScreenLookup.src.utils
             set
             {
                 useRightEye = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int FrameOffset
+        {
+            get => frameOffset;
+            set
+            {
+                frameOffset = value;
                 OnPropertyChanged();
             }
         }
