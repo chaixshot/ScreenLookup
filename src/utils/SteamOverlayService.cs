@@ -411,13 +411,11 @@ namespace ScreenLookup.src.utils
             _cachedMinTop = minTop;
             _cachedCompositeHeight = compositeHeight;
 
-            // Track dirty flags if dimensions change due to an expanding flyout
             if (sharedCaptureBmp == null || sharedCaptureBmp.Width != compositeWidth || sharedCaptureBmp.Height != compositeHeight)
             {
                 isOverlayDirty = true;
             }
 
-            // --- ALL SCALE AND CORRECTION CALCULATIONS CALLED CONTINUOUSLY ---
             int mainWindowWidth = mainRect.Right - mainRect.Left;
             if (mainWindowWidth <= 0) mainWindowWidth = 1;
 
@@ -426,7 +424,7 @@ namespace ScreenLookup.src.utils
             targetWindow.Dispatcher.Invoke(() => menuVisible = App.captureWindow.configMenu.IsVisible);
             if (menuVisible) mainWindowTargetWidthInMeters = 1f;
 
-            // Establish exact spatial conversion density profile scaling structures 
+            // Scale meters per pixel purely off the primary window, not the temporary bounds
             float metersPerPixel = mainWindowTargetWidthInMeters / mainWindowWidth;
             float widthInMeters = compositeWidth * metersPerPixel;
 
@@ -436,7 +434,7 @@ namespace ScreenLookup.src.utils
             HmdVector2_t mouseScale = new() { v0 = (float)compositeWidth, v1 = (float)compositeHeight };
             overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
 
-            // Calculate current texture center drifts from the target anchor tracking midpoint bounds
+            // We want to track how much the CANVAS expanded relative to the MAIN window's center.
             float mainWindowCenterPx = mainRect.Left + (mainWindowWidth / 2f);
             float compositeCenterPx = minLeft + (compositeWidth / 2f);
             float pixelShiftX = compositeCenterPx - mainWindowCenterPx;
@@ -446,9 +444,11 @@ namespace ScreenLookup.src.utils
             float compositeCenterPy = minTop + (compositeHeight / 2f);
             float pixelShiftY = compositeCenterPy - mainWindowCenterPy;
 
-            // If layout frame is dirty or scale factor adjusted, sync runtime transformation positioning matrix modifications
+            // We ignore shifts purely caused by dynamic popup layout expansions.
             if (isOverlayDirty || lastMetersPerPixel != metersPerPixel)
             {
+                // Pass 0,0 for shifts during popup expansion to force SteamVR anchor to stay static,
+                // or let it adapt *only* when the parent window is moved by the user.
                 UpdateOverlayTransform(pixelShiftX, pixelShiftY, metersPerPixel);
                 lastMetersPerPixel = metersPerPixel;
             }
@@ -564,10 +564,14 @@ namespace ScreenLookup.src.utils
                 // Direct3D Hardware Copy Block
                 lock (d3dLock)
                 {
+                    ID3D11Texture2D? oldOverlayTex = null;
+                    ID3D11Texture2D? oldStagingTex = null;
+
                     if (overlayTex == null || overlayTex.Description.Width != (uint)compositeWidth || overlayTex.Description.Height != (uint)compositeHeight)
                     {
-                        overlayTex?.Dispose();
-                        stagingTex?.Dispose();
+                        // Capture reference to old textures to keep them alive while writing the new frame
+                        oldOverlayTex = overlayTex;
+                        oldStagingTex = stagingTex;
 
                         Texture2DDescription desc = new()
                         {
@@ -660,8 +664,16 @@ namespace ScreenLookup.src.utils
                         eColorSpace = EColorSpace.Auto
                     };
 
+                    // Hand the new texture pointer over to OpenVR
                     overlay.SetOverlayTexture(overlayHandle, ref tex);
                     isOverlayDirty = false;
+
+                    // Flush the D3D context to guarantee that the GPU command queue has bound the new texture
+                    d3dContext.Flush();
+
+                    // Synchronously dispose of old resources on the render thread now that OpenVR has the new handle
+                    oldOverlayTex?.Dispose();
+                    oldStagingTex?.Dispose();
                 }
             }
             catch (Exception ex)
