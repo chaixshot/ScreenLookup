@@ -363,7 +363,7 @@ namespace ScreenLookup.src.utils
                                 {
                                     try
                                     {
-                                        AppUtilities.PlaySound("ready.wav");
+                                        AppUtilities.PlaySound("recenter.wav");
                                         await Task.Delay(1000, doublePressCts.Token);
 
                                         // Reset anchor token flags so that the render system re-snaps perspective down onto head projection coordinates
