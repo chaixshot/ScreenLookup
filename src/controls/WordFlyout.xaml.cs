@@ -144,8 +144,9 @@ namespace ScreenLookup.src.controls
 
             FollowMouse();
 
-            word = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
-            word = char.ToUpper(word.First()) + word[1..].ToLower(); // Capitalizing first letter
+            var stripped = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
+            if (!string.IsNullOrEmpty(stripped))
+                word = char.ToUpper(stripped[0]) + (stripped.Length > 1 ? stripped[1..].ToLower() : string.Empty);
 
             message = Regex.Replace(message, @"\s*([.!?。！、])\s*", "$1\n"); // Newline next sentence
 
