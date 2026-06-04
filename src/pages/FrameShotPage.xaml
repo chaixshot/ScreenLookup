@@ -76,6 +76,108 @@
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Use Overlay" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show ScreenLookup overlay after captured" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox
+                    x:Name="OverlayEnable"
+                    Margin="0,10,0,0"
+                    Checked="OverlayEnable_Changed"
+                    Unchecked="OverlayEnable_Changed" />
+            </Controls:CardControl>
+
+
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Overlay High" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How high the overlay should be from the ground" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="OverlayHigh"
+                            IsSnapToTickEnabled="True"
+                            Maximum="2.0"
+                            Minimum="-2.0"
+                            TickFrequency="0.1"
+                            ValueChanged="OverlayHigh_ValueChanged"
+                            Value="0.0" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=OverlayHigh, Path=Value, StringFormat={}{0:F1} m}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
+
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Overlay Distance" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How far the overlay should be from the user" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="OverlayDistance"
+                            IsSnapToTickEnabled="True"
+                            Maximum="10.0"
+                            Minimum="0.2"
+                            TickFrequency="0.1"
+                            ValueChanged="OverlayDistance_ValueChanged"
+                            Value="2.0" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=OverlayDistance, Path=Value, StringFormat={}{0:F1} m}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
+
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Overlay Scale" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How large the overlay should be" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="OverlayScale"
+                            IsSnapToTickEnabled="True"
+                            Maximum="10.0"
+                            Minimum="0.2"
+                            TickFrequency="0.1"
+                            ValueChanged="OverlayScale_ValueChanged"
+                            Value="2.0" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=OverlayScale, Path=Value, StringFormat={}{0:F1} m}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
                         <Controls:TextBlock Text="Use HMD Rotations" />
                         <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Tilt capture frame with head" />
                     </StackPanel>

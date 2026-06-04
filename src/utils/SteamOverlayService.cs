@@ -44,7 +44,7 @@ namespace ScreenLookup.src.utils
         private ID3D11Texture2D? overlayTex;
         private ID3D11Texture2D? stagingTex;
 
-        private readonly object d3dLock = new();
+        private readonly Lock d3dLock = new();
         private Window targetWindow;
         private IntPtr targetHwnd = IntPtr.Zero;
 
@@ -63,6 +63,8 @@ namespace ScreenLookup.src.utils
         private HmdMatrix34_t cachedAnchorTransform;
         private bool hasAnchorTransform = false;
         private float lastMetersPerPixel = 0f;
+        private float cachedAnchorDistance = 0f;
+        private float cachedAnchorHigh = 0f;
 
         // --- Absolute Virtual Canvas Positioning Buffers ---
         private int _cachedMinLeft = 0;
@@ -162,6 +164,34 @@ namespace ScreenLookup.src.utils
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
+            float currentTargetDistance = App.setting.OverlayDistance;
+            float currentTargetHigh = App.setting.OverlayHigh;
+
+            // Update anchor depth synchronously if settings changed while keeping old rotation intact
+            if (hasAnchorTransform && (!cachedAnchorDistance.Equals(currentTargetDistance) || !cachedAnchorHigh.Equals(currentTargetHigh)))
+            {
+                TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+                OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, poses);
+                TrackedDevicePose_t hmdPose = poses[OpenVR.k_unTrackedDeviceIndex_Hmd];
+
+                if (hmdPose.bPoseIsValid)
+                {
+                    HmdMatrix34_t hmdMatrix = hmdPose.mDeviceToAbsoluteTracking;
+
+                    // Extract the baseline forward-pointing look vector hidden inside the cached rotation matrix
+                    float forwardX = -cachedAnchorTransform.m2;
+                    float forwardZ = -cachedAnchorTransform.m10;
+
+                    // Re-project translation variables based on the new depth setting relative to current head position
+                    cachedAnchorTransform.m3 = hmdMatrix.m3 + (forwardX * currentTargetDistance);
+                    cachedAnchorTransform.m7 = hmdMatrix.m7 + (currentTargetHigh);
+                    cachedAnchorTransform.m11 = hmdMatrix.m11 + (forwardZ * currentTargetDistance);
+
+                    cachedAnchorDistance = currentTargetDistance;
+                    cachedAnchorHigh = currentTargetHigh;
+                }
+            }
+
             // Establish the locked position reference if it hasn't been cached yet
             if (!hasAnchorTransform)
             {
@@ -190,22 +220,24 @@ namespace ScreenLookup.src.utils
                 float rX = -fZ;
                 float rZ = fX;
 
-                // Cache baseline orientation exactly 2 meters in front of user's face alignment
+                // Cache baseline orientation in meters in front of user's face alignment
                 cachedAnchorTransform = new HmdMatrix34_t()
                 {
                     m0 = rX,
                     m1 = 0f,
                     m2 = -fX,
-                    m3 = hmdMatrix.m3 + (fX * 2f),
+                    m3 = hmdMatrix.m3 + (fX * currentTargetDistance),
                     m4 = 0f,
                     m5 = 1f,
                     m6 = 0f,
-                    m7 = hmdMatrix.m7,
+                    m7 = hmdMatrix.m7 + (currentTargetHigh),
                     m8 = rZ,
                     m9 = 0f,
                     m10 = -fZ,
-                    m11 = hmdMatrix.m11 + (fZ * 2f)
+                    m11 = hmdMatrix.m11 + (fZ * currentTargetDistance)
                 };
+                cachedAnchorDistance = currentTargetDistance;
+                cachedAnchorHigh = currentTargetHigh;
                 hasAnchorTransform = true;
             }
 
@@ -355,7 +387,7 @@ namespace ScreenLookup.src.utils
             // Gather all windows and determine the absolute minimum and maximum screen bounds
             bool isVisible = false;
             RECT mainRect = new();
-            var popupWindows = new List<(IntPtr Handle, RECT Rect)>();
+            List<(IntPtr Handle, RECT Rect)> popupWindows = [];
 
             targetWindow.Dispatcher.Invoke(() =>
             {
@@ -419,33 +451,29 @@ namespace ScreenLookup.src.utils
             int mainWindowWidth = mainRect.Right - mainRect.Left;
             if (mainWindowWidth <= 0) mainWindowWidth = 1;
 
-            float mainWindowTargetWidthInMeters = 2f;
-            bool menuVisible = false;
-            targetWindow.Dispatcher.Invoke(() => menuVisible = App.captureWindow.configMenu.IsVisible);
-            if (menuVisible) mainWindowTargetWidthInMeters = 1f;
+            float targetWidthInMeters = App.setting.OverlayScale;
+            if (App.captureWindow.configMenu.IsVisible)
+                targetWidthInMeters = App.setting.OverlayScale / 2f;
 
-            // Scale meters per pixel purely off the primary window, not the temporary bounds
-            float metersPerPixel = mainWindowTargetWidthInMeters / mainWindowWidth;
+            float metersPerPixel = targetWidthInMeters / mainWindowWidth;
             float widthInMeters = compositeWidth * metersPerPixel;
 
             overlay.SetOverlayWidthInMeters(overlayHandle, widthInMeters);
 
-            // Map mouse coordinates scaling using the newly computed composite viewport size
             HmdVector2_t mouseScale = new() { v0 = (float)compositeWidth, v1 = (float)compositeHeight };
             overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
 
-            // We want to track how much the CANVAS expanded relative to the MAIN window's center.
-            float mainWindowCenterPx = mainRect.Left + (mainWindowWidth / 2f);
-            float compositeCenterPx = minLeft + (compositeWidth / 2f);
-            float pixelShiftX = compositeCenterPx - mainWindowCenterPx;
+            // Calculate anchor drifts via layout growth structures to prevent UI pops
+            float leftGrowth = mainRect.Left - minLeft;
+            float rightGrowth = maxRight - mainRect.Right;
+            float topGrowth = mainRect.Top - minTop;
+            float bottomGrowth = maxBottom - mainRect.Bottom;
 
-            int mainWindowHeight = mainRect.Bottom - mainRect.Top;
-            float mainWindowCenterPy = mainRect.Top + (mainWindowHeight / 2f);
-            float compositeCenterPy = minTop + (compositeHeight / 2f);
-            float pixelShiftY = compositeCenterPy - mainWindowCenterPy;
+            float pixelShiftX = (rightGrowth - leftGrowth) / 2f;
+            float pixelShiftY = (topGrowth - bottomGrowth) / 2f;
 
-            // We ignore shifts purely caused by dynamic popup layout expansions.
-            if (isOverlayDirty || lastMetersPerPixel != metersPerPixel)
+            // Forces transform refresh continuously if dynamic layout structures alter context parameters
+            if (isOverlayDirty || lastMetersPerPixel != metersPerPixel || !cachedAnchorDistance.Equals(App.setting.OverlayDistance) || !cachedAnchorHigh.Equals(App.setting.OverlayHigh))
             {
                 // Pass 0,0 for shifts during popup expansion to force SteamVR anchor to stay static,
                 // or let it adapt *only* when the parent window is moved by the user.

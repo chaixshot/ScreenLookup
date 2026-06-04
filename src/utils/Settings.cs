@@ -45,6 +45,10 @@ namespace ScreenLookup.src.utils
         public Dictionary<string, bool> loadedTesseract = [];
         public Dictionary<string, bool> loadedHunspell = [];
 
+        private bool overlayEnable = true;
+        private float overlayHigh = 0f;
+        private float overlayDistance = 2f;
+        private float overlayScale = 2f;
         private int activationRadius = 15;
         private bool useHmdRotations = false;
         private bool useRightEye = true;
@@ -99,6 +103,10 @@ namespace ScreenLookup.src.utils
                 FontFace = settings.FontFace;
                 FontSizeS = settings.FontSizeS;
 
+                OverlayEnable = settings.overlayEnable;
+                OverlayHigh = settings.overlayHigh;
+                OverlayDistance = settings.overlayDistance;
+                OverlayScale = settings.overlayScale;
                 ActivationRadius = settings.activationRadius;
                 UseHmdRotations = settings.useHmdRotations;
                 UseRightEye = settings.useRightEye;
@@ -337,6 +345,46 @@ namespace ScreenLookup.src.utils
             {
                 fontSizes = value;
 
+                OnPropertyChanged();
+            }
+        }
+
+        public bool OverlayEnable
+        {
+            get => overlayEnable;
+            set
+            {
+                overlayEnable = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public float OverlayHigh
+        {
+            get => overlayHigh;
+            set
+            {
+                overlayHigh = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public float OverlayDistance
+        {
+            get => overlayDistance;
+            set
+            {
+                overlayDistance = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public float OverlayScale
+        {
+            get => overlayScale;
+            set
+            {
+                overlayScale = value;
                 OnPropertyChanged();
             }
         }

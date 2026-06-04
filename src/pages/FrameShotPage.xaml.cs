@@ -18,6 +18,10 @@ namespace ScreenLookup.src.pages
             {
                 // Initialize UI values
                 ActivationRadius.Value = App.setting.ActivationRadius;
+                OverlayEnable.IsChecked = App.setting.OverlayEnable;
+                OverlayHigh.Value = App.setting.OverlayHigh;
+                OverlayDistance.Value = App.setting.OverlayDistance;
+                OverlayScale.Value = App.setting.OverlayScale;
                 HmdRotCheck.IsChecked = App.setting.UseHmdRotations;
                 UseRightEye.IsChecked = App.setting.UseRightEye;
             };
@@ -78,7 +82,8 @@ namespace ScreenLookup.src.pages
             {
                 FrameShot.StartPolling();
 
-                SteamOverlay = new SteamOverlayService();
+                if (App.setting.OverlayEnable)
+                    SteamOverlay = new SteamOverlayService();
 
                 UpdateStatusUI();
             }
@@ -105,6 +110,32 @@ namespace ScreenLookup.src.pages
         {
             if (IsLoaded)
                 App.setting.ActivationRadius = (int)e.NewValue;
+        }
+
+        private void OverlayEnable_Changed(object sender, RoutedEventArgs e)
+        {
+            if (FrameShot?.IsConnected == true)
+                TryDisconnect();
+
+            App.setting.OverlayEnable = OverlayEnable.IsChecked == true;
+        }
+
+        private void OverlayHigh_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.OverlayHigh = (float)e.NewValue;
+        }
+
+        private void OverlayDistance_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.OverlayDistance = (float)e.NewValue;
+        }
+
+        private void OverlayScale_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.OverlayScale = (float)e.NewValue;
         }
 
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)
