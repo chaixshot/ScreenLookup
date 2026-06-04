@@ -1,6 +1,5 @@
 ﻿using ScreenGrab;
 using ScreenLookup.src.models;
-using ScreenLookup.src.pages;
 using ScreenLookup.src.utils;
 using System.Drawing;
 using System.IO;
@@ -133,11 +132,6 @@ namespace ScreenLookup.src.windows
             this.Left = -10000;
 
             this.Hide();
-
-            if (IsVR)
-            {
-                FrameShotPage.SteamOverlay?.SetVisible(false);
-            }
         }
 
         public void ShowWindow(bool IsConfig)
@@ -186,13 +180,6 @@ namespace ScreenLookup.src.windows
 
             this.Show();
             this.Activate();
-
-            if (IsVR)
-            {
-                FrameShotPage.SteamOverlay?.SetWindow();
-                FrameShotPage.SteamOverlay?.SetVisible(true);
-            }
-
         }
 
         public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)

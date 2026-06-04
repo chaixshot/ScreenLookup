@@ -68,35 +68,20 @@ namespace ScreenLookup.src.utils
                 SetWindow();
                 SetVisible(false);
                 StartPolling();
+
+                targetWindow.LayoutUpdated += (s, e) =>
+                {
+                    isOverlayDirty = true;
+                };
+
+                targetWindow.IsVisibleChanged += (s, e) =>
+                {
+                    if (targetWindow.IsVisible)
+                        SetVisible(true);
+                    else
+                        SetVisible(false);
+                };
             }
-        }
-
-        public void SetVisible(bool visible)
-        {
-            CVROverlay overlay = OpenVR.Overlay;
-            if (overlay == null) return;
-
-            if (visible)
-            {
-                isOverlayDirty = true;
-                UpdateOverlayTransform(0f, 0f, 2f);
-                overlay.ShowOverlay(overlayHandle);
-            }
-            else
-            {
-                overlay.HideOverlay(overlayHandle);
-            }
-        }
-
-        public void SetWindow()
-        {
-            targetWindow = App.captureWindow;
-            targetHwnd = new WindowInteropHelper(targetWindow).Handle;
-
-            targetWindow.LayoutUpdated += (s, e) =>
-            {
-                isOverlayDirty = true;
-            };
         }
 
         private bool Initialize()
@@ -133,7 +118,31 @@ namespace ScreenLookup.src.utils
             return isInitialized = true;
         }
 
-        public void UpdateOverlayTransform(float offsetX, float offsetY, float offsetZ)
+        private void SetVisible(bool visible)
+        {
+            CVROverlay overlay = OpenVR.Overlay;
+            if (overlay == null) return;
+
+            if (visible)
+            {
+                isOverlayDirty = true;
+                UpdateOverlayTransform(0f, 0f, 2f);
+                SetWindow();
+                overlay.ShowOverlay(overlayHandle);
+            }
+            else
+            {
+                overlay.HideOverlay(overlayHandle);
+            }
+        }
+
+        private void SetWindow()
+        {
+            targetWindow = App.captureWindow;
+            targetHwnd = new WindowInteropHelper(targetWindow).Handle;
+        }
+
+        private void UpdateOverlayTransform(float offsetX, float offsetY, float offsetZ)
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
@@ -219,7 +228,7 @@ namespace ScreenLookup.src.utils
         }
         #endregion
 
-        public void ProcessInput()
+        private void ProcessInput()
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
@@ -262,7 +271,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public void RenderFrame()
+        private void RenderFrame()
         {
             CVROverlay overlay = OpenVR.Overlay;
             if (overlay == null || !isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
@@ -423,10 +432,9 @@ namespace ScreenLookup.src.utils
                 lock (d3dLock)
                 {
                     CVROverlay overlay = OpenVR.Overlay;
+
                     if (overlay != null && overlayHandle != OpenVR.k_ulOverlayHandleInvalid)
-                    {
                         overlay.DestroyOverlay(overlayHandle);
-                    }
 
                     sharedCaptureGraphics?.Dispose();
                     sharedCaptureBmp?.Dispose();
