@@ -592,7 +592,7 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, string.Empty, sourceLang, App.setting.TargetLanguage, IsVR);
+            flayOut.Show(word, string.Empty, sourceLang, App.setting.TargetLanguage);
         }
 
         private void Button_Message(object sender, RoutedEventArgs e)
@@ -605,7 +605,7 @@ namespace ScreenLookup.src.windows
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage, IsVR);
+            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage);
 
             CloseTranslatedExpanded();
         }

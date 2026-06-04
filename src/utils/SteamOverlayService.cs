@@ -7,7 +7,6 @@ using Valve.VR;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
-using Point = System.Windows.Point;
 
 namespace ScreenLookup.src.utils
 {
@@ -59,6 +58,16 @@ namespace ScreenLookup.src.utils
         // Persistent reusable buffers to eliminate GC churn completely
         private Bitmap? sharedCaptureBmp;
         private Graphics? sharedCaptureGraphics;
+
+        // --- Persistent Position Anchoring Fields ---
+        private HmdMatrix34_t cachedAnchorTransform;
+        private bool hasAnchorTransform = false;
+        private float lastMetersPerPixel = 0f;
+
+        // --- Absolute Virtual Canvas Positioning Buffers ---
+        private int _cachedMinLeft = 0;
+        private int _cachedMinTop = 0;
+        private int _cachedCompositeHeight = 0;
 
         public bool IsInitialized => isInitialized;
 
@@ -129,7 +138,7 @@ namespace ScreenLookup.src.utils
             if (visible)
             {
                 isOverlayDirty = true;
-                UpdateOverlayTransform(0f, 0f, 2f);
+                hasAnchorTransform = false; // Forces it to recalculate its anchor relative to where the head is looking right now
                 SetWindow();
                 overlay.ShowOverlay(overlayHandle);
             }
@@ -145,62 +154,73 @@ namespace ScreenLookup.src.utils
             targetHwnd = new WindowInteropHelper(targetWindow).Handle;
         }
 
-        private void UpdateOverlayTransform(float offsetX, float offsetY, float offsetZ)
+        /// <summary>
+        /// Recalculates the position shift required to keep the main target window locked to a persistent
+        /// world-space anchor point, while allowing the texture composition canvas to expand dynamically.
+        /// </summary>
+        private void UpdateOverlayTransform(float pixelShiftX, float pixelShiftY, float metersPerPixel)
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
-            TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-            OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, poses);
-
-            TrackedDevicePose_t hmdPose = poses[OpenVR.k_unTrackedDeviceIndex_Hmd];
-            if (!hmdPose.bPoseIsValid) return;
-
-            HmdMatrix34_t hmdMatrix = hmdPose.mDeviceToAbsoluteTracking;
-
-            float rawForwardX = -hmdMatrix.m2;
-            float rawForwardZ = -hmdMatrix.m10;
-            float horizontalLength = (float)Math.Sqrt(rawForwardX * rawForwardX + rawForwardZ * rawForwardZ);
-
-            if (horizontalLength < 0.001f)
+            // Establish the locked position reference if it hasn't been cached yet
+            if (!hasAnchorTransform)
             {
-                rawForwardX = 0f;
-                rawForwardZ = -1f;
-                horizontalLength = 1f;
+                TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+                OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, poses);
+
+                TrackedDevicePose_t hmdPose = poses[OpenVR.k_unTrackedDeviceIndex_Hmd];
+                if (!hmdPose.bPoseIsValid) return;
+
+                HmdMatrix34_t hmdMatrix = hmdPose.mDeviceToAbsoluteTracking;
+
+                float rawForwardX = -hmdMatrix.m2;
+                float rawForwardZ = -hmdMatrix.m10;
+                float horizontalLength = (float)Math.Sqrt(rawForwardX * rawForwardX + rawForwardZ * rawForwardZ);
+
+                if (horizontalLength < 0.001f)
+                {
+                    rawForwardX = 0f;
+                    rawForwardZ = -1f;
+                    horizontalLength = 1f;
+                }
+
+                float fX = rawForwardX / horizontalLength;
+                float fZ = rawForwardZ / horizontalLength;
+
+                float rX = -fZ;
+                float rZ = fX;
+
+                // Cache baseline orientation exactly 2 meters in front of user's face alignment
+                cachedAnchorTransform = new HmdMatrix34_t()
+                {
+                    m0 = rX,
+                    m1 = 0f,
+                    m2 = -fX,
+                    m3 = hmdMatrix.m3 + (fX * 2f),
+                    m4 = 0f,
+                    m5 = 1f,
+                    m6 = 0f,
+                    m7 = hmdMatrix.m7,
+                    m8 = rZ,
+                    m9 = 0f,
+                    m10 = -fZ,
+                    m11 = hmdMatrix.m11 + (fZ * 2f)
+                };
+                hasAnchorTransform = true;
             }
 
-            float fX = rawForwardX / horizontalLength;
-            float fY = 0f;
-            float fZ = rawForwardZ / horizontalLength;
+            // Map structural layout variance out into physical meters
+            float vrShiftX = pixelShiftX * metersPerPixel;
+            float vrShiftY = -pixelShiftY * metersPerPixel; // Reverse Y axis vector conversion directions
 
-            float rX = -fZ;
-            float rY = 0f;
-            float rZ = fX;
+            // Compute frame offset drift transformations applied specifically to the layout direction vector components
+            HmdMatrix34_t adjustedTransform = cachedAnchorTransform;
 
-            float uX = 0f;
-            float uY = 1f;
-            float uZ = 0f;
+            adjustedTransform.m3 += (cachedAnchorTransform.m0 * vrShiftX);
+            adjustedTransform.m7 += (cachedAnchorTransform.m4 * vrShiftX) + (cachedAnchorTransform.m5 * vrShiftY);
+            adjustedTransform.m11 += (cachedAnchorTransform.m8 * vrShiftX);
 
-            float posX = hmdMatrix.m3 + (rX * offsetX) + (uX * offsetY) + (fX * offsetZ);
-            float posY = hmdMatrix.m7 + (rY * offsetX) + (uY * offsetY) + (fY * offsetZ);
-            float posZ = hmdMatrix.m11 + (rZ * offsetX) + (uZ * offsetY) + (fZ * offsetZ);
-
-            HmdMatrix34_t transform = new()
-            {
-                m0 = rX,
-                m4 = rY,
-                m8 = rZ,
-                m1 = uX,
-                m5 = uY,
-                m9 = uZ,
-                m2 = -fX,
-                m6 = -fY,
-                m10 = -fZ,
-                m3 = posX,
-                m7 = posY,
-                m11 = posZ
-            };
-
-            OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
+            OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref adjustedTransform);
         }
 
         #region Polling Architecture Loop
@@ -233,6 +253,7 @@ namespace ScreenLookup.src.utils
 
         private bool isWaitingForSecondPress = false;
         private CancellationTokenSource? doublePressCts;
+
         private void ProcessInput()
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
@@ -247,16 +268,18 @@ namespace ScreenLookup.src.utils
                 switch ((EVREventType)vrEvent.eventType)
                 {
                     case EVREventType.VREvent_MouseMove:
-                        targetWindow.Dispatcher.Invoke(() =>
-                        {
-                            if (targetWindow.IsVisible)
-                            {
-                                double correctedY = targetWindow.ActualHeight - vrEvent.data.mouse.y;
-                                Point screenPoint = targetWindow.PointToScreen(new Point(vrEvent.data.mouse.x, correctedY));
-                                SetCursorPos((int)screenPoint.X, (int)screenPoint.Y);
-                                isOverlayDirty = true;
-                            }
-                        });
+                        // OpenVR mouse events pass absolute coordinates native to the 
+                        // composite dimensions set via SetOverlayMouseScale.
+                        float vrX = vrEvent.data.mouse.x;
+                        float vrY = vrEvent.data.mouse.y;
+
+                        // SteamVR tracks 0,0 from the bottom-left of textures. 
+                        // Invert the Y coordinates relative to our current composite height scale.
+                        int screenX = _cachedMinLeft + (int)vrX;
+                        int screenY = _cachedMinTop + (_cachedCompositeHeight - (int)vrY);
+
+                        SetCursorPos(screenX, screenY);
+                        isOverlayDirty = true;
                         break;
 
                     case EVREventType.VREvent_MouseButtonDown:
@@ -283,17 +306,18 @@ namespace ScreenLookup.src.utils
                                 isWaitingForSecondPress = true;
 
                                 doublePressCts?.Cancel();
-                                doublePressCts = new System.Threading.CancellationTokenSource();
+                                doublePressCts = new CancellationTokenSource();
 
                                 // Start an async timeout window without blocking the main thread
                                 Task.Run(async () =>
                                 {
-                                    await Task.Delay(300, doublePressCts.Token);
-
-                                    // If we reach here, the timeout expired without a second press
-                                    isWaitingForSecondPress = false;
-
-                                    targetWindow.Dispatcher.Invoke(() => App.captureWindow.HideWindow());
+                                    try
+                                    {
+                                        await Task.Delay(300, doublePressCts.Token);
+                                        isWaitingForSecondPress = false;
+                                        targetWindow.Dispatcher.Invoke(() => App.captureWindow.HideWindow());
+                                    }
+                                    catch (TaskCanceledException) { }
                                 });
                             }
                             else // Double press re-center
@@ -301,14 +325,20 @@ namespace ScreenLookup.src.utils
                                 isWaitingForSecondPress = false;
 
                                 doublePressCts?.Cancel();
-                                doublePressCts = new System.Threading.CancellationTokenSource();
+                                doublePressCts = new CancellationTokenSource();
 
                                 Task.Run(async () =>
                                 {
-                                    AppUtilities.PlaySound("ready.wav");
-                                    await Task.Delay(1000, doublePressCts.Token);
+                                    try
+                                    {
+                                        AppUtilities.PlaySound("ready.wav");
+                                        await Task.Delay(1000, doublePressCts.Token);
 
-                                    targetWindow.Dispatcher.Invoke(() => UpdateOverlayTransform(0f, 0f, 2f));
+                                        // Reset anchor token flags so that the render system re-snaps perspective down onto head projection coordinates
+                                        hasAnchorTransform = false;
+                                        isOverlayDirty = true;
+                                    }
+                                    catch (TaskCanceledException) { }
                                 });
                             }
                         }
@@ -322,97 +352,227 @@ namespace ScreenLookup.src.utils
             CVROverlay overlay = OpenVR.Overlay;
             if (overlay == null || !isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
 
-            // Query necessary configuration markers from the UI Thread quickly
-            int uiWidth = 0, uiHeight = 0;
+            // Gather all windows and determine the absolute minimum and maximum screen bounds
             bool isVisible = false;
-            RECT rect = new();
+            RECT mainRect = new();
+            var popupWindows = new List<(IntPtr Handle, RECT Rect)>();
 
             targetWindow.Dispatcher.Invoke(() =>
             {
                 isVisible = targetWindow.IsVisible;
                 if (isVisible)
                 {
-                    GetWindowRect(targetHwnd, out rect);
-                    uiWidth = rect.Right - rect.Left;
-                    uiHeight = rect.Bottom - rect.Top;
-                }
-            });
+                    GetWindowRect(targetHwnd, out mainRect);
 
-            if (!isVisible || uiWidth <= 0 || uiHeight <= 0) return;
-            if (!isOverlayDirty) return;
-
-            try
-            {
-                // Manage persistent, zero-allocation buffers
-                if (sharedCaptureBmp == null || sharedCaptureBmp.Width != uiWidth || sharedCaptureBmp.Height != uiHeight)
-                {
-                    sharedCaptureGraphics?.Dispose();
-                    sharedCaptureBmp?.Dispose();
-
-                    sharedCaptureBmp = new Bitmap(uiWidth, uiHeight, PixelFormat.Format32bppPArgb);
-                    sharedCaptureGraphics = Graphics.FromImage(sharedCaptureBmp);
-                    isOverlayDirty = true;
-                }
-
-                // Capture screen coordinates inside the required window dispatcher thread loop
-                targetWindow.Dispatcher.Invoke(() =>
-                {
-                    IntPtr hdc = sharedCaptureGraphics!.GetHdc();
-                    PrintWindow(targetHwnd, hdc, 0x02);
-                    sharedCaptureGraphics.ReleaseHdc(hdc);
-
-                    // Composite Popups manually onto the main bitmap payload context
+                    // Find all active popup sources belonging to this dispatcher
                     foreach (PresentationSource source in PresentationSource.CurrentSources)
                     {
                         if (source is HwndSource hwndSource && hwndSource.Handle != targetHwnd &&
                             hwndSource.RootVisual is FrameworkElement element && element.IsVisible &&
                             element.GetType().Name == "PopupRoot")
                         {
-                            GetWindowRect(hwndSource.Handle, out RECT pRect);
-                            int pW = pRect.Right - pRect.Left;
-                            int pH = pRect.Bottom - pRect.Top;
-
-                            if (pW > 0 && pH > 0)
+                            if (GetWindowRect(hwndSource.Handle, out RECT pRect))
                             {
-                                using Bitmap popupBmp = new(pW, pH, PixelFormat.Format32bppPArgb);
-                                using (Graphics gP = Graphics.FromImage(popupBmp))
+                                int pW = pRect.Right - pRect.Left;
+                                int pH = pRect.Bottom - pRect.Top;
+                                if (pW > 0 && pH > 0)
                                 {
-                                    IntPtr hdcP = gP.GetHdc();
-                                    PrintWindow(hwndSource.Handle, hdcP, 0x02);
-                                    gP.ReleaseHdc(hdcP);
+                                    popupWindows.Add((hwndSource.Handle, pRect));
                                 }
-                                sharedCaptureGraphics.DrawImage(popupBmp, pRect.Left - rect.Left, pRect.Top - rect.Top);
                             }
+                        }
+                    }
+                }
+            });
+
+            if (!isVisible) return;
+
+            // Compute the composite virtual bounding box (Union of main window + all popups)
+            int minLeft = mainRect.Left;
+            int minTop = mainRect.Top;
+            int maxRight = mainRect.Right;
+            int maxBottom = mainRect.Bottom;
+
+            foreach (var popup in popupWindows)
+            {
+                if (popup.Rect.Left < minLeft) minLeft = popup.Rect.Left;
+                if (popup.Rect.Top < minTop) minTop = popup.Rect.Top;
+                if (popup.Rect.Right > maxRight) maxRight = popup.Rect.Right;
+                if (popup.Rect.Bottom > maxBottom) maxBottom = popup.Rect.Bottom;
+            }
+
+            int compositeWidth = maxRight - minLeft;
+            int compositeHeight = maxBottom - minTop;
+
+            if (compositeWidth <= 0 || compositeHeight <= 0) return;
+
+            // Cache global layout positioning attributes cleanly across threads
+            _cachedMinLeft = minLeft;
+            _cachedMinTop = minTop;
+            _cachedCompositeHeight = compositeHeight;
+
+            // Track dirty flags if dimensions change due to an expanding flyout
+            if (sharedCaptureBmp == null || sharedCaptureBmp.Width != compositeWidth || sharedCaptureBmp.Height != compositeHeight)
+            {
+                isOverlayDirty = true;
+            }
+
+            // --- ALL SCALE AND CORRECTION CALCULATIONS CALLED CONTINUOUSLY ---
+            int mainWindowWidth = mainRect.Right - mainRect.Left;
+            if (mainWindowWidth <= 0) mainWindowWidth = 1;
+
+            float mainWindowTargetWidthInMeters = 2f;
+            bool menuVisible = false;
+            targetWindow.Dispatcher.Invoke(() => menuVisible = App.captureWindow.configMenu.IsVisible);
+            if (menuVisible) mainWindowTargetWidthInMeters = 1f;
+
+            // Establish exact spatial conversion density profile scaling structures 
+            float metersPerPixel = mainWindowTargetWidthInMeters / mainWindowWidth;
+            float widthInMeters = compositeWidth * metersPerPixel;
+
+            overlay.SetOverlayWidthInMeters(overlayHandle, widthInMeters);
+
+            // Map mouse coordinates scaling using the newly computed composite viewport size
+            HmdVector2_t mouseScale = new() { v0 = (float)compositeWidth, v1 = (float)compositeHeight };
+            overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
+
+            // Calculate current texture center drifts from the target anchor tracking midpoint bounds
+            float mainWindowCenterPx = mainRect.Left + (mainWindowWidth / 2f);
+            float compositeCenterPx = minLeft + (compositeWidth / 2f);
+            float pixelShiftX = compositeCenterPx - mainWindowCenterPx;
+
+            int mainWindowHeight = mainRect.Bottom - mainRect.Top;
+            float mainWindowCenterPy = mainRect.Top + (mainWindowHeight / 2f);
+            float compositeCenterPy = minTop + (compositeHeight / 2f);
+            float pixelShiftY = compositeCenterPy - mainWindowCenterPy;
+
+            // If layout frame is dirty or scale factor adjusted, sync runtime transformation positioning matrix modifications
+            if (isOverlayDirty || lastMetersPerPixel != metersPerPixel)
+            {
+                UpdateOverlayTransform(pixelShiftX, pixelShiftY, metersPerPixel);
+                lastMetersPerPixel = metersPerPixel;
+            }
+
+            if (!isOverlayDirty) return;
+
+            try
+            {
+                // Manage persistent buffers based on the dynamic composite canvas size
+                if (sharedCaptureBmp == null || sharedCaptureBmp.Width != compositeWidth || sharedCaptureBmp.Height != compositeHeight)
+                {
+                    sharedCaptureGraphics?.Dispose();
+                    sharedCaptureBmp?.Dispose();
+
+                    sharedCaptureBmp = new Bitmap(compositeWidth, compositeHeight, PixelFormat.Format32bppPArgb);
+                    sharedCaptureGraphics = Graphics.FromImage(sharedCaptureBmp);
+                }
+
+                // Clear canvas with complete transparency to prepare for shifted overlay compositions
+                sharedCaptureGraphics.Clear(Color.Transparent);
+
+                // Capture and compose inside the UI Thread Context
+                targetWindow.Dispatcher.Invoke(() =>
+                {
+                    // Draw main window relative to the composite virtual canvas origin (minLeft, minTop)
+                    IntPtr hdc = sharedCaptureGraphics!.GetHdc();
+                    PrintWindow(targetHwnd, hdc, 0x02);
+                    sharedCaptureGraphics.ReleaseHdc(hdc);
+
+                    // If the canvas is expanded upwards or leftwards, adjust the placement position of the main window screenshot
+                    int mainOffsetX = mainRect.Left - minLeft;
+                    int mainOffsetY = mainRect.Top - minTop;
+
+                    if (mainOffsetX != 0 || mainOffsetY != 0)
+                    {
+                        // Shift the captured window onto its correct spot inside our larger virtual canvas
+                        using (Bitmap mainTemp = new Bitmap(mainRect.Right - mainRect.Left, mainRect.Bottom - mainRect.Top, PixelFormat.Format32bppPArgb))
+                        {
+                            using (Graphics gM = Graphics.FromImage(mainTemp))
+                            {
+                                IntPtr hdcM = gM.GetHdc();
+                                PrintWindow(targetHwnd, hdcM, 0x02);
+                                gM.ReleaseHdc(hdcM);
+                            }
+                            sharedCaptureGraphics.Clear(Color.Transparent);
+                            sharedCaptureGraphics.DrawImage(mainTemp, mainOffsetX, mainOffsetY);
+                        }
+                    }
+
+                    // Draw popups relative to the virtual canvas origin
+                    foreach (var popup in popupWindows)
+                    {
+                        int pW = popup.Rect.Right - popup.Rect.Left;
+                        int pH = popup.Rect.Bottom - popup.Rect.Top;
+
+                        using (Bitmap popupBmp = new Bitmap(pW, pH, PixelFormat.Format32bppPArgb))
+                        {
+                            using (Graphics gP = Graphics.FromImage(popupBmp))
+                            {
+                                IntPtr hdcP = gP.GetHdc();
+                                PrintWindow(popup.Handle, hdcP, 0x02);
+                                gP.ReleaseHdc(hdcP);
+                            }
+
+                            // Flyout corner processing block
+                            BitmapData pData = popupBmp.LockBits(new Rectangle(0, 0, pW, pH), ImageLockMode.ReadWrite, popupBmp.PixelFormat);
+                            unsafe
+                            {
+                                int pRadius = 8;
+                                for (int y = 0; y < pH; y++)
+                                {
+                                    byte* pRowPtr = (byte*)pData.Scan0 + (y * pData.Stride);
+                                    for (int x = 0; x < pW; x++)
+                                    {
+                                        int offset = x * 4;
+                                        bool insideCornerZone = false;
+                                        int cx = 0, cy = 0;
+
+                                        if (x < pRadius && y < pRadius) { insideCornerZone = true; cx = pRadius - 1; cy = pRadius - 1; }
+                                        else if (x >= pW - pRadius && y < pRadius) { insideCornerZone = true; cx = pW - pRadius; cy = pRadius - 1; }
+                                        else if (x < pRadius && y >= pH - pRadius) { insideCornerZone = true; cx = pRadius - 1; cy = pH - pRadius; }
+                                        else if (x >= pW - pRadius && y >= pH - pRadius) { insideCornerZone = true; cx = pW - pRadius; cy = pH - pRadius; }
+
+                                        if (insideCornerZone)
+                                        {
+                                            int dx = x - cx;
+                                            int dy = y - cy;
+                                            if ((dx * dx) + (dy * dy) > (pRadius * pRadius))
+                                            {
+                                                pRowPtr[offset + 0] = 0;
+                                                pRowPtr[offset + 1] = 0;
+                                                pRowPtr[offset + 2] = 0;
+                                                pRowPtr[offset + 3] = 0;
+                                                continue;
+                                            }
+                                        }
+
+                                        if (pRowPtr[offset + 3] == 255 && pRowPtr[offset + 2] == 0 && pRowPtr[offset + 1] == 0 && pRowPtr[offset + 0] == 0)
+                                        {
+                                            pRowPtr[offset + 3] = 0;
+                                        }
+                                    }
+                                }
+                            }
+                            popupBmp.UnlockBits(pData);
+
+                            // Composite popups onto the master canvas based on the computed offset anchor
+                            sharedCaptureGraphics.DrawImage(popupBmp, popup.Rect.Left - minLeft, popup.Rect.Top - minTop);
                         }
                     }
                 });
 
-                // Window meter calculation transformations logic
-                float widthInMeters = 2f;
-                if (uiHeight > uiWidth)
-                    widthInMeters *= ((float)uiWidth / uiHeight);
-
-                bool menuVisible = false;
-                targetWindow.Dispatcher.Invoke(() => menuVisible = App.captureWindow.configMenu.IsVisible);
-                if (menuVisible) widthInMeters = 1f;
-
-                overlay.SetOverlayWidthInMeters(overlayHandle, widthInMeters);
-
-                HmdVector2_t mouseScale = new() { v0 = (float)uiWidth, v1 = (float)uiHeight };
-                overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
-
-                // Map resource context directly on the asynchronous task thread
+                // Direct3D Hardware Copy Block
                 lock (d3dLock)
                 {
-                    if (overlayTex == null || overlayTex.Description.Width != (uint)uiWidth || overlayTex.Description.Height != (uint)uiHeight)
+                    if (overlayTex == null || overlayTex.Description.Width != (uint)compositeWidth || overlayTex.Description.Height != (uint)compositeHeight)
                     {
                         overlayTex?.Dispose();
                         stagingTex?.Dispose();
 
                         Texture2DDescription desc = new()
                         {
-                            Width = (uint)uiWidth,
-                            Height = (uint)uiHeight,
+                            Width = (uint)compositeWidth,
+                            Height = (uint)compositeHeight,
                             MipLevels = 1,
                             ArraySize = 1,
                             Format = Format.B8G8R8A8_UNorm,
@@ -428,28 +588,69 @@ namespace ScreenLookup.src.utils
                         stagingTex = d3dDevice.CreateTexture2D(desc);
                     }
 
-                    // Map the staging texture memory address 
                     MappedSubresource box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
-                    BitmapData bData = sharedCaptureBmp.LockBits(new Rectangle(0, 0, uiWidth, uiHeight), ImageLockMode.ReadOnly, sharedCaptureBmp.PixelFormat);
+                    BitmapData bData = sharedCaptureBmp.LockBits(new Rectangle(0, 0, compositeWidth, compositeHeight), ImageLockMode.ReadOnly, sharedCaptureBmp.PixelFormat);
 
-                    long linesize = uiWidth * 4;
-
-                    // High-performance pointer arithmetic memory copy block
                     unsafe
                     {
-                        for (int y = 0; y < uiHeight; y++)
+                        int cornerRadius = 12;
+
+                        for (int y = 0; y < compositeHeight; y++)
                         {
                             byte* sourceRowPtr = (byte*)bData.Scan0 + (y * bData.Stride);
                             byte* destRowPtr = (byte*)box.DataPointer + (y * box.RowPitch);
 
-                            Buffer.MemoryCopy(sourceRowPtr, destRowPtr, linesize, linesize);
+                            for (int x = 0; x < compositeWidth; x++)
+                            {
+                                int pixelOffset = x * 4;
+                                bool insideCornerZone = false;
+                                int cx = 0, cy = 0;
+
+                                if (x < cornerRadius && y < cornerRadius) { insideCornerZone = true; cx = cornerRadius - 1; cy = cornerRadius - 1; }
+                                else if (x >= compositeWidth - cornerRadius && y < cornerRadius) { insideCornerZone = true; cx = compositeWidth - cornerRadius; cy = cornerRadius - 1; }
+                                else if (x < cornerRadius && y >= compositeHeight - cornerRadius) { insideCornerZone = true; cx = cornerRadius - 1; cy = compositeHeight - cornerRadius; }
+                                else if (x >= compositeWidth - cornerRadius && y >= compositeHeight - cornerRadius) { insideCornerZone = true; cx = compositeWidth - cornerRadius; cy = compositeHeight - cornerRadius; }
+
+                                if (insideCornerZone)
+                                {
+                                    int dx = x - cx;
+                                    int dy = y - cy;
+                                    if ((dx * dx) + (dy * dy) > (cornerRadius * cornerRadius))
+                                    {
+                                        destRowPtr[pixelOffset + 0] = 0;
+                                        destRowPtr[pixelOffset + 1] = 0;
+                                        destRowPtr[pixelOffset + 2] = 0;
+                                        destRowPtr[pixelOffset + 3] = 0;
+                                        continue;
+                                    }
+                                }
+
+                                byte b = sourceRowPtr[pixelOffset + 0];
+                                byte g = sourceRowPtr[pixelOffset + 1];
+                                byte r = sourceRowPtr[pixelOffset + 2];
+                                byte a = sourceRowPtr[pixelOffset + 3];
+
+                                if (a == 255 && r == 0 && g == 0 && b == 0)
+                                {
+                                    destRowPtr[pixelOffset + 0] = 0;
+                                    destRowPtr[pixelOffset + 1] = 0;
+                                    destRowPtr[pixelOffset + 2] = 0;
+                                    destRowPtr[pixelOffset + 3] = 0;
+                                }
+                                else
+                                {
+                                    destRowPtr[pixelOffset + 0] = (byte)(b * a / 255);
+                                    destRowPtr[pixelOffset + 1] = (byte)(g * a / 255);
+                                    destRowPtr[pixelOffset + 2] = (byte)(r * a / 255);
+                                    destRowPtr[pixelOffset + 3] = a;
+                                }
+                            }
                         }
                     }
 
                     sharedCaptureBmp.UnlockBits(bData);
                     d3dContext.Unmap(stagingTex!, 0);
 
-                    // Hardware accelerated update copy
                     d3dContext.CopyResource(overlayTex!, stagingTex!);
 
                     Texture_t tex = new()
