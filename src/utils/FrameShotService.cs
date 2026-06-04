@@ -188,10 +188,13 @@ namespace ScreenLookup.src.utils
 
         private async Task PollLoopAsync(CancellationToken ct)
         {
+            float refreshRate = VRInputService.GetHmdRefreshRate();
+            int delay = (int)(1000 / refreshRate);
+
             while (!ct.IsCancellationRequested)
             {
                 ProcessFrame();
-                await Task.Delay(11, ct);
+                await Task.Delay(delay, ct);
             }
         }
 
