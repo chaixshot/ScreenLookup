@@ -22,6 +22,7 @@ namespace ScreenLookup.src.pages
                 OverlayHigh.Value = App.setting.OverlayHigh;
                 OverlayDistance.Value = App.setting.OverlayDistance;
                 OverlayScale.Value = App.setting.OverlayScale;
+                OverlayScrollSpeed.Value = App.setting.OverlayScrollSpeed;
                 HmdRotCheck.IsChecked = App.setting.UseHmdRotations;
                 UseRightEye.IsChecked = App.setting.UseRightEye;
             };
@@ -136,6 +137,12 @@ namespace ScreenLookup.src.pages
         {
             if (IsLoaded)
                 App.setting.OverlayScale = (float)e.NewValue;
+        }
+
+        private void OverlayScrollSpeed_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.OverlayScrollSpeed = (int)e.NewValue;
         }
 
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)

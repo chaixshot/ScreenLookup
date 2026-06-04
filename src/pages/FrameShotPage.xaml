@@ -175,6 +175,35 @@
                 </StackPanel>
             </Controls:Card>
 
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Overlay Scroll Speed" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How fast the overlay should scroll" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="OverlayScrollSpeed"
+                            IsSnapToTickEnabled="True"
+                            Maximum="200"
+                            Minimum="10"
+                            TickFrequency="1"
+                            ValueChanged="OverlayScrollSpeed_ValueChanged"
+                            Value="60" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=OverlayScrollSpeed, Path=Value, StringFormat={}{0} %}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">

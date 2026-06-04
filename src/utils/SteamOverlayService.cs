@@ -131,7 +131,7 @@ namespace ScreenLookup.src.utils
             }
 
             overlay.SetOverlayInputMethod(overlayHandle, VROverlayInputMethod.Mouse);
-            overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.ShowTouchPadScrollWheel, true);
+            overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.SendVRSmoothScrollEvents, true);
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.MakeOverlaysInteractiveIfVisible, true);
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.IsPremultiplied, true);
 
@@ -420,6 +420,30 @@ namespace ScreenLookup.src.utils
                             }
                         }
                         break;
+
+                    case EVREventType.VREvent_ScrollSmooth:
+                        // Some controllers use X for horizontal and Y for vertical
+                        float scrollX = vrEvent.data.scroll.xdelta;
+                        float scrollY = vrEvent.data.scroll.ydelta;
+
+                        // Direct the scroll to the target window
+                        // MOUSEEVENTF_WHEEL is for vertical, MOUSEEVENTF_HWHEEL is for horizontal
+                        if (scrollY != 0)
+                        {
+                            // mouse_event dwData expects the scroll amount * sensitivity
+                            int scrollAmount = (int)(scrollY * App.setting.OverlayScrollSpeed);
+                            targetWindow.Dispatcher.Invoke(() => mouse_event(0x0800, 0, 0, (uint)scrollAmount, 0));
+                        }
+
+                        if (scrollX != 0)
+                        {
+                            int scrollAmount = (int)(scrollX * App.setting.OverlayScrollSpeed);
+                            targetWindow.Dispatcher.Invoke(() => mouse_event(0x1000, 0, 0, (uint)scrollAmount, 0));
+                        }
+
+                        isOverlayDirty = true;
+                        break;
+
                 }
             }
         }
