@@ -52,6 +52,7 @@ namespace ScreenLookup.src.utils
         private CancellationTokenSource? cts;
         private Task? pollTask;
         private bool running;
+        private readonly VRInputService inputService;
 
         private bool isOverlayDirty = true;
 
@@ -65,6 +66,8 @@ namespace ScreenLookup.src.utils
         {
             if (Initialize())
             {
+                inputService = new VRInputService();
+
                 SetWindow();
                 SetVisible(false);
                 StartPolling();
@@ -228,6 +231,8 @@ namespace ScreenLookup.src.utils
         }
         #endregion
 
+        private bool isWaitingForSecondPress = false;
+        private CancellationTokenSource? doublePressCts;
         private void ProcessInput()
         {
             if (!isInitialized || overlayHandle == OpenVR.k_ulOverlayHandleInvalid) return;
@@ -237,6 +242,8 @@ namespace ScreenLookup.src.utils
 
             while (OpenVR.Overlay.PollNextOverlayEvent(overlayHandle, ref vrEvent, eventSize))
             {
+                uint button = vrEvent.data.controller.button;
+
                 switch ((EVREventType)vrEvent.eventType)
                 {
                     case EVREventType.VREvent_MouseMove:
@@ -265,6 +272,45 @@ namespace ScreenLookup.src.utils
                         {
                             targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0));
                             isOverlayDirty = true;
+                        }
+                        break;
+
+                    case EVREventType.VREvent_ButtonPress:
+                        if (button == inputService.AButtonId)
+                        {
+                            if (!isWaitingForSecondPress) // HideWindow
+                            {
+                                isWaitingForSecondPress = true;
+
+                                doublePressCts?.Cancel();
+                                doublePressCts = new System.Threading.CancellationTokenSource();
+
+                                // Start an async timeout window without blocking the main thread
+                                Task.Run(async () =>
+                                {
+                                    await Task.Delay(300, doublePressCts.Token);
+
+                                    // If we reach here, the timeout expired without a second press
+                                    isWaitingForSecondPress = false;
+
+                                    targetWindow.Dispatcher.Invoke(() => App.captureWindow.HideWindow());
+                                });
+                            }
+                            else // Double press re-center
+                            {
+                                isWaitingForSecondPress = false;
+
+                                doublePressCts?.Cancel();
+                                doublePressCts = new System.Threading.CancellationTokenSource();
+
+                                Task.Run(async () =>
+                                {
+                                    AppUtilities.PlaySound("ready.wav");
+                                    await Task.Delay(1000, doublePressCts.Token);
+
+                                    targetWindow.Dispatcher.Invoke(() => UpdateOverlayTransform(0f, 0f, 2f));
+                                });
+                            }
                         }
                         break;
                 }
