@@ -36,6 +36,9 @@ namespace ScreenLookup.src.utils
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
         private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         private const uint MOUSEEVENTF_LEFTUP = 0x0004;
 
@@ -160,8 +163,8 @@ namespace ScreenLookup.src.utils
         }
 
         /// <summary>
-        /// Recalculates the position shift required to keep the main target window locked to a persistent
-        /// world-space anchor point, while allowing the texture composition canvas to expand dynamically.
+        /// Recalculates the position shift required to keep the main target window locked to a persistent world-space
+        /// anchor point, while allowing the texture composition canvas to expand dynamically.
         /// </summary>
         private void UpdateOverlayTransform(float pixelShiftX, float pixelShiftY, float metersPerPixel)
         {
@@ -282,7 +285,7 @@ namespace ScreenLookup.src.utils
                 ProcessInput();
                 RenderFrame();
 
-                await Task.Delay(16, ct); // Targets roughly ~60Hz
+                await Task.Delay(22, ct); // Targets roughly ~45Hz
             }
         }
         #endregion
@@ -321,18 +324,54 @@ namespace ScreenLookup.src.utils
                     case EVREventType.VREvent_MouseButtonDown:
                         if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                         {
-                            BringWindowToFront();
-                            targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0));
-                            isOverlayDirty = true;
+                            Task.Run(async () =>
+                            {
+                                // If we just restored focus, give the OS a moment to process the message queue
+                                if (!IsTargetWindowFronted())
+                                {
+                                    SetForegroundWindow(targetHwnd);
+
+                                    // Poll up to 100ms to see if it actually became the foreground window
+                                    int elapsed = 0;
+                                    while (!IsTargetWindowFronted() && elapsed < 100)
+                                    {
+                                        await Task.Delay(10);
+                                        elapsed += 10;
+                                    }
+                                }
+
+                                // Execute the mouse event
+                                targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0));
+
+                                isOverlayDirty = true;
+                            });
                         }
                         break;
 
                     case EVREventType.VREvent_MouseButtonUp:
                         if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                         {
-                            BringWindowToFront();
-                            targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0));
-                            isOverlayDirty = true;
+                            Task.Run(async () =>
+                            {
+                                // If we just restored focus, give the OS a moment to process the message queue
+                                if (!IsTargetWindowFronted())
+                                {
+                                    SetForegroundWindow(targetHwnd);
+
+                                    // Poll up to 100ms to see if it actually became the foreground window
+                                    int elapsed = 0;
+                                    while (!IsTargetWindowFronted() && elapsed < 100)
+                                    {
+                                        await Task.Delay(10);
+                                        elapsed += 10;
+                                    }
+                                }
+
+                                // Execute the mouse event
+                                targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0));
+
+                                isOverlayDirty = true;
+                            });
                         }
                         break;
 
@@ -729,6 +768,15 @@ namespace ScreenLookup.src.utils
                     SetForegroundWindow(targetHwnd);
                 });
             }
+        }
+
+        private bool IsTargetWindowFronted()
+        {
+            // Get the handle of the window currently in the foreground
+            IntPtr foregroundHwnd = GetForegroundWindow();
+
+            // Return true if it matches our target handle
+            return foregroundHwnd == targetHwnd;
         }
 
         public void Dispose()
