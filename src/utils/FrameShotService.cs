@@ -16,10 +16,6 @@ namespace ScreenLookup.src.utils
         private const int FRAME_TEX_W = 1024;
         private const int FRAME_TEX_H = 1024;
 
-        // Config
-        public uint GripButtonId = (uint)EVRButtonId.k_EButton_Grip;
-        public uint TriggerButtonId = (uint)EVRButtonId.k_EButton_SteamVR_Trigger;
-
         // State
         public bool IsConnected { get; private set; }
         public bool IsFraming { get; private set; }
@@ -27,10 +23,11 @@ namespace ScreenLookup.src.utils
 
         // Events
         public event Action<object>? OnStateUpdate;
-        public event Action? OnVRQuit;
+        public event Action? OnVRQuit; // Retained if needed elsewhere in the app wrapper
         public event Action<Bitmap?, bool>? OnPhotoSaved;
 
-        // OpenVR context
+        // Dependencies & Input pipeline
+        private readonly VRInputService inputService;
         private CVRSystem? vrSystem;
         private ulong overlayHandle;
         private CancellationTokenSource? cts;
@@ -38,12 +35,7 @@ namespace ScreenLookup.src.utils
         private bool running;
         private readonly Action<string> log;
 
-        // Tracking
-        private uint leftIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
-        private uint rightIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
-        private readonly TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-
-        // Button state
+        // Internal Input Processing Mirrors
         private bool leftHeld;
         private bool rightHeld;
         private bool leftTriggerHeld;
@@ -72,7 +64,7 @@ namespace ScreenLookup.src.utils
         private IntPtr mirrorSrv = IntPtr.Zero;
 
         // Rendering resources
-        private byte[] rowBuffer = new byte[FRAME_TEX_W * 4];
+        private readonly byte[] rowBuffer = new byte[FRAME_TEX_W * 4];
         private Bitmap? frameBitmap;
         private int mirrorW;
         private int mirrorH;
@@ -83,6 +75,7 @@ namespace ScreenLookup.src.utils
         public FrameShotService(Action<string> log)
         {
             this.log = log;
+            inputService = new VRInputService();
             Instance = this;
         }
 
@@ -151,7 +144,6 @@ namespace ScreenLookup.src.utils
 
             StopPolling();
 
-            // Wait for the polling task to finish to avoid accessing native pointers during/after Shutdown
             if (pollTask != null && !pollTask.IsCompleted)
                 pollTask.Wait(TimeSpan.FromMilliseconds(500));
 
@@ -205,23 +197,20 @@ namespace ScreenLookup.src.utils
 
         private void ProcessFrame()
         {
-            // Use the global static System property to check if OpenVR is still initialized
             var system = OpenVR.System;
             if (system == null || !IsConnected)
                 return;
 
-            system.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0.0f, poses);
-
-            leftIdx = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-            rightIdx = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+            // Gather inputs via sub-service
+            inputService.UpdatePosesAndIndices();
 
             leftHeldPrev = leftHeld;
             rightHeldPrev = rightHeld;
 
-            leftHeld = IsButtonHeld(leftIdx, GripButtonId);
-            rightHeld = IsButtonHeld(rightIdx, GripButtonId);
-            leftTriggerHeld = IsButtonHeld(leftIdx, TriggerButtonId);
-            rightTriggerHeld = IsButtonHeld(rightIdx, TriggerButtonId);
+            leftHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.GripButtonId);
+            rightHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.GripButtonId);
+            leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
+            rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
 
             Vector3 L = Vector3.Zero, R = Vector3.Zero;
             bool wasFraming = IsFraming;
@@ -229,7 +218,7 @@ namespace ScreenLookup.src.utils
 
             if (isButtonCombo)
             {
-                bool isInRange = AreHandsWithinActivationRadius(out L, out R);
+                bool isInRange = inputService.TryGetHandPositions(App.setting.ActivationRadius, out L, out R);
 
                 if (!wasFraming && isInRange)
                 {
@@ -252,58 +241,33 @@ namespace ScreenLookup.src.utils
                 {
                     AppUtilities.PlaySound("screenshot.wav");
 
-                    // Invoke on the WPF UI thread with an asynchronous Background priority.
-                    // This safely lets the window finish hiding and executes the capture on the UI thread.
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
                         await Task.Delay(100);
-
                         CaptureAndSave(leftTriggerHeld || rightTriggerHeld);
                     }));
                 }
             }
         }
 
-        private bool IsButtonHeld(uint idx, uint buttonId)
-        {
-            var system = OpenVR.System;
-            if (idx == OpenVR.k_unTrackedDeviceIndexInvalid || system == null)
-                return false;
-
-            var s = new VRControllerState_t();
-
-            return system.GetControllerState(idx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()) &&
-                   (s.ulButtonPressed & (1UL << (int)buttonId)) != 0;
-        }
-
-        private bool AreHandsWithinActivationRadius(out Vector3 L, out Vector3 R)
-        {
-            L = R = Vector3.Zero;
-
-            if (leftIdx == OpenVR.k_unTrackedDeviceIndexInvalid || rightIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
-            if (!poses[leftIdx].bPoseIsValid || !poses[rightIdx].bPoseIsValid) return false;
-
-            L = PosFromMatrix(poses[leftIdx].mDeviceToAbsoluteTracking);
-            R = PosFromMatrix(poses[rightIdx].mDeviceToAbsoluteTracking);
-
-            return (R - L).Length() <= App.setting.ActivationRadius / 100f;
-        }
-
         private void UpdateFrameAndRender(Vector3 L, Vector3 R)
         {
-            uint hmdIdx = (uint)OpenVR.k_unTrackedDeviceIndex_Hmd;
+            uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
+            var poses = inputService.Poses;
 
-            if (!poses[leftIdx].bPoseIsValid || !poses[rightIdx].bPoseIsValid || !poses[hmdIdx].bPoseIsValid)
+            if (!poses[inputService.LeftControllerIdx].bPoseIsValid ||
+                !poses[inputService.RightControllerIdx].bPoseIsValid ||
+                !poses[hmdIdx].bPoseIsValid)
                 return;
 
             if (L == Vector3.Zero && R == Vector3.Zero)
             {
-                L = PosFromMatrix(poses[leftIdx].mDeviceToAbsoluteTracking);
-                R = PosFromMatrix(poses[rightIdx].mDeviceToAbsoluteTracking);
+                L = VRInputService.PosFromMatrix(poses[inputService.LeftControllerIdx].mDeviceToAbsoluteTracking);
+                R = VRInputService.PosFromMatrix(poses[inputService.RightControllerIdx].mDeviceToAbsoluteTracking);
             }
 
             var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
-            var hmdRot = RotFromMatrix(hmdM);
+            var hmdRot = VRInputService.RotFromMatrix(hmdM);
             lastHmdRot = hmdRot;
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
@@ -345,7 +309,7 @@ namespace ScreenLookup.src.utils
                 g.DrawRectangle(pen, 4, 4, drawW - 9, drawH - 9);
             }
 
-            var rect = new System.Drawing.Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
+            var rect = new Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
             var bData = frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             lock (d3dLock)
             {
@@ -402,7 +366,7 @@ namespace ScreenLookup.src.utils
                             localRowBuffer[i] = localRowBuffer[i + 2];
                             localRowBuffer[i + 2] = r;
                         }
-                        localRowBuffer[i + 3] = 255; // Force opaque alpha
+                        localRowBuffer[i + 3] = 255;
                     }
 
                     Marshal.Copy(localRowBuffer, 0, bData.Scan0 + y * bData.Stride, mirrorW * 4);
@@ -477,11 +441,11 @@ namespace ScreenLookup.src.utils
             if (system == null) return null;
 
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
-            var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
+            var poses = inputService.Poses;
 
-            var vp = ToMatrix4x4(system.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * ToMatrix4x4(hmdM);
+            var vp = VRInputService.ToMatrix4x4(system.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * VRInputService.ToMatrix4x4(poses[hmdIdx].mDeviceToAbsoluteTracking);
             Matrix4x4.Invert(vp, out var view);
-            vp = view * ToMatrix4x4Proj(system.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
+            vp = view * VRInputService.ToMatrix4x4Proj(system.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, lastHmdRot);
             Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
@@ -501,25 +465,12 @@ namespace ScreenLookup.src.utils
             return pts;
         }
 
-        private static Vector3 PosFromMatrix(in HmdMatrix34_t m) => new(m.m3, m.m7, m.m11);
-        private static Quaternion RotFromMatrix(in HmdMatrix34_t m)
-        {
-            float tr = m.m0 + m.m5 + m.m10;
-
-            if (tr > 0f)
-            {
-                float s = MathF.Sqrt(tr + 1f) * 2f;
-                return Quaternion.Normalize(new Quaternion((m.m9 - m.m6) / s, (m.m2 - m.m8) / s, (m.m4 - m.m1) / s, 0.25f * s));
-            }
-
-            return Quaternion.Identity;
-        }
-        private static Matrix4x4 ToMatrix4x4(in HmdMatrix34_t m) => new(m.m0, m.m4, m.m8, 0, m.m1, m.m5, m.m9, 0, m.m2, m.m6, m.m10, 0, m.m3, m.m7, m.m11, 1);
-        private static Matrix4x4 ToMatrix4x4Proj(in HmdMatrix44_t m) => new(m.m0, m.m4, m.m8, m.m12, m.m1, m.m5, m.m9, m.m13, m.m2, m.m6, m.m10, m.m14, m.m3, m.m7, m.m11, m.m15);
         private void EmitState() => OnStateUpdate?.Invoke(new { connected = IsConnected, framing = IsFraming });
+
         public void Dispose()
         {
-            Disconnect(); frameBitmap?.Dispose();
+            Disconnect();
+            frameBitmap?.Dispose();
         }
     }
 }
