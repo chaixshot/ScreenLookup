@@ -241,13 +241,14 @@ namespace ScreenLookup.src.utils
                 hasAnchorTransform = true;
             }
 
-            // Map structural layout variance out into physical meters
+            // m7 (Y-axis) in the OpenVR coordinate system already handles positive as UP.
             float vrShiftX = pixelShiftX * metersPerPixel;
-            float vrShiftY = -pixelShiftY * metersPerPixel; // Reverse Y axis vector conversion directions
+            float vrShiftY = pixelShiftY * metersPerPixel;
 
-            // Compute frame offset drift transformations applied specifically to the layout direction vector components
+            // Compute frame offset drift transformations
             HmdMatrix34_t adjustedTransform = cachedAnchorTransform;
 
+            // Apply shifts to the transform matrix components
             adjustedTransform.m3 += (cachedAnchorTransform.m0 * vrShiftX);
             adjustedTransform.m7 += (cachedAnchorTransform.m4 * vrShiftX) + (cachedAnchorTransform.m5 * vrShiftY);
             adjustedTransform.m11 += (cachedAnchorTransform.m8 * vrShiftX);
