@@ -276,11 +276,15 @@ namespace ScreenLookup.src.utils
             Quaternion hmdRot = VRInputService.RotFromMatrix(hmdM);
             lastHmdRot = hmdRot;
 
+            // Calculate how much the HMD is tilted relative to world up
+            Vector3 hmdUpLive = Vector3.Transform(Vector3.UnitY, hmdRot);
+            float tiltAmount = 1.0f - MathF.Max(0, Vector3.Dot(hmdUpLive, Vector3.UnitY));
+            bool shouldTilt = App.setting.UseHmdRotations && (tiltAmount > App.setting.HmdRotationThreshold);
+
             Vector3 hmdFwdLive = Vector3.Transform(-Vector3.UnitZ, hmdRot);
             Vector3 hmdRightLive = Vector3.Transform(Vector3.UnitX, hmdRot);
-            Vector3 hmdUpLive = Vector3.Transform(Vector3.UnitY, hmdRot);
 
-            if (App.setting.UseHmdRotations)
+            if (shouldTilt)
             {
                 hmdFwd = hmdFwdLive;
                 hmdRight = hmdRightLive;
@@ -289,12 +293,8 @@ namespace ScreenLookup.src.utils
             else
             {
                 hmdFwd = hmdFwdLive;
-
                 Vector3 right = Vector3.Cross(hmdFwd, Vector3.UnitY);
-                if (right.LengthSquared() < 1e-6f)
-                    right = hmdRightLive;
-
-                hmdRight = Vector3.Normalize(right);
+                hmdRight = (right.LengthSquared() < 1e-6f) ? hmdRightLive : Vector3.Normalize(right); // Fallback to live right if Fwd is too close to vertical
                 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
             }
 
@@ -303,6 +303,7 @@ namespace ScreenLookup.src.utils
 
             Vector3 center = (L_Coords + R_Coords) * 0.5f;
 
+            // Calculate dimensions based on HMD-aligned axes to support portrait/landscape
             float widthM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R_Coords - L_Coords, hmdRight)));
             float heightM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R_Coords - L_Coords, hmdUp)));
 
@@ -311,13 +312,15 @@ namespace ScreenLookup.src.utils
             lastFrameWidth = widthM;
             lastFrameHeight = heightM;
 
+            // Calculate draw dimensions based on the aspect ratio of the physical frame
             int drawW = FRAME_TEX_W;
             int drawH = (int)MathF.Round(FRAME_TEX_W * (heightM / widthM));
 
+            // Constrain to texture bounds
             if (drawH > FRAME_TEX_H)
             {
                 drawH = FRAME_TEX_H;
-                drawW = (int)MathF.Round(FRAME_TEX_H / (heightM / widthM));
+                drawW = (int)MathF.Round(FRAME_TEX_H * (widthM / heightM));
             }
 
             DrawFrameTexture(drawW, drawH);

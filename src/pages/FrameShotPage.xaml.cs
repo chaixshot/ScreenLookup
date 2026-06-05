@@ -18,15 +18,18 @@ namespace ScreenLookup.src.pages
             {
                 // Initialize UI values
                 ActivationRadius.Value = App.setting.ActivationRadius;
+                UseRightEye.IsChecked = App.setting.UseRightEye;
+                FrameOffset.Value = App.setting.FrameOffset;
+
                 OverlayEnable.IsChecked = App.setting.OverlayEnable;
                 OverlayHigh.Value = App.setting.OverlayHigh;
                 OverlayDistance.Value = App.setting.OverlayDistance;
                 OverlayScale.Value = App.setting.OverlayScale;
                 OverlayScrollSpeed.Value = App.setting.OverlayScrollSpeed;
                 OverlayCurve.Value = App.setting.OverlayCurve;
-                HmdRotCheck.IsChecked = App.setting.UseHmdRotations;
-                UseRightEye.IsChecked = App.setting.UseRightEye;
-                FrameOffset.Value = App.setting.FrameOffset;
+
+                UseHmdRotations.IsChecked = App.setting.UseHmdRotations;
+                HmdRotationThreshold.Value = App.setting.HmdRotationThreshold;
             };
         }
 
@@ -109,12 +112,28 @@ namespace ScreenLookup.src.pages
             }
         }
 
+        //?? General Settings
         private void ActivationRadius_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (IsLoaded)
                 App.setting.ActivationRadius = (int)e.NewValue;
         }
 
+        private void UseRightEye_Changed(object sender, RoutedEventArgs e)
+        {
+            if (FrameShot?.IsConnected == true)
+                TryDisconnect();
+
+            App.setting.UseRightEye = UseRightEye.IsChecked == true;
+        }
+
+        private void FrameOffset_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (IsLoaded)
+                App.setting.FrameOffset = (int)e.NewValue;
+        }
+
+        //?? Overlay Settings
         private void OverlayEnable_Changed(object sender, RoutedEventArgs e)
         {
             if (FrameShot?.IsConnected == true)
@@ -153,23 +172,16 @@ namespace ScreenLookup.src.pages
                 App.setting.OverlayCurve = (int)e.NewValue;
         }
 
-        private void FrameOffset_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (IsLoaded)
-                App.setting.FrameOffset = (int)e.NewValue;
-        }
-
+        //?? Rotation Settings
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)
         {
-            App.setting.UseHmdRotations = HmdRotCheck.IsChecked == true;
+            App.setting.UseHmdRotations = UseHmdRotations.IsChecked == true;
         }
 
-        private void UseRightEye_Changed(object sender, RoutedEventArgs e)
+        private void HmdRotationThreshold_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (FrameShot?.IsConnected == true)
-                TryDisconnect();
-
-            App.setting.UseRightEye = UseRightEye.IsChecked == true;
+            if (IsLoaded)
+                App.setting.HmdRotationThreshold = (float)e.NewValue;
         }
     }
 }

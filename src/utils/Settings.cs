@@ -53,6 +53,7 @@ namespace ScreenLookup.src.utils
         private int overlayCurve = 15;
         private int activationRadius = 15;
         private bool useHmdRotations = false;
+        private float hmdRotationThreshold = 0.003f;
         private bool useRightEye = true;
         private int frameOffset = 5;
 
@@ -114,6 +115,7 @@ namespace ScreenLookup.src.utils
                 OverlayCurve = settings.overlayCurve;
                 ActivationRadius = settings.activationRadius;
                 UseHmdRotations = settings.useHmdRotations;
+                HmdRotationThreshold = settings.hmdRotationThreshold;
                 UseRightEye = settings.useRightEye;
                 FrameOffset = settings.frameOffset;
             }
@@ -433,6 +435,16 @@ namespace ScreenLookup.src.utils
             {
                 useHmdRotations = value;
 
+                OnPropertyChanged();
+            }
+        }
+
+        public float HmdRotationThreshold
+        {
+            get => hmdRotationThreshold;
+            set
+            {
+                hmdRotationThreshold = value;
                 OnPropertyChanged();
             }
         }

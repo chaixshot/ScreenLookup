@@ -42,7 +42,7 @@
             <TextBlock
                 Margin="5,0,0,5"
                 FontWeight="SemiBold"
-                Text="Settings" />
+                Text="General Settings" />
 
             <Controls:Card Margin="0,0,0,4">
                 <StackPanel>
@@ -73,6 +73,60 @@
                 </StackPanel>
             </Controls:Card>
 
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=EyeLines24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Render Eye Side" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Using eye to rendering picture" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+
+                <StackPanel Orientation="Horizontal">
+                    <Controls:TextBlock Text="Left Eye" />
+                    <wpfui:ToggleSwitch
+                        x:Name="UseRightEye"
+                        Grid.Column="0"
+                        Margin="10,0"
+                        Checked="UseRightEye_Changed"
+                        Unchecked="UseRightEye_Changed" />
+                    <Controls:TextBlock Text="Right Eye" />
+                </StackPanel>
+            </Controls:CardControl>
+
+            <Controls:Card Margin="0,0,0,4">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Frame Offset" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="Gray"
+                        Text="How to push the frame boundaries outward from the controllers" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            x:Name="FrameOffset"
+                            IsSnapToTickEnabled="True"
+                            Maximum="15"
+                            Minimum="0"
+                            TickFrequency="1"
+                            ValueChanged="FrameOffset_ValueChanged"
+                            Value="5" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ElementName=FrameOffset, Path=Value, StringFormat={}{0} cm}" />
+                    </Grid>
+                </StackPanel>
+            </Controls:Card>
+
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Overlay Settings" />
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
@@ -86,7 +140,6 @@
                     Checked="OverlayEnable_Changed"
                     Unchecked="OverlayEnable_Changed" />
             </Controls:CardControl>
-
 
             <Controls:Card Margin="0,0,0,4">
                 <StackPanel>
@@ -233,6 +286,11 @@
                 </StackPanel>
             </Controls:Card>
 
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Rotation Settings" />
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Image24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
@@ -241,57 +299,37 @@
                     </StackPanel>
                 </Controls:CardControl.Header>
                 <CheckBox
-                    x:Name="HmdRotCheck"
+                    x:Name="UseHmdRotations"
                     Margin="0,10,0,0"
                     Checked="HmdRotCheck_Changed"
                     Unchecked="HmdRotCheck_Changed" />
             </Controls:CardControl>
 
-            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=EyeLines24}">
-                <Controls:CardControl.Header>
-                    <StackPanel Margin="5,0,0,0">
-                        <Controls:TextBlock Text="Eye Side" />
-                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Using eye to rendering picture" />
-                    </StackPanel>
-                </Controls:CardControl.Header>
-
-                <StackPanel Orientation="Horizontal">
-                    <Controls:TextBlock Text="Left Eye" />
-                    <wpfui:ToggleSwitch
-                        x:Name="UseRightEye"
-                        Grid.Column="0"
-                        Margin="10,0"
-                        Checked="UseRightEye_Changed"
-                        Unchecked="UseRightEye_Changed" />
-                    <Controls:TextBlock Text="Right Eye" />
-                </StackPanel>
-            </Controls:CardControl>
-
             <Controls:Card Margin="0,0,0,4">
                 <StackPanel>
-                    <TextBlock FontWeight="SemiBold" Text="Frame Offset" />
+                    <TextBlock FontWeight="SemiBold" Text="HMD Rotation Threshold" />
                     <TextBlock
                         FontSize="12"
                         Foreground="Gray"
-                        Text="How to offset the frame inside the controller positions" />
+                        Text="How sensitive the HMD rotations should be" />
                     <Grid Margin="0,10,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Slider
-                            x:Name="FrameOffset"
+                            x:Name="HmdRotationThreshold"
                             IsSnapToTickEnabled="True"
-                            Maximum="15"
+                            Maximum="0.05"
                             Minimum="0"
-                            TickFrequency="1"
-                            ValueChanged="FrameOffset_ValueChanged"
-                            Value="5" />
+                            TickFrequency="0.002"
+                            ValueChanged="HmdRotationThreshold_ValueChanged"
+                            Value="0.003" />
                         <TextBlock
                             Grid.Column="1"
                             Margin="10,0,0,0"
                             VerticalAlignment="Center"
-                            Text="{Binding ElementName=FrameOffset, Path=Value, StringFormat={}{0} cm}" />
+                            Text="{Binding ElementName=HmdRotationThreshold, Path=Value, StringFormat={}{0:F3}}" />
                     </Grid>
                 </StackPanel>
             </Controls:Card>
