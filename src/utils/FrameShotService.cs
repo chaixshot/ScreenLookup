@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -86,7 +87,7 @@ namespace ScreenLookup.src.utils
 
             try
             {
-                var err = EVRInitError.None;
+                EVRInitError err = EVRInitError.None;
                 vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
                 if (err != EVRInitError.None)
                 {
@@ -200,7 +201,7 @@ namespace ScreenLookup.src.utils
 
         private void ProcessFrame()
         {
-            var system = OpenVR.System;
+            CVRSystem system = OpenVR.System;
             if (system == null || !IsConnected)
                 return;
 
@@ -256,7 +257,7 @@ namespace ScreenLookup.src.utils
         private void UpdateFrameAndRender(Vector3 L_Coords, Vector3 R_Coords)
         {
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
-            var poses = inputService.Poses;
+            TrackedDevicePose_t[]? poses = inputService.Poses;
 
             if (!poses[inputService.LeftControllerIdx].bPoseIsValid ||
                 !poses[inputService.RightControllerIdx].bPoseIsValid ||
@@ -269,8 +270,8 @@ namespace ScreenLookup.src.utils
                 R_Coords = VRInputService.PosFromMatrix(poses[inputService.RightControllerIdx].mDeviceToAbsoluteTracking);
             }
 
-            var hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
-            var hmdRot = VRInputService.RotFromMatrix(hmdM);
+            HmdMatrix34_t hmdM = poses[hmdIdx].mDeviceToAbsoluteTracking;
+            Quaternion hmdRot = VRInputService.RotFromMatrix(hmdM);
             lastHmdRot = hmdRot;
 
             Vector3 hmdFwdLive = Vector3.Transform(-Vector3.UnitZ, hmdRot);
@@ -322,25 +323,25 @@ namespace ScreenLookup.src.utils
             DrawFrameTexture(drawW, drawH);
             OpenVR.Overlay.SetOverlayWidthInMeters(overlayHandle, widthM);
 
-            var transform = new HmdMatrix34_t { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = center.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = center.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = center.Z };
+            HmdMatrix34_t transform = new HmdMatrix34_t { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = center.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = center.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = center.Z };
             OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
             OpenVR.Overlay.ShowOverlay(overlayHandle);
         }
 
         private void DrawFrameTexture(int drawW, int drawH)
         {
-            using (var g = Graphics.FromImage(frameBitmap!))
+            using (Graphics g = Graphics.FromImage(frameBitmap!))
             {
                 g.Clear(System.Drawing.Color.Transparent);
-                using var pen = new Pen(System.Drawing.Color.FromArgb(255, 218, 96, 255), 8f);
+                using Pen pen = new Pen(System.Drawing.Color.FromArgb(255, 218, 96, 255), 8f);
                 g.DrawRectangle(pen, 4, 4, drawW - 9, drawH - 9);
             }
 
-            var rect = new Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
-            var bData = frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            Rectangle rect = new(0, 0, FRAME_TEX_W, FRAME_TEX_H);
+            BitmapData? bData = frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             lock (d3dLock)
             {
-                var box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
+                MappedSubresource box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
                 for (int y = 0; y < FRAME_TEX_H; y++)
                 {
                     Marshal.Copy(bData.Scan0 + y * bData.Stride, rowBuffer, 0, FRAME_TEX_W * 4);
@@ -351,10 +352,9 @@ namespace ScreenLookup.src.utils
             }
             frameBitmap.UnlockBits(bData);
 
-            var bounds = new VRTextureBounds_t { uMin = 0f, vMin = 0f, uMax = (float)drawW / FRAME_TEX_W, vMax = (float)drawH / FRAME_TEX_H };
             OpenVR.Overlay.SetOverlayTextureBounds(overlayHandle, ref bounds);
 
-            var vrTex = new Texture_t { handle = overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
+            Texture_t vrTex = new() { handle = overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
             OpenVR.Overlay.SetOverlayTexture(overlayHandle, ref vrTex);
         }
 
@@ -363,7 +363,7 @@ namespace ScreenLookup.src.utils
             if (!EnsureMirrorPipeline())
                 return;
 
-            var corners = ProjectFrameCorners(mirrorW, mirrorH);
+            PointF[]? corners = ProjectFrameCorners(mirrorW, mirrorH);
             if (corners == null) return;
 
             Bitmap? mirrorBmp = null;
@@ -376,9 +376,9 @@ namespace ScreenLookup.src.utils
                                  mirrorFormat == Format.R8G8B8A8_Typeless;
 
                 d3dContext!.CopyResource(mirrorStaging!, mirrorTexCached!);
-                var box = d3dContext.Map(mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                MappedSubresource box = d3dContext.Map(mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
                 mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
-                var bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                BitmapData? bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
 
                 for (int y = 0; y < mirrorH; y++)
                 {
@@ -406,12 +406,12 @@ namespace ScreenLookup.src.utils
             int outW = (int)MathF.Max(2, Vector2.Distance(new Vector2(corners[0].X, corners[0].Y), new Vector2(corners[1].X, corners[1].Y)));
             int outH = (int)MathF.Round(outW * (lastFrameHeight / lastFrameWidth));
 
-            using (var outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb))
+            using (Bitmap outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb))
             {
-                using (var g = Graphics.FromImage(outBmp))
+                using (Graphics g = Graphics.FromImage(outBmp))
                 {
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    var mtx = new System.Drawing.Drawing2D.Matrix(new RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
+                    Matrix mtx = new(new RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
                     mtx.Invert(); g.Transform = mtx;
                     g.DrawImage(mirrorBmp, 0, 0);
                 }
@@ -423,7 +423,7 @@ namespace ScreenLookup.src.utils
 
         private bool EnsureMirrorPipeline()
         {
-            var targetEye = App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left;
+            EVREye targetEye = App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left;
             if (mirrorStaging != null && currentMirrorEye == targetEye)
                 return true;
 
@@ -435,7 +435,7 @@ namespace ScreenLookup.src.utils
                 if (mirrorSrv != IntPtr.Zero)
                     OpenVR.Compositor?.ReleaseMirrorTextureD3D11(mirrorSrv);
 
-                var srv = IntPtr.Zero;
+                IntPtr srv = IntPtr.Zero;
                 if (OpenVR.Compositor.GetMirrorTextureD3D11(targetEye, d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None)
                     return false;
 
@@ -445,7 +445,7 @@ namespace ScreenLookup.src.utils
                 currentMirrorEye = targetEye;
             }
 
-            var desc = mirrorTexCached.Description;
+            Texture2DDescription desc = mirrorTexCached.Description;
             mirrorW = (int)desc.Width; mirrorH = (int)desc.Height;
 
             mirrorStaging = d3dDevice.CreateTexture2D(new Texture2DDescription
@@ -464,14 +464,13 @@ namespace ScreenLookup.src.utils
 
         private PointF[]? ProjectFrameCorners(int mw, int mh)
         {
-            var system = OpenVR.System;
+            CVRSystem system = OpenVR.System;
             if (system == null) return null;
 
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
-            var poses = inputService.Poses;
 
-            var vp = VRInputService.ToMatrix4x4(system.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * VRInputService.ToMatrix4x4(poses[hmdIdx].mDeviceToAbsoluteTracking);
-            Matrix4x4.Invert(vp, out var view);
+            Matrix4x4 vp = VRInputService.ToMatrix4x4(system.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * VRInputService.ToMatrix4x4(poses[hmdIdx].mDeviceToAbsoluteTracking);
+            Matrix4x4.Invert(vp, out Matrix4x4 view);
             vp = view * VRInputService.ToMatrix4x4Proj(system.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
 
             Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, lastHmdRot);
@@ -480,11 +479,11 @@ namespace ScreenLookup.src.utils
             Vector3 center = (lastLeftPos + lastRightPos) * 0.5f;
             float hw = lastFrameWidth * 0.5f, hh = lastFrameHeight * 0.5f;
 
-            Vector3[] worldCorners = { center - hmdRight * hw + hmdUp * hh, center + hmdRight * hw + hmdUp * hh, center + hmdRight * hw - hmdUp * hh, center - hmdRight * hw - hmdUp * hh };
-            var pts = new PointF[4];
+            Vector3[] worldCorners = [center - hmdRight * hw + hmdUp * hh, center + hmdRight * hw + hmdUp * hh, center + hmdRight * hw - hmdUp * hh, center - hmdRight * hw - hmdUp * hh];
+            PointF[]? pts = new PointF[4];
             for (int i = 0; i < 4; i++)
             {
-                var clip = Vector4.Transform(new Vector4(worldCorners[i], 1f), vp);
+                Vector4 clip = Vector4.Transform(new Vector4(worldCorners[i], 1f), vp);
                 if (clip.W <= 0)
                     return null;
                 pts[i] = new PointF((clip.X / clip.W * 0.5f + 0.5f) * mw, (1f - (clip.Y / clip.W * 0.5f + 0.5f)) * mh);
