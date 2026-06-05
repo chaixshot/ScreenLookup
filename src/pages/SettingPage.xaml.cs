@@ -166,13 +166,18 @@ namespace ScreenLookup.src.pages
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy);
             string filePath = Path.Combine(App.tempFolder, pickedLanguageFile);
+            bool isFileExist = File.Exists(Path.Combine(tesseractFilePath, pickedLanguageFile));
+            bool isDownloaded = false;
 
-            DownloadHelper fileDownloader = new();
-            bool isDownloaded = await fileDownloader.DownloadFileAsync($"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{pickedLanguageFile}", filePath);
-
-            if (isDownloaded)
+            if (!isFileExist)
             {
+                DownloadHelper fileDownloader = new();
+                isDownloaded = await fileDownloader.DownloadFileAsync($"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{pickedLanguageFile}", filePath);
                 await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
+            }
+
+            if (isDownloaded || isFileExist)
+            {
                 TesseractHelper.SaveInstalled(accID, langID);
                 SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
             }
@@ -205,9 +210,14 @@ namespace ScreenLookup.src.pages
                 string nameTag = fileName.Split('/')[1];
                 //string zipPath = $"{App.teampFolder}{nameTag}.{extension}.zip";
                 string zipPath = Path.Combine(App.tempFolder, $"{nameTag}.{extension}.zip");
+                bool isFileExist = File.Exists(Path.Combine(HunspellHelper.FilePath, $"{nameTag}.{extension}"));
+                bool isDownloaded = false;
 
-                DownloadHelper fileDownloader = new();
-                bool isDownloaded = await fileDownloader.DownloadFileAsync($"https://translator.gres.biz/resources/dictionaries/{fileName}.{extension}.zip", zipPath);
+                if (!isFileExist)
+                {
+                    DownloadHelper fileDownloader = new();
+                    isDownloaded = await fileDownloader.DownloadFileAsync($"https://translator.gres.biz/resources/dictionaries/{fileName}.{extension}.zip", zipPath);
+                }
 
                 if (isDownloaded)
                 {
@@ -217,7 +227,7 @@ namespace ScreenLookup.src.pages
 
                     await DownloadHelper.MoveFileToFolder(Path.Combine(App.tempFolder, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
                 }
-                else
+                else if (!isFileExist)
                 {
                     SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
