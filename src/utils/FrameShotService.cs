@@ -273,9 +273,29 @@ namespace ScreenLookup.src.utils
             var hmdRot = VRInputService.RotFromMatrix(hmdM);
             lastHmdRot = hmdRot;
 
-            Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, hmdRot);
-            Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
-            Vector3 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
+            Vector3 hmdFwdLive = Vector3.Transform(-Vector3.UnitZ, hmdRot);
+            Vector3 hmdRightLive = Vector3.Transform(Vector3.UnitX, hmdRot);
+            Vector3 hmdUpLive = Vector3.Transform(Vector3.UnitY, hmdRot);
+
+            Vector3 hmdRight, hmdUp, hmdFwd;
+
+            if (App.setting.UseHmdRotations)
+            {
+                hmdFwd = hmdFwdLive;
+                hmdRight = hmdRightLive;
+                hmdUp = hmdUpLive;
+            }
+            else
+            {
+                hmdFwd = hmdFwdLive;
+
+                Vector3 right = Vector3.Cross(hmdFwd, Vector3.UnitY);
+                if (right.LengthSquared() < 1e-6f)
+                    right = hmdRightLive;
+
+                hmdRight = Vector3.Normalize(right);
+                hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
+            }
 
             L_Coords += (hmdRight * ((float)App.setting.FrameOffset / 100f)); // Adjust L_Coords and R_Coords positions to expand the frame slightly beyond controller center
             R_Coords -= (hmdRight * ((float)App.setting.FrameOffset / 100f)); // Left controller moves LEFT (negative right vector), Right controller moves RIGHT (positive right vector)
