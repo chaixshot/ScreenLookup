@@ -175,7 +175,7 @@ namespace ScreenLookup.src.windows
                     translatedCard.Visibility = Visibility.Visible;
                 }
 
-                this.Topmost = App.setting.Topmost || IsVR;
+                this.Topmost = App.setting.Topmost;
             }
 
             this.Show();
@@ -222,16 +222,6 @@ namespace ScreenLookup.src.windows
                 }
                 AppUtilities.PlaySound("screenshot.wav");
             }
-
-
-
-
-
-            IsVR = true; //!! Debug
-
-
-
-
 
             CapturedImage = image;
             CapturedImageEdited = CapturedImage;
