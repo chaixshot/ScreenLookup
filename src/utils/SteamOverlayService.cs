@@ -65,6 +65,10 @@ namespace ScreenLookup.src.utils
         private Bitmap? sharedCaptureBmp;
         private Graphics? sharedCaptureGraphics;
 
+        private Bitmap? _cachedMainTemp;
+        private Graphics? _cachedMainTempGraphics;
+        private readonly Dictionary<IntPtr, (Bitmap Bmp, Graphics Gfx)> _cachedPopupResources = [];
+
         // --- Persistent Position Anchoring Fields ---
         private HmdMatrix34_t cachedAnchorTransform;
         private bool hasAnchorTransform = false;
@@ -329,25 +333,14 @@ namespace ScreenLookup.src.utils
                     case EVREventType.VREvent_MouseButtonDown:
                         if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                         {
-                            Task.Run(async () =>
+                            targetWindow.Dispatcher.InvokeAsync(async () =>
                             {
-                                // If we just restored focus, give the OS a moment to process the message queue
                                 if (!IsTargetWindowFronted())
                                 {
                                     SetForegroundWindow(targetHwnd);
-
-                                    // Poll up to 100ms to see if it actually became the foreground window
-                                    int elapsed = 0;
-                                    while (!IsTargetWindowFronted() && elapsed < 100)
-                                    {
-                                        await Task.Delay(10);
-                                        elapsed += 10;
-                                    }
+                                    await Task.Delay(50);
                                 }
-
-                                // Execute the mouse event
-                                targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0));
-
+                                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
                                 isOverlayDirty = true;
                             });
                         }
@@ -356,25 +349,14 @@ namespace ScreenLookup.src.utils
                     case EVREventType.VREvent_MouseButtonUp:
                         if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                         {
-                            Task.Run(async () =>
+                            targetWindow.Dispatcher.InvokeAsync(async () =>
                             {
-                                // If we just restored focus, give the OS a moment to process the message queue
                                 if (!IsTargetWindowFronted())
                                 {
                                     SetForegroundWindow(targetHwnd);
-
-                                    // Poll up to 100ms to see if it actually became the foreground window
-                                    int elapsed = 0;
-                                    while (!IsTargetWindowFronted() && elapsed < 100)
-                                    {
-                                        await Task.Delay(10);
-                                        elapsed += 10;
-                                    }
+                                    await Task.Delay(50);
                                 }
-
-                                // Execute the mouse event
-                                targetWindow.Dispatcher.Invoke(() => mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0));
-
+                                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                                 isOverlayDirty = true;
                             });
                         }
@@ -584,36 +566,51 @@ namespace ScreenLookup.src.utils
                     int mainOffsetX = mainRect.Left - minLeft;
                     int mainOffsetY = mainRect.Top - minTop;
 
+                    int mainW = mainRect.Right - mainRect.Left;
+                    int mainH = mainRect.Bottom - mainRect.Top;
+
                     if (mainOffsetX != 0 || mainOffsetY != 0)
                     {
-                        // Shift the captured window onto its correct spot inside our larger virtual canvas
-                        using (Bitmap mainTemp = new Bitmap(mainRect.Right - mainRect.Left, mainRect.Bottom - mainRect.Top, PixelFormat.Format32bppPArgb))
+                        // Reuse or recreate main window buffer only on size change
+                        if (_cachedMainTemp == null || _cachedMainTemp.Width != mainW || _cachedMainTemp.Height != mainH)
                         {
-                            using (Graphics gM = Graphics.FromImage(mainTemp))
-                            {
-                                IntPtr hdcM = gM.GetHdc();
-                                PrintWindow(targetHwnd, hdcM, 0x02);
-                                gM.ReleaseHdc(hdcM);
-                            }
-                            sharedCaptureGraphics.Clear(Color.Transparent);
-                            sharedCaptureGraphics.DrawImage(mainTemp, mainOffsetX, mainOffsetY);
+                            _cachedMainTempGraphics?.Dispose();
+                            _cachedMainTemp?.Dispose();
+                            _cachedMainTemp = new Bitmap(mainW, mainH, PixelFormat.Format32bppPArgb);
+                            _cachedMainTempGraphics = Graphics.FromImage(_cachedMainTemp);
                         }
+
+                        IntPtr hdcM = _cachedMainTempGraphics!.GetHdc();
+                        PrintWindow(targetHwnd, hdcM, 0x02);
+                        _cachedMainTempGraphics.ReleaseHdc(hdcM);
+
+                        sharedCaptureGraphics.Clear(Color.Transparent);
+                        sharedCaptureGraphics.DrawImage(_cachedMainTemp, mainOffsetX, mainOffsetY);
                     }
 
                     // Draw popups relative to the virtual canvas origin
                     foreach (var popup in popupWindows)
                     {
-                        int pW = popup.Rect.Right - popup.Rect.Left;
-                        int pH = popup.Rect.Bottom - popup.Rect.Top;
+                        int pW = Math.Max(1, popup.Rect.Right - popup.Rect.Left);
+                        int pH = Math.Max(1, popup.Rect.Bottom - popup.Rect.Top);
 
-                        using (Bitmap popupBmp = new Bitmap(pW, pH, PixelFormat.Format32bppPArgb))
+                        // Reuse popup resources based on window handle
+                        if (!_cachedPopupResources.TryGetValue(popup.Handle, out var res) || res.Bmp.Width != pW || res.Bmp.Height != pH)
                         {
-                            using (Graphics gP = Graphics.FromImage(popupBmp))
-                            {
-                                IntPtr hdcP = gP.GetHdc();
-                                PrintWindow(popup.Handle, hdcP, 0x02);
-                                gP.ReleaseHdc(hdcP);
-                            }
+                            res.Gfx?.Dispose();
+                            res.Bmp?.Dispose();
+                            var bmp = new Bitmap(pW, pH, PixelFormat.Format32bppPArgb);
+                            var gfx = Graphics.FromImage(bmp);
+                            res = (bmp, gfx);
+                            _cachedPopupResources[popup.Handle] = res;
+                        }
+
+                        var popupBmp = res.Bmp;
+                        var gP = res.Gfx;
+
+                        IntPtr hdcP = gP.GetHdc();
+                        PrintWindow(popup.Handle, hdcP, 0x02);
+                        gP.ReleaseHdc(hdcP);
 
                             // Flyout corner processing block
                             BitmapData pData = popupBmp.LockBits(new Rectangle(0, 0, pW, pH), ImageLockMode.ReadWrite, popupBmp.PixelFormat);
@@ -659,7 +656,6 @@ namespace ScreenLookup.src.utils
 
                             // Composite popups onto the master canvas based on the computed offset anchor
                             sharedCaptureGraphics.DrawImage(popupBmp, popup.Rect.Left - minLeft, popup.Rect.Top - minTop);
-                        }
                     }
                 });
 
@@ -700,56 +696,48 @@ namespace ScreenLookup.src.utils
                     unsafe
                     {
                         int cornerRadius = 12;
+                        int sqRadius = cornerRadius * cornerRadius;
+                        int rightEdge = compositeWidth - cornerRadius;
+                        int bottomEdge = compositeHeight - cornerRadius;
 
                         for (int y = 0; y < compositeHeight; y++)
                         {
                             byte* sourceRowPtr = (byte*)bData.Scan0 + (y * bData.Stride);
                             byte* destRowPtr = (byte*)box.DataPointer + (y * box.RowPitch);
+                            bool isVerticalCorner = y < cornerRadius || y >= bottomEdge;
 
                             for (int x = 0; x < compositeWidth; x++)
                             {
                                 int pixelOffset = x * 4;
-                                bool insideCornerZone = false;
-                                int cx = 0, cy = 0;
 
-                                if (x < cornerRadius && y < cornerRadius) { insideCornerZone = true; cx = cornerRadius - 1; cy = cornerRadius - 1; }
-                                else if (x >= compositeWidth - cornerRadius && y < cornerRadius) { insideCornerZone = true; cx = compositeWidth - cornerRadius; cy = cornerRadius - 1; }
-                                else if (x < cornerRadius && y >= compositeHeight - cornerRadius) { insideCornerZone = true; cx = cornerRadius - 1; cy = compositeHeight - cornerRadius; }
-                                else if (x >= compositeWidth - cornerRadius && y >= compositeHeight - cornerRadius) { insideCornerZone = true; cx = compositeWidth - cornerRadius; cy = compositeHeight - cornerRadius; }
-
-                                if (insideCornerZone)
+                                if (isVerticalCorner && (x < cornerRadius || x >= rightEdge))
                                 {
+                                    int cx = x < cornerRadius ? cornerRadius - 1 : compositeWidth - cornerRadius;
+                                    int cy = y < cornerRadius ? cornerRadius - 1 : compositeHeight - cornerRadius;
                                     int dx = x - cx;
                                     int dy = y - cy;
-                                    if ((dx * dx) + (dy * dy) > (cornerRadius * cornerRadius))
+                                    if ((dx * dx) + (dy * dy) > sqRadius)
                                     {
-                                        destRowPtr[pixelOffset + 0] = 0;
-                                        destRowPtr[pixelOffset + 1] = 0;
-                                        destRowPtr[pixelOffset + 2] = 0;
-                                        destRowPtr[pixelOffset + 3] = 0;
+                                        *(uint*)(destRowPtr + pixelOffset) = 0;
                                         continue;
                                     }
+                                }
+
+                                byte a = sourceRowPtr[pixelOffset + 3];
+                                if (a == 0)
+                                {
+                                    *(uint*)(destRowPtr + pixelOffset) = 0;
+                                    continue;
                                 }
 
                                 byte b = sourceRowPtr[pixelOffset + 0];
                                 byte g = sourceRowPtr[pixelOffset + 1];
                                 byte r = sourceRowPtr[pixelOffset + 2];
-                                byte a = sourceRowPtr[pixelOffset + 3];
 
-                                if (a == 255 && r == 0 && g == 0 && b == 0)
-                                {
-                                    destRowPtr[pixelOffset + 0] = 0;
-                                    destRowPtr[pixelOffset + 1] = 0;
-                                    destRowPtr[pixelOffset + 2] = 0;
-                                    destRowPtr[pixelOffset + 3] = 0;
-                                }
-                                else
-                                {
-                                    destRowPtr[pixelOffset + 0] = (byte)(b * a / 255);
-                                    destRowPtr[pixelOffset + 1] = (byte)(g * a / 255);
-                                    destRowPtr[pixelOffset + 2] = (byte)(r * a / 255);
-                                    destRowPtr[pixelOffset + 3] = a;
-                                }
+                                destRowPtr[pixelOffset + 0] = (byte)((b * a + 127) / 255);
+                                destRowPtr[pixelOffset + 1] = (byte)((g * a + 127) / 255);
+                                destRowPtr[pixelOffset + 2] = (byte)((r * a + 127) / 255);
+                                destRowPtr[pixelOffset + 3] = a;
                             }
                         }
                     }

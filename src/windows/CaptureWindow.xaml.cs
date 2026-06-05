@@ -1,4 +1,4 @@
-﻿using ScreenGrab;
+﻿﻿using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.Drawing;
@@ -282,16 +282,21 @@ namespace ScreenLookup.src.windows
 
         private void ProcessImage()
         {
-            ThreadPool.QueueUserWorkItem(_ =>
+            Task.Run(async () =>
             {
-                //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
-                Dispatcher.BeginInvoke(new Action(async () =>
+                try
                 {
-                    TesseractOCR.Page TesseractPage = await Task.Run(() => GetTesseractPageFromBitmap(CapturedImageEdited), ProcessImageCancelToken.Token);
-                    TesseractPageText = TesseractPage.Text;
+                    using var tesseractPage = await GetTesseractPageFromBitmap(CapturedImageEdited).ConfigureAwait(false);
+                    var pageText = tesseractPage.Text;
+                    var captureWords = TesseractCaptureWordsySimplify(tesseractPage);
+                    // Offload heavy XML parsing to background thread
+                    var altoEntries = App.setting.LookupOnImage ? TesseractAltoTextProcess(tesseractPage) : null;
 
-                    if (IsCapturing)
+                    await Dispatcher.InvokeAsync(async () =>
                     {
+                        if (!IsCapturing) return;
+                        TesseractPageText = pageText;
+
                         if (string.IsNullOrWhiteSpace(TesseractPageText))
                         {
                             originalCard.Visibility = Visibility.Collapsed;
@@ -299,42 +304,31 @@ namespace ScreenLookup.src.windows
                         }
                         else
                         {
-                            // Original full message
                             ocrText.Text = TesseractPageText;
+                            LastHistoryID = await AddToHistory(ocrText.Text, captureWords);
 
-                            // Original words card
-                            List<CaptureWordsSimplifiedEntry> captureWords = await Task.Run(() => TesseractCaptureWordsySimplify(TesseractPage), ProcessImageCancelToken.Token);
-                            if (IsCapturing)
+                            if (App.setting.LookupOnImage)
+                                AltoText.ItemsSource = altoEntries;
+                            else
                             {
-                                LastHistoryID = await AddToHistory(ocrText.Text, captureWords);
+                                originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
+                                originalWordsLoading.Visibility = Visibility.Collapsed;
+                                originalCard.Visibility = Visibility.Visible;
+                                translatedCard.Visibility = Visibility.Visible;
+                                translationMessage.Set(TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage);
+                            }
 
-                                if (App.setting.LookupOnImage)
-                                    TesseractAltoText(TesseractPage);
-                                else
-                                {
-                                    originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
-                                    originalWordsLoading.Visibility = Visibility.Collapsed;
-                                    originalCard.Visibility = Visibility.Visible;
-                                    translatedCard.Visibility = Visibility.Visible;
-
-                                    translationMessage.Set(TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage);
-                                }
-
-                                if (IsCapturing)
-                                {
-                                    if (!App.setting.LookupOnImage)
-                                    {
-                                        SetWindowSize();
-                                        SetWindowPosition();
-                                    }
-                                }
+                            if (!App.setting.LookupOnImage)
+                            {
+                                SetWindowSize();
+                                SetWindowPosition();
                             }
                         }
-
-                        TesseractPage.Dispose();
                         IsCapturing = false;
-                    }
-                }));
+                    });
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OCR Error: {ex.Message}"); }
             }, ProcessImageCancelToken.Token);
         }
 
@@ -406,43 +400,40 @@ namespace ScreenLookup.src.windows
             double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
             double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
 
-            Task.Delay(1).ContinueWith(_ => // Wait for Visible change fade effect
+            // Use priority Render to move after the current layout pass without a fixed Task.Delay
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                Dispatcher.BeginInvoke(new Action(() =>
+                if (gotoPoint != new Point())
                 {
-                    if (gotoPoint != new Point())
-                    {
-                        this.Left = gotoPoint.X;
-                        this.Top = gotoPoint.Y;
-                    }
-                    else
-                    {
-                        this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
-                        this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
-                    }
+                    this.Left = gotoPoint.X;
+                    this.Top = gotoPoint.Y;
+                }
+                else
+                {
+                    this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
+                    this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
+                }
 
-                    double maxLeft = screenWidth - this.ActualWidth;
-                    double maxTop = screenHeight - this.ActualHeight;
+                double maxLeft = screenWidth - this.ActualWidth;
+                double maxTop = screenHeight - this.ActualHeight;
 
-                    this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
-                    this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
-                }));
-            });
+                this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
+                this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
+            }), DispatcherPriority.Render);
         }
 
         private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
         {
-            // Image
-            MemoryStream ms = new();
-            image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            using MemoryStream ms = new();
+            // BMP is significantly faster to encode than PNG for internal memory transfers
+            image.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
             byte[] fileBytes = ms.ToArray();
 
-            // TesseractOCR
             TesseractOCR.Pix.Image img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
             return TesseractEngine.Process(img);
         }
 
-        private async Task<List<CaptureWordsSimplifiedEntry>> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
+        private List<CaptureWordsSimplifiedEntry> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
         {
             List<CaptureWordsSimplifiedEntry> items = [];
             foreach (TesseractOCR.Layout.Block block in page.Layout)
@@ -453,12 +444,9 @@ namespace ScreenLookup.src.windows
                     {
                         foreach (TesseractOCR.Layout.Word word in textLine.Words)
                         {
-                            if (!string.IsNullOrWhiteSpace(word.Text))
+                            string text = word.Text;
+                            if (!string.IsNullOrWhiteSpace(text))
                             {
-                                if (!IsCapturing)
-                                    goto skip;
-
-                                string text = word.Text;
                                 if (App.setting.HunSpell)
                                     text = HunspellHelper.CorrectionWord(text);
 
@@ -472,37 +460,31 @@ namespace ScreenLookup.src.windows
                 items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 3 });
             }
 
-        skip:
-
             return items;
         }
 
-        private async void TesseractAltoText(TesseractOCR.Page page)
+        private List<CaptureAltoEntry> TesseractAltoTextProcess(TesseractOCR.Page page)
         {
             XmlDocument xmlDoc = new();
             xmlDoc.LoadXml(page.AltoText);
-
             List<CaptureAltoEntry> items = [];
 
-            foreach (XmlElement item in xmlDoc.GetElementsByTagName("ComposedBlock"))
+            var composedBlocks = xmlDoc.GetElementsByTagName("ComposedBlock");
+            foreach (XmlElement item in composedBlocks)
             {
-                foreach (XmlElement textLine in item.GetElementsByTagName("TextBlock"))
+                var textBlocks = item.GetElementsByTagName("TextBlock");
+                foreach (XmlElement textBlock in textBlocks)
                 {
                     string fullTextBlock = string.Empty;
+                    var strings = textBlock.GetElementsByTagName("String");
 
-                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
+                    foreach (XmlElement data in strings)
                     {
-                        if (!IsCapturing)
-                            goto skip;
-
                         fullTextBlock += data.GetAttribute("CONTENT") + " ";
                     }
 
-                    foreach (XmlElement data in textLine.GetElementsByTagName("String"))
+                    foreach (XmlElement data in strings)
                     {
-                        if (!IsCapturing)
-                            goto skip;
-
                         string Word = data.GetAttribute("CONTENT");
                         if (App.setting.HunSpell)
                             Word = HunspellHelper.CorrectionWord(Word);
@@ -521,10 +503,7 @@ namespace ScreenLookup.src.windows
                     }
                 }
             }
-
-        skip:
-
-            AltoText.ItemsSource = items;
+            return items;
         }
 
         private async Task<int> AddToHistory(string original, List<CaptureWordsSimplifiedEntry> originalWords)

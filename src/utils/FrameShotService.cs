@@ -373,7 +373,6 @@ namespace ScreenLookup.src.utils
             Bitmap? mirrorBmp = null;
             lock (d3dLock)
             {
-                byte[] localRowBuffer = new byte[mirrorW * 4];
                 Format mirrorFormat = mirrorTexCached!.Description.Format;
                 bool needsSwap = mirrorFormat == Format.R8G8B8A8_UNorm ||
                                  mirrorFormat == Format.R8G8B8A8_UNorm_SRgb ||
@@ -384,23 +383,30 @@ namespace ScreenLookup.src.utils
                 mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
                 BitmapData? bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
 
-                for (int y = 0; y < mirrorH; y++)
+                unsafe
                 {
-                    Marshal.Copy(box.DataPointer + (nint)((long)y * box.RowPitch), localRowBuffer, 0, mirrorW * 4);
-
-                    for (int x = 0; x < mirrorW; x++)
+                    for (int y = 0; y < mirrorH; y++)
                     {
-                        int i = x * 4;
-                        if (needsSwap)
-                        {
-                            byte r = localRowBuffer[i];
-                            localRowBuffer[i] = localRowBuffer[i + 2];
-                            localRowBuffer[i + 2] = r;
-                        }
-                        localRowBuffer[i + 3] = 255;
-                    }
+                        byte* srcPtr = (byte*)box.DataPointer + (y * box.RowPitch);
+                        byte* dstPtr = (byte*)bData.Scan0 + (y * bData.Stride);
 
-                    Marshal.Copy(localRowBuffer, 0, bData.Scan0 + y * bData.Stride, mirrorW * 4);
+                        for (int x = 0; x < mirrorW; x++)
+                        {
+                            if (needsSwap)
+                            {
+                                dstPtr[0] = srcPtr[2]; // B
+                                dstPtr[1] = srcPtr[1]; // G
+                                dstPtr[2] = srcPtr[0]; // R
+                            }
+                            else
+                            {
+                                *(uint*)dstPtr = *(uint*)srcPtr;
+                            }
+                            dstPtr[3] = 255; // Alpha
+                            srcPtr += 4;
+                            dstPtr += 4;
+                        }
+                    }
                 }
 
                 mirrorBmp.UnlockBits(bData);

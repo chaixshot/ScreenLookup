@@ -13,6 +13,8 @@ namespace ScreenLookup
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
+        private CancellationTokenSource? saveWindowStateCTS;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -87,16 +89,20 @@ namespace ScreenLookup
         #endregion
 
         #region Window Persistence State
-        private void MainWindow_BoundsChanged(object sender, EventArgs e)
+        private async void MainWindow_BoundsChanged(object sender, EventArgs e)
         {
-            WindowStateSave();
-        }
+            saveWindowStateCTS?.Cancel();
+            saveWindowStateCTS = new CancellationTokenSource();
 
-        private void WindowStateSave()
-        {
-            App.setting.Window["Bounds"] = this.RestoreBounds.ToString();
-            App.setting.Window["State"] = this.WindowState.ToString();
-            App.setting.Save();
+            try
+            {
+                await Task.Delay(1000, saveWindowStateCTS.Token);
+
+                App.setting.Window["Bounds"] = this.RestoreBounds.ToString();
+                App.setting.Window["State"] = this.WindowState.ToString();
+                App.setting.Save();
+            }
+            catch (OperationCanceledException) { }
         }
 
         private void WindowStateRestore()
