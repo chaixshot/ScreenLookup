@@ -7,8 +7,8 @@ namespace ScreenLookup.src.pages
 {
     public partial class FrameShotPage : Page
     {
-        private static FrameShotService? FrameShot;
-        public static SteamOverlayService? SteamOverlay;
+        private FrameShotService? FrameShot;
+        private SteamOverlayService? SteamOverlay;
 
         public FrameShotPage()
         {
@@ -23,8 +23,10 @@ namespace ScreenLookup.src.pages
                 OverlayDistance.Value = App.setting.OverlayDistance;
                 OverlayScale.Value = App.setting.OverlayScale;
                 OverlayScrollSpeed.Value = App.setting.OverlayScrollSpeed;
+                OverlayCurve.Value = App.setting.OverlayCurve;
                 HmdRotCheck.IsChecked = App.setting.UseHmdRotations;
                 UseRightEye.IsChecked = App.setting.UseRightEye;
+                FrameOffset.Value = App.setting.FrameOffset;
             };
         }
 
