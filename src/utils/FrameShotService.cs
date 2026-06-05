@@ -69,6 +69,8 @@ namespace ScreenLookup.src.utils
         private Bitmap? frameBitmap;
         private int mirrorW;
         private int mirrorH;
+        private Vector3 hmdRight, hmdUp, hmdFwd;
+
 
         public ID3D11Device? Device => d3dDevice;
         public ID3D11DeviceContext? Context => d3dContext;
@@ -278,8 +280,6 @@ namespace ScreenLookup.src.utils
             Vector3 hmdRightLive = Vector3.Transform(Vector3.UnitX, hmdRot);
             Vector3 hmdUpLive = Vector3.Transform(Vector3.UnitY, hmdRot);
 
-            Vector3 hmdRight, hmdUp, hmdFwd;
-
             if (App.setting.UseHmdRotations)
             {
                 hmdFwd = hmdFwdLive;
@@ -352,6 +352,7 @@ namespace ScreenLookup.src.utils
             }
             frameBitmap.UnlockBits(bData);
 
+            VRTextureBounds_t bounds = new VRTextureBounds_t { uMin = 0f, vMin = 0f, uMax = (float)drawW / FRAME_TEX_W, vMax = (float)drawH / FRAME_TEX_H };
             OpenVR.Overlay.SetOverlayTextureBounds(overlayHandle, ref bounds);
 
             Texture_t vrTex = new() { handle = overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
@@ -468,14 +469,12 @@ namespace ScreenLookup.src.utils
             if (system == null) return null;
 
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
+            TrackedDevicePose_t[]? poses = inputService.Poses;
 
             Matrix4x4 vp = VRInputService.ToMatrix4x4(system.GetEyeToHeadTransform(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left)) * VRInputService.ToMatrix4x4(poses[hmdIdx].mDeviceToAbsoluteTracking);
             Matrix4x4.Invert(vp, out Matrix4x4 view);
             vp = view * VRInputService.ToMatrix4x4Proj(system.GetProjectionMatrix(App.setting.UseRightEye ? EVREye.Eye_Right : EVREye.Eye_Left, 0.05f, 50f));
 
-            Vector3 hmdFwd = Vector3.Transform(-Vector3.UnitZ, lastHmdRot);
-            Vector3 hmdRight = Vector3.Normalize(Vector3.Cross(hmdFwd, Vector3.UnitY));
-            Vector3 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
             Vector3 center = (lastLeftPos + lastRightPos) * 0.5f;
             float hw = lastFrameWidth * 0.5f, hh = lastFrameHeight * 0.5f;
 
