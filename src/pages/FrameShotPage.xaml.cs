@@ -38,7 +38,7 @@ namespace ScreenLookup.src.pages
             if (FrameShot?.IsConnected == true)
             {
                 StatusDot.Fill = Brushes.Green;
-                StatusText.Text = FrameShot.IsFraming ? "Framing..." : "Connected";
+                StatusText.Text = "Connected";
                 StatusButton.Content = "Disconnect";
             }
             else
@@ -47,6 +47,8 @@ namespace ScreenLookup.src.pages
                 StatusText.Text = FrameShot?.LastError ?? "Not Connected";
                 StatusButton.Content = "Connect to SteamVR";
             }
+
+            StatusButton.IsEnabled = true;
         }
 
         private void Connect_Click(object sender, RoutedEventArgs e)
@@ -61,6 +63,8 @@ namespace ScreenLookup.src.pages
 
         private void TryConnect()
         {
+            StatusButton.IsEnabled = false;
+
             // Use static instances to persist state across page navigation
             if (FrameShot == null)
             {
@@ -74,42 +78,52 @@ namespace ScreenLookup.src.pages
 
                 FrameShot.OnPhotoSaved += (image, triggerHeld) =>
                 {
-                    ThreadPool.QueueUserWorkItem(_ =>
+                    App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
-                        Dispatcher.BeginInvoke(new Action(async () =>
-                        {
-                            App.captureWindow.StartCaptureScreen(image, triggerHeld);
-                        }));
-                    });
+                        App.captureWindow.StartCaptureScreen(image, triggerHeld);
+                    }));
                 };
             }
 
-            if (FrameShot.Connect())
+            App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
             {
-                FrameShot.StartPolling();
+                await Task.Delay(100);
 
-                if (App.setting.OverlayEnable)
-                    SteamOverlay = new SteamOverlayService();
+                if (FrameShot.Connect())
+                {
+                    FrameShot.StartPolling();
+
+                    if (App.setting.OverlayEnable)
+                        SteamOverlay = new SteamOverlayService();
+                }
+                else
+                    SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
 
                 UpdateStatusUI();
-            }
-            else
-                SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
+            }));
         }
 
         private void TryDisconnect()
         {
-            if (FrameShot?.IsConnected == true)
+            StatusButton.IsEnabled = false;
+
+            App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
             {
-                FrameShot.Disconnect();
-                FrameShot.Dispose();
-                FrameShot = null;
+                await Task.Delay(100);
 
-                SteamOverlay?.Dispose();
-                SteamOverlay = null;
+                if (FrameShot?.IsConnected == true)
+                {
 
-                UpdateStatusUI();
-            }
+                    FrameShot.Disconnect();
+                    FrameShot.Dispose();
+                    FrameShot = null;
+
+                    SteamOverlay?.Dispose();
+                    SteamOverlay = null;
+
+                    UpdateStatusUI();
+                }
+            }));
         }
 
         //?? General Settings
