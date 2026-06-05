@@ -50,7 +50,7 @@ namespace ScreenLookup.src.utils
         private float overlayDistance = 2f;
         private float overlayScale = 2f;
         private int overlayScrollSpeed = 60;
-        private int overlayCurve = 15;
+        private int overlayCurve = 0;
         private int activationRadius = 15;
         private bool useHmdRotations = false;
         private float hmdRotationThreshold = 0.003f;

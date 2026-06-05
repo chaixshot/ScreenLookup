@@ -168,7 +168,8 @@ namespace ScreenLookup.src.utils
 
         /// <summary>
         /// Recalculates the position shift required to keep the main target window locked to a persistent world-space
-        /// anchor point, while allowing the texture composition canvas to expand dynamically.
+        /// anchor point, while allowing the texture composition canvas to expand dynamically with a stable visual
+        /// curvature.
         /// </summary>
         private void UpdateOverlayTransform(float pixelShiftX, float pixelShiftY, float metersPerPixel)
         {
@@ -265,9 +266,13 @@ namespace ScreenLookup.src.utils
 
             OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref adjustedTransform);
 
-            float widthInMeters = 0f;
-            OpenVR.Overlay.GetOverlayWidthInMeters(overlayHandle, ref widthInMeters);
-            float curve = widthInMeters / 6f * App.setting.OverlayDistance * (App.setting.OverlayCurve / 100f);
+            // calculate a fixed baseline width strictly from the configured main window settings.
+            float baseWidthInMeters = App.setting.OverlayScale;
+            if (App.captureWindow.configMenu.IsVisible)
+                baseWidthInMeters = App.setting.OverlayScale / 2f;
+
+            // Calculate curve using the stable base width so layout changes do not warp the mesh radius
+            float curve = baseWidthInMeters / 6f * currentTargetDistance * (App.setting.OverlayCurve / 100f);
             OpenVR.Overlay.SetOverlayCurvature(overlayHandle, curve);
         }
 
@@ -612,50 +617,50 @@ namespace ScreenLookup.src.utils
                         PrintWindow(popup.Handle, hdcP, 0x02);
                         gP.ReleaseHdc(hdcP);
 
-                            // Flyout corner processing block
-                            BitmapData pData = popupBmp.LockBits(new Rectangle(0, 0, pW, pH), ImageLockMode.ReadWrite, popupBmp.PixelFormat);
-                            unsafe
+                        // Flyout corner processing block
+                        BitmapData pData = popupBmp.LockBits(new Rectangle(0, 0, pW, pH), ImageLockMode.ReadWrite, popupBmp.PixelFormat);
+                        unsafe
+                        {
+                            int pRadius = 8;
+                            for (int y = 0; y < pH; y++)
                             {
-                                int pRadius = 8;
-                                for (int y = 0; y < pH; y++)
+                                byte* pRowPtr = (byte*)pData.Scan0 + (y * pData.Stride);
+                                for (int x = 0; x < pW; x++)
                                 {
-                                    byte* pRowPtr = (byte*)pData.Scan0 + (y * pData.Stride);
-                                    for (int x = 0; x < pW; x++)
+                                    int offset = x * 4;
+                                    bool insideCornerZone = false;
+                                    int cx = 0, cy = 0;
+
+                                    if (x < pRadius && y < pRadius) { insideCornerZone = true; cx = pRadius - 1; cy = pRadius - 1; }
+                                    else if (x >= pW - pRadius && y < pRadius) { insideCornerZone = true; cx = pW - pRadius; cy = pRadius - 1; }
+                                    else if (x < pRadius && y >= pH - pRadius) { insideCornerZone = true; cx = pRadius - 1; cy = pH - pRadius; }
+                                    else if (x >= pW - pRadius && y >= pH - pRadius) { insideCornerZone = true; cx = pW - pRadius; cy = pH - pRadius; }
+
+                                    if (insideCornerZone)
                                     {
-                                        int offset = x * 4;
-                                        bool insideCornerZone = false;
-                                        int cx = 0, cy = 0;
-
-                                        if (x < pRadius && y < pRadius) { insideCornerZone = true; cx = pRadius - 1; cy = pRadius - 1; }
-                                        else if (x >= pW - pRadius && y < pRadius) { insideCornerZone = true; cx = pW - pRadius; cy = pRadius - 1; }
-                                        else if (x < pRadius && y >= pH - pRadius) { insideCornerZone = true; cx = pRadius - 1; cy = pH - pRadius; }
-                                        else if (x >= pW - pRadius && y >= pH - pRadius) { insideCornerZone = true; cx = pW - pRadius; cy = pH - pRadius; }
-
-                                        if (insideCornerZone)
+                                        int dx = x - cx;
+                                        int dy = y - cy;
+                                        if ((dx * dx) + (dy * dy) > (pRadius * pRadius))
                                         {
-                                            int dx = x - cx;
-                                            int dy = y - cy;
-                                            if ((dx * dx) + (dy * dy) > (pRadius * pRadius))
-                                            {
-                                                pRowPtr[offset + 0] = 0;
-                                                pRowPtr[offset + 1] = 0;
-                                                pRowPtr[offset + 2] = 0;
-                                                pRowPtr[offset + 3] = 0;
-                                                continue;
-                                            }
-                                        }
-
-                                        if (pRowPtr[offset + 3] == 255 && pRowPtr[offset + 2] == 0 && pRowPtr[offset + 1] == 0 && pRowPtr[offset + 0] == 0)
-                                        {
+                                            pRowPtr[offset + 0] = 0;
+                                            pRowPtr[offset + 1] = 0;
+                                            pRowPtr[offset + 2] = 0;
                                             pRowPtr[offset + 3] = 0;
+                                            continue;
                                         }
+                                    }
+
+                                    if (pRowPtr[offset + 3] == 255 && pRowPtr[offset + 2] == 0 && pRowPtr[offset + 1] == 0 && pRowPtr[offset + 0] == 0)
+                                    {
+                                        pRowPtr[offset + 3] = 0;
                                     }
                                 }
                             }
-                            popupBmp.UnlockBits(pData);
+                        }
+                        popupBmp.UnlockBits(pData);
 
-                            // Composite popups onto the master canvas based on the computed offset anchor
-                            sharedCaptureGraphics.DrawImage(popupBmp, popup.Rect.Left - minLeft, popup.Rect.Top - minTop);
+                        // Composite popups onto the master canvas based on the computed offset anchor
+                        sharedCaptureGraphics.DrawImage(popupBmp, popup.Rect.Left - minLeft, popup.Rect.Top - minTop);
                     }
                 });
 
