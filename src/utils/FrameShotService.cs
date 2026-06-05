@@ -336,8 +336,13 @@ namespace ScreenLookup.src.utils
             using (Graphics g = Graphics.FromImage(frameBitmap!))
             {
                 g.Clear(System.Drawing.Color.Transparent);
-                using Pen pen = new Pen(System.Drawing.Color.FromArgb(255, 218, 96, 255), 8f);
-                g.DrawRectangle(pen, 4, 4, drawW - 9, drawH - 9);
+
+                // Calculate pen thickness based on the maximum dimension (width or height) in meters.
+                // This keeps the line thickness visually consistent in VR, even in portrait mode where the width is small.
+                float penThickness = Math.Max(1f, 4f / Math.Max(lastFrameWidth, lastFrameHeight));
+                float inset = penThickness / 2f;
+                using Pen pen = new(System.Drawing.Color.FromArgb(255, 218, 96, 255), penThickness);
+                g.DrawRectangle(pen, inset, inset, drawW - penThickness, drawH - penThickness);
             }
 
             Rectangle rect = new(0, 0, FRAME_TEX_W, FRAME_TEX_H);
