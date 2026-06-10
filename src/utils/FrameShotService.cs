@@ -230,6 +230,8 @@ namespace ScreenLookup.src.utils
                 {
                     AppUtilities.PlaySound("ready.wav");
                     App.captureWindow.HideWindow();
+                    
+                    EnsureMirrorPipeline(); // Warm up the mirror texture pipeline so the first capture isn't black
                 }
 
                 IsFraming = wasFraming || isInRange;
@@ -384,6 +386,7 @@ namespace ScreenLookup.src.utils
                                  mirrorFormat == Format.R8G8B8A8_Typeless;
 
                 d3dContext!.CopyResource(mirrorStaging!, mirrorTexCached!);
+                d3dContext.Flush(); // Ensure the GPU has finished the copy before we attempt to map and read the memory.
                 MappedSubresource box = d3dContext.Map(mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
                 mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
                 BitmapData? bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
