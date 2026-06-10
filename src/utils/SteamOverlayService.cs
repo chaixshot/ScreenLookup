@@ -55,7 +55,7 @@ namespace ScreenLookup.src.utils
         private IntPtr targetHwnd = IntPtr.Zero;
 
         private CancellationTokenSource? cts;
-        private Task? pollTask;
+        private Task? processTask;
         private bool running;
         private readonly VRInputService inputService;
 
@@ -91,7 +91,7 @@ namespace ScreenLookup.src.utils
 
                 SetWindow();
                 SetVisible(false);
-                StartPolling();
+                StartThread();
 
                 targetWindow.LayoutUpdated += (s, e) =>
                 {
@@ -276,23 +276,23 @@ namespace ScreenLookup.src.utils
             OpenVR.Overlay.SetOverlayCurvature(overlayHandle, curve);
         }
 
-        #region Polling Architecture Loop
-        private void StartPolling()
+        #region Thread Architecture Loop
+        private void StartThread()
         {
             if (running) return;
 
             cts = new CancellationTokenSource();
             running = true;
-            pollTask = PollLoopAsync(cts.Token);
+            processTask = ThreadLoopAsync(cts.Token);
         }
 
-        private void StopPolling()
+        private void StopThread()
         {
             running = false;
             cts?.Cancel();
         }
 
-        private async Task PollLoopAsync(CancellationToken ct)
+        private async Task ThreadLoopAsync(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
@@ -805,7 +805,7 @@ namespace ScreenLookup.src.utils
         {
             if (isInitialized)
             {
-                StopPolling();
+                StopThread();
 
                 lock (d3dLock)
                 {
