@@ -46,6 +46,12 @@ namespace ScreenLookup.src.pages
                 StatusDot.Fill = Brushes.Red;
                 StatusText.Text = FrameShot?.LastError ?? "Not Connected";
                 StatusButton.Content = "Connect to SteamVR";
+
+                FrameShot?.Dispose();
+                FrameShot = null;
+
+                SteamOverlay?.Dispose();
+                SteamOverlay = null;
             }
 
             StatusButton.IsEnabled = true;
@@ -91,8 +97,6 @@ namespace ScreenLookup.src.pages
 
                 if (FrameShot.Connect())
                 {
-                    FrameShot.StartPolling();
-
                     if (App.setting.OverlayEnable)
                         SteamOverlay = new SteamOverlayService();
                 }
@@ -113,13 +117,7 @@ namespace ScreenLookup.src.pages
 
                 if (FrameShot?.IsConnected == true)
                 {
-
                     FrameShot.Disconnect();
-                    FrameShot.Dispose();
-                    FrameShot = null;
-
-                    SteamOverlay?.Dispose();
-                    SteamOverlay = null;
 
                     UpdateStatusUI();
                 }

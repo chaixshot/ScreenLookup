@@ -1,3 +1,4 @@
+
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -32,7 +33,7 @@ namespace ScreenLookup.src.utils
         private CVRSystem? vrSystem;
         private ulong overlayHandle;
         private CancellationTokenSource? cts;
-        private Task? pollTask;
+        private Task? processTask;
         private bool running;
         private readonly Action<string> log;
 
@@ -130,6 +131,7 @@ namespace ScreenLookup.src.utils
 
                 IsConnected = true;
                 EmitState();
+                StartThread();
 
                 return true;
             }
@@ -145,10 +147,10 @@ namespace ScreenLookup.src.utils
             if (!IsConnected)
                 return;
 
-            StopPolling();
+            StopThread();
 
-            if (pollTask != null && !pollTask.IsCompleted)
-                pollTask.Wait(TimeSpan.FromMilliseconds(500));
+            if (processTask != null && !processTask.IsCompleted && Task.CurrentId != processTask.Id) // Avoid deadlock if Disconnect is called from the polling thread (e.g. during a VR Quit event)
+                processTask.Wait(TimeSpan.FromMilliseconds(500));
 
             lock (d3dLock)
             {
@@ -171,41 +173,54 @@ namespace ScreenLookup.src.utils
 
             OpenVR.Shutdown();
             IsConnected = false;
+            EmitState();
         }
 
-        public void StartPolling()
+        public void StartThread()
         {
             if (running)
                 return;
 
             cts = new CancellationTokenSource();
             running = true;
-            pollTask = PollLoopAsync(cts.Token);
+            processTask = ThreadAsync(cts.Token);
         }
 
-        public void StopPolling()
+        public void StopThread()
         {
             running = false;
             cts?.Cancel();
         }
 
-        private async Task PollLoopAsync(CancellationToken ct)
+        private async Task ThreadAsync(CancellationToken ct)
         {
             float refreshRate = VRInputService.GetHmdRefreshRate();
             int delay = (int)(1000 / refreshRate);
 
             while (!ct.IsCancellationRequested)
             {
-                ProcessFrame();
+                ProcessThread();
                 await Task.Delay(delay, ct);
             }
         }
 
-        private void ProcessFrame()
+        private void ProcessThread()
         {
             CVRSystem system = OpenVR.System;
             if (system == null || !IsConnected)
                 return;
+
+            // Detect SteamVR quit events to handle external shutdown gracefully and prevent app-wide exit
+            VREvent_t vrEvent = new();
+            while (system.PollNextEvent(ref vrEvent, (uint)Marshal.SizeOf<VREvent_t>()))
+            {
+                if (vrEvent.eventType == (uint)EVREventType.VREvent_Quit)
+                {
+                    LastError = "SteamVR Disconnected";
+                    Disconnect();
+                    return;
+                }
+            }
 
             // Gather inputs via sub-service
             inputService.UpdatePosesAndIndices();
@@ -230,7 +245,7 @@ namespace ScreenLookup.src.utils
                 {
                     AppUtilities.PlaySound("ready.wav");
                     App.captureWindow.HideWindow();
-                    
+
                     EnsureMirrorPipeline(); // Warm up the mirror texture pipeline so the first capture isn't black
                 }
 
