@@ -33,10 +33,26 @@
         /// string if the translation fails.</returns>
         public static async Task<string> GetTranslated(string text, int sourceLang, int targetLang)
         {
-            // Translated text
+            // Fallback 1: Tesseract Tags
             try
             {
                 var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetTesseractTagFromID(targetLang), LanguageList.GetTesseractTagFromID(sourceLang));
+                return translateResult.Translation;
+            }
+            catch { }
+
+            // Fallback 2: ISO 639-1 Tags
+            try
+            {
+                var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetLanguageISO6391FromID(targetLang), LanguageList.GetLanguageISO6391FromID(sourceLang));
+                return translateResult.Translation;
+            }
+            catch { }
+
+            // Fallback 3: ISO 639-3 Tags
+            try
+            {
+                var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetLanguageISO6393FromID(targetLang), LanguageList.GetLanguageISO6393FromID(sourceLang));
                 return translateResult.Translation;
             }
             catch (Exception ex)
