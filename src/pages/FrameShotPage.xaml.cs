@@ -1,4 +1,5 @@
 using ScreenLookup.src.utils;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -67,7 +68,8 @@ namespace ScreenLookup.src.pages
                 while (App.setting.AutoConnectStamVR)
                 {
                     if (FrameShot == null || !FrameShot.IsConnected)
-                        TryConnect();
+                        if (Process.GetProcessesByName("vrserver").Length > 0)
+                            TryConnect();
 
                     await Task.Delay(5000);
                 }
