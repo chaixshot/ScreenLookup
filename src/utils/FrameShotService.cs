@@ -350,38 +350,57 @@ namespace ScreenLookup.src.utils
 
         private void DrawFrameTexture(int drawW, int drawH)
         {
-            using (Graphics g = Graphics.FromImage(frameBitmap!))
+            if (frameBitmap == null || d3dContext == null || stagingTex == null || overlayTex == null)
+                return;
+
+            using (Graphics g = Graphics.FromImage(frameBitmap))
             {
-                g.Clear(System.Drawing.Color.Transparent);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.Transparent);
 
                 // Calculate pen thickness based on the maximum dimension (width or height) in meters.
                 // This keeps the line thickness visually consistent in VR, even in portrait mode where the width is small.
                 float penThickness = Math.Max(1f, 4f / Math.Max(lastFrameWidth, lastFrameHeight));
                 float inset = penThickness / 2f;
-                using Pen pen = new(System.Drawing.Color.FromArgb(255, 218, 96, 255), penThickness);
-                g.DrawRectangle(pen, inset, inset, drawW - penThickness, drawH - penThickness);
+                using Pen pen = new(Color.FromArgb(255, 218, 96, 255), penThickness);
+                g.DrawRectangle(pen, inset, inset, drawW - penThickness - 1, drawH - penThickness - 1);
             }
 
             Rectangle rect = new(0, 0, FRAME_TEX_W, FRAME_TEX_H);
-            BitmapData? bData = frameBitmap!.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            lock (d3dLock)
+            BitmapData? bData = null;
+            try
             {
-                MappedSubresource box = d3dContext!.Map(stagingTex!, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
-                for (int y = 0; y < FRAME_TEX_H; y++)
+                bData = frameBitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                int rowBytes = FRAME_TEX_W * 4;
+                int srcStride = bData.Stride;
+                lock (d3dLock)
                 {
-                    Marshal.Copy(bData.Scan0 + y * bData.Stride, rowBuffer, 0, FRAME_TEX_W * 4);
-                    Marshal.Copy(rowBuffer, 0, box.DataPointer + (nint)((long)y * box.RowPitch), FRAME_TEX_W * 4);
+                    MappedSubresource box =
+                        d3dContext.Map(stagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
+                    try
+                    {
+                        unsafe // Use unsafe context for direct memory copy
+                        {
+                            byte* srcBase = (byte*)bData.Scan0;
+                            byte* dstBase = (byte*)box.DataPointer;
+                            for (int y = 0; y < FRAME_TEX_H; y++)
+                                Buffer.MemoryCopy(srcBase + (long)y * srcStride, dstBase + (long)y * box.RowPitch,
+                                    rowBytes, rowBytes);
+                        }
+                    }
+                    finally { d3dContext.Unmap(stagingTex, 0); }
+                    d3dContext.CopyResource(overlayTex, stagingTex);
                 }
-                d3dContext.Unmap(stagingTex!, 0);
-                d3dContext.CopyResource(overlayTex!, stagingTex!);
             }
-            frameBitmap.UnlockBits(bData);
+            finally { if (bData != null) frameBitmap.UnlockBits(bData); }
 
-            VRTextureBounds_t bounds = new VRTextureBounds_t { uMin = 0f, vMin = 0f, uMax = (float)drawW / FRAME_TEX_W, vMax = (float)drawH / FRAME_TEX_H };
+            VRTextureBounds_t bounds = new()
+            { uMin = 0f, vMin = 0f, uMax = (float)drawW / FRAME_TEX_W, vMax = (float)drawH / FRAME_TEX_H };
             OpenVR.Overlay.SetOverlayTextureBounds(overlayHandle, ref bounds);
 
             Texture_t vrTex = new() { handle = overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
             OpenVR.Overlay.SetOverlayTexture(overlayHandle, ref vrTex);
+            lock (d3dLock) { d3dContext?.Flush(); }
         }
 
         public void CaptureAndSave(bool isTriggerHeld)
