@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using ScreenLookup.src.models;
+using ScreenLookup.src.pages;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -45,6 +46,7 @@ namespace ScreenLookup.src.utils
         public Dictionary<string, bool> loadedTesseract = [];
         public Dictionary<string, bool> loadedHunspell = [];
 
+        private bool autoConnectStamVR = false;
         private bool overlayEnable = true;
         private float overlayHigh = 0f;
         private float overlayDistance = 2f;
@@ -107,6 +109,7 @@ namespace ScreenLookup.src.utils
                 FontFace = settings.FontFace;
                 FontSizeS = settings.FontSizeS;
 
+                AutoConnectStamVR = settings.autoConnectStamVR;
                 OverlayEnable = settings.overlayEnable;
                 OverlayHigh = settings.overlayHigh;
                 OverlayDistance = settings.overlayDistance;
@@ -352,6 +355,20 @@ namespace ScreenLookup.src.utils
             set
             {
                 fontSizes = value;
+
+                OnPropertyChanged();
+            }
+        }
+
+        public bool AutoConnectStamVR
+        {
+            get => autoConnectStamVR;
+            set
+            {
+                autoConnectStamVR = value;
+
+                if (value)
+                    FrameShotPage.AutoConnectSteamVR();
 
                 OnPropertyChanged();
             }

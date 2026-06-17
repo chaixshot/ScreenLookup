@@ -7,16 +7,17 @@ namespace ScreenLookup.src.pages
 {
     public partial class FrameShotPage : Page
     {
-        private FrameShotService? FrameShot;
-        private SteamOverlayService? SteamOverlay;
+        private static FrameShotService? FrameShot;
+        private static SteamOverlayService? SteamOverlay;
 
         public FrameShotPage()
         {
             InitializeComponent();
 
-            Loaded += (s, e) =>
+            // Initialize UI values
             {
-                // Initialize UI values
+                AutoConnectStamVR.IsChecked = App.setting.AutoConnectStamVR;
+
                 ActivationRadius.Value = App.setting.ActivationRadius;
                 UseRightEye.IsChecked = App.setting.UseRightEye;
                 FrameOffset.Value = App.setting.FrameOffset;
@@ -30,7 +31,53 @@ namespace ScreenLookup.src.pages
 
                 UseHmdRotations.IsChecked = App.setting.UseHmdRotations;
                 HmdRotationThreshold.Value = App.setting.HmdRotationThreshold;
+            }
+
+            Loaded += (s, e) =>
+            {
+                UpdateStatusUI();
+
+                FrameShot?.OnStateUpdate += FrameShot_OnStateUpdate;
             };
+
+            Unloaded += (s, e) =>
+            {
+                FrameShot?.OnStateUpdate -= FrameShot_OnStateUpdate;
+            };
+        }
+
+        private static void InitializeFrameShot()
+        {
+            if (FrameShot != null) return;
+
+            FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
+            FrameShot.OnPhotoSaved += (image, triggerHeld) =>
+            {
+                App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    App.captureWindow.StartCaptureScreen(image, triggerHeld);
+                }));
+            };
+        }
+
+        public static void AutoConnectSteamVR()
+        {
+            Task.Run(async () =>
+            {
+                while (App.setting.AutoConnectStamVR)
+                {
+                    if (FrameShot == null || !FrameShot.IsConnected)
+                        TryConnect();
+
+                    await Task.Delay(5000);
+                }
+            });
+        }
+
+        private void FrameShot_OnStateUpdate(object state)
+        {
+            StatusButton.IsEnabled = false;
+            Dispatcher.Invoke(UpdateStatusUI);
         }
 
         private void UpdateStatusUI()
@@ -48,10 +95,7 @@ namespace ScreenLookup.src.pages
                 StatusButton.Content = "Connect to SteamVR";
 
                 FrameShot?.Dispose();
-                FrameShot = null;
-
                 SteamOverlay?.Dispose();
-                SteamOverlay = null;
             }
 
             StatusButton.IsEnabled = true;
@@ -59,58 +103,34 @@ namespace ScreenLookup.src.pages
 
         private void Connect_Click(object sender, RoutedEventArgs e)
         {
+            StatusButton.IsEnabled = false;
+
             if (FrameShot?.IsConnected == true)
-            {
                 TryDisconnect();
-            }
             else
                 TryConnect();
         }
 
-        private void TryConnect()
+        private static void TryConnect()
         {
-            StatusButton.IsEnabled = false;
-
-            // Use static instances to persist state across page navigation
-            if (FrameShot == null)
-            {
-                FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
-
-                // Hook events
-                FrameShot.OnStateUpdate += (state) =>
-                {
-                    Dispatcher.Invoke(UpdateStatusUI);
-                };
-
-                FrameShot.OnPhotoSaved += (image, triggerHeld) =>
-                {
-                    App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
-                    {
-                        App.captureWindow.StartCaptureScreen(image, triggerHeld);
-                    }));
-                };
-            }
-
             App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
             {
+                InitializeFrameShot();
+
                 await Task.Delay(100);
 
-                if (FrameShot.Connect())
+                if (FrameShot!.Connect())
                 {
                     if (App.setting.OverlayEnable)
                         SteamOverlay = new SteamOverlayService();
                 }
                 else
                     SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
-
-                UpdateStatusUI();
             }));
         }
 
-        private void TryDisconnect()
+        private static void TryDisconnect()
         {
-            StatusButton.IsEnabled = false;
-
             App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
             {
                 await Task.Delay(100);
@@ -118,11 +138,16 @@ namespace ScreenLookup.src.pages
                 if (FrameShot?.IsConnected == true)
                 {
                     FrameShot.Disconnect();
-
-                    UpdateStatusUI();
                 }
             }));
         }
+
+        private void AutoConnectStamVR_Changed(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+                App.setting.AutoConnectStamVR = AutoConnectStamVR.IsChecked == true;
+        }
+
 
         //?? General Settings
         private void ActivationRadius_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -133,10 +158,13 @@ namespace ScreenLookup.src.pages
 
         private void UseRightEye_Changed(object sender, RoutedEventArgs e)
         {
-            if (FrameShot?.IsConnected == true)
-                TryDisconnect();
+            if (IsLoaded)
+            {
+                if (FrameShot?.IsConnected == true)
+                    TryDisconnect();
 
-            App.setting.UseRightEye = UseRightEye.IsChecked == true;
+                App.setting.UseRightEye = UseRightEye.IsChecked == true;
+            }
         }
 
         private void FrameOffset_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -145,13 +173,17 @@ namespace ScreenLookup.src.pages
                 App.setting.FrameOffset = (int)e.NewValue;
         }
 
+
         //?? Overlay Settings
         private void OverlayEnable_Changed(object sender, RoutedEventArgs e)
         {
-            if (FrameShot?.IsConnected == true)
-                TryDisconnect();
+            if (IsLoaded)
+            {
+                if (FrameShot?.IsConnected == true)
+                    TryDisconnect();
 
-            App.setting.OverlayEnable = OverlayEnable.IsChecked == true;
+                App.setting.OverlayEnable = OverlayEnable.IsChecked == true;
+            }
         }
 
         private void OverlayHigh_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -187,7 +219,8 @@ namespace ScreenLookup.src.pages
         //?? Rotation Settings
         private void HmdRotCheck_Changed(object sender, RoutedEventArgs e)
         {
-            App.setting.UseHmdRotations = UseHmdRotations.IsChecked == true;
+            if (IsLoaded)
+                App.setting.UseHmdRotations = UseHmdRotations.IsChecked == true;
         }
 
         private void HmdRotationThreshold_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
