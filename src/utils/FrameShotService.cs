@@ -147,10 +147,10 @@ namespace ScreenLookup.src.utils
             if (!IsConnected)
                 return;
 
-            StopThread();
-
             if (processTask != null && !processTask.IsCompleted && Task.CurrentId != processTask.Id) // Avoid deadlock if Disconnect is called from the polling thread (e.g. during a VR Quit event)
                 processTask.Wait(TimeSpan.FromMilliseconds(500));
+
+            StopThread();
 
             lock (d3dLock)
             {
