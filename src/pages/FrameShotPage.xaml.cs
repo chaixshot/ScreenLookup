@@ -1,8 +1,8 @@
 using ScreenLookup.src.utils;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Valve.VR;
 
 namespace ScreenLookup.src.pages
 {
@@ -68,8 +68,16 @@ namespace ScreenLookup.src.pages
                 while (App.setting.AutoConnectStamVR)
                 {
                     if (FrameShot == null || !FrameShot.IsConnected)
-                        if (Process.GetProcessesByName("vrserver").Length > 0)
+                    {
+                        EVRInitError peError = EVRInitError.None;
+                        await Task.Run(() => OpenVR.Init(ref peError, EVRApplicationType.VRApplication_Background));
+
+                        if (peError == EVRInitError.None)
+                        {
+                            OpenVR.Shutdown();
                             TryConnect();
+                        }
+                    }
 
                     await Task.Delay(5000);
                 }
