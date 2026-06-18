@@ -10,6 +10,7 @@ namespace ScreenLookup.src.pages
     {
         private static FrameShotService? FrameShot;
         private static SteamOverlayService? SteamOverlay;
+        private static bool SetStateUpdate;
 
         public FrameShotPage()
         {
@@ -111,19 +112,27 @@ namespace ScreenLookup.src.pages
             StatusButton.IsEnabled = true;
         }
 
-        private void Connect_Click(object sender, RoutedEventArgs e)
+        private async void Connect_Click(object sender, RoutedEventArgs e)
         {
             StatusButton.IsEnabled = false;
 
             if (FrameShot?.IsConnected == true)
-                TryDisconnect();
+                await TryDisconnect();
             else
-                TryConnect();
+                await TryConnect();
+
+            if (FrameShot?.IsConnected == true)
+            {
+                FrameShot?.OnStateUpdate -= FrameShot_OnStateUpdate;
+                FrameShot?.OnStateUpdate += FrameShot_OnStateUpdate;
+            }
+
+            UpdateStatusUI();
         }
 
-        private static void TryConnect()
+        private static async Task TryConnect()
         {
-            App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
+            await await App.captureWindow.Dispatcher.InvokeAsync(async () =>
             {
                 InitializeFrameShot();
 
@@ -136,12 +145,12 @@ namespace ScreenLookup.src.pages
                 }
                 else
                     SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
-            }));
+            });
         }
 
-        private static void TryDisconnect()
+        private static async Task TryDisconnect()
         {
-            App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
+            await await App.captureWindow.Dispatcher.InvokeAsync(async () =>
             {
                 await Task.Delay(100);
 
@@ -149,7 +158,7 @@ namespace ScreenLookup.src.pages
                 {
                     FrameShot.Disconnect();
                 }
-            }));
+            });
         }
 
         private void AutoConnectStamVR_Changed(object sender, RoutedEventArgs e)
