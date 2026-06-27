@@ -10,11 +10,12 @@ namespace ScreenLookup.src.pages
     {
         private static FrameShotService? FrameShot;
         private static SteamOverlayService? SteamOverlay;
-        private static bool SetStateUpdate;
+        public static FrameShotPage? Instance;
 
         public FrameShotPage()
         {
             InitializeComponent();
+            Instance = this;
 
             // Initialize UI values
             {
@@ -39,6 +40,7 @@ namespace ScreenLookup.src.pages
             {
                 UpdateStatusUI();
 
+                FrameShot?.OnStateUpdate -= Instance.FrameShot_OnStateUpdate;
                 FrameShot?.OnStateUpdate += FrameShot_OnStateUpdate;
             };
 
@@ -50,21 +52,29 @@ namespace ScreenLookup.src.pages
 
         private static void InitializeFrameShot()
         {
-            if (FrameShot != null) return;
-
-            FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
-            FrameShot.OnPhotoSaved += (image, triggerHeld) =>
+            if (FrameShot == null)
             {
-                App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
+                FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
+
+                FrameShot.OnPhotoSaved += (image, triggerHeld) =>
                 {
-                    App.captureWindow.StartCaptureScreen(image, triggerHeld);
-                }));
-            };
+                    App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        App.captureWindow.StartCaptureScreen(image, triggerHeld);
+                    }));
+                };
+
+                if (Instance != null)
+                {
+                    FrameShot?.OnStateUpdate -= Instance.FrameShot_OnStateUpdate;
+                    FrameShot?.OnStateUpdate += Instance.FrameShot_OnStateUpdate;
+                }
+            }
         }
 
         public static void AutoConnectSteamVR()
         {
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (App.setting.AutoConnectStamVR)
                 {
@@ -85,7 +95,7 @@ namespace ScreenLookup.src.pages
             });
         }
 
-        private void FrameShot_OnStateUpdate(object state)
+        public void FrameShot_OnStateUpdate(object state)
         {
             StatusButton.IsEnabled = false;
             Dispatcher.Invoke(UpdateStatusUI);
@@ -116,7 +126,7 @@ namespace ScreenLookup.src.pages
         {
             StatusButton.IsEnabled = false;
 
-            if (FrameShot?.IsConnected == true)
+            if (FrameShot?.IsConnected == true && StatusDot.Fill == Brushes.Green)
                 await TryDisconnect();
             else
                 await TryConnect();
