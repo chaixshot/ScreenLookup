@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 
 namespace ScreenLookup.src.models
 {
@@ -10,5 +11,6 @@ namespace ScreenLookup.src.models
         public required string SourceLanguage { get; set; }
         public required string TargetLanguage { get; set; }
         public Visibility ScoreVisibility { get; set; }
+        public required FontFamily FontFace { get; set; }
     }
 }

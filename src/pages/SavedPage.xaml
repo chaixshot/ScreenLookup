@@ -228,7 +228,10 @@
                                                 Tag="{Binding Original}"
                                                 ToolTip="Copy" />
 
-                                            <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Original}" />
+                                            <Controls:TextBlock
+                                                Margin="15,0,0,0"
+                                                FontFamily="{Binding FontFace}"
+                                                Text="{Binding Original}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -265,7 +268,10 @@
                                                                         Filled=False}"
                                                 Tag="{Binding Translated}"
                                                 ToolTip="Copy" />
-                                            <Controls:TextBlock Margin="15,0,0,0" Text="{Binding Translated}" />
+                                            <Controls:TextBlock
+                                                Margin="15,0,0,0"
+                                                FontFamily="{Binding FontFace}"
+                                                Text="{Binding Translated}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

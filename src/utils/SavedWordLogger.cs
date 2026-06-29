@@ -1,10 +1,11 @@
-﻿﻿using CsvHelper;
+﻿using CsvHelper;
 using Microsoft.Data.Sqlite;
 using ScreenLookup.src.models;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Media;
 
 namespace ScreenLookup.src.utils
 {
@@ -196,6 +197,7 @@ namespace ScreenLookup.src.utils
                         SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
                         TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
                         ScoreVisibility = Int32.Parse(reader.GetString(reader.GetOrdinal("Score"))) > 0 ? Visibility.Visible : Visibility.Collapsed,
+                        FontFace = new FontFamily(App.setting.FontFace),
                     });
                 }
             }
@@ -225,6 +227,7 @@ namespace ScreenLookup.src.utils
                         Translated = reader.GetString(reader.GetOrdinal("Translated")),
                         SourceLanguage = LanguageList.GetDisplayNameFromID(sourceLanguage, false),
                         TargetLanguage = LanguageList.GetDisplayNameFromID(targetLanguage, false),
+                        FontFace = new FontFamily(App.setting.FontFace),
                     });
                 }
             }

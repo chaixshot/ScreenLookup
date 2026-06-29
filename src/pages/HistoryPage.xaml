@@ -262,6 +262,7 @@
                                                             BorderThickness="{Binding Border}"
                                                             Click="Button_Word"
                                                             Content="{Binding Word}"
+                                                            FontFamily="{Binding FontFace}"
                                                             Tag="{Binding TargetLanguage}"
                                                             ToolTip="{Binding Word}" />
                                                     </DataTemplate>
@@ -271,6 +272,7 @@
                                                 x:Name="original"
                                                 Grid.Column="1"
                                                 Margin="15,0,0,0"
+                                                FontFamily="{Binding FontFace}"
                                                 Text="{Binding Original}"
                                                 TextWrapping="Wrap" />
                                         </Grid>
@@ -320,6 +322,7 @@
                                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                                 <Controls:TextBlock
                                                     Margin="15,0,0,0"
+                                                    FontFamily="{Binding FontFace}"
                                                     Text="{Binding Translated}"
                                                     TextWrapping="Wrap" />
 
