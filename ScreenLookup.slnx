@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ScreenGrab/src/ScreenGrab/ScreenGrab.csproj" />
+  <Project Path="ScreenLookup.csproj" />
+</Solution>

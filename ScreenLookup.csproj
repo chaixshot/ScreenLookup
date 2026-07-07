@@ -25,6 +25,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ScreenGrab\**" />
+    <EmbeddedResource Remove="ScreenGrab\**" />
+    <None Remove="ScreenGrab\**" />
+    <Page Remove="ScreenGrab\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="src\images\OnImage.png" />
     <None Remove="src\images\OnLine.png" />
   </ItemGroup>
@@ -61,7 +68,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ScreenGrab\src\ScreenGrab\ScreenGrab.csproj" />
+    <ProjectReference Include="ScreenGrab\src\ScreenGrab\ScreenGrab.csproj" />
   </ItemGroup>
 
   <ItemGroup>
