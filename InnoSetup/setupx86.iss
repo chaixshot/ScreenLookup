@@ -23,9 +23,9 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
-OutputDir=E:\github\ScreenLookup\ScreenLookup\InnoSetup
+OutputDir=E:\github\ScreenLookup\InnoSetup
 OutputBaseFilename=ScreenLookup_x86-Installer
-SetupIconFile=E:\github\ScreenLookup\ScreenLookup\src\images\applicationIcon.ico
+SetupIconFile=E:\github\ScreenLookup\src\images\applicationIcon.ico
 SolidCompression=yes
 WizardStyle=modern
 
@@ -36,7 +36,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\github\ScreenLookup\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\publish\win-x86\*"; DestDir: "{app}"; Excludes: "x64"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\github\ScreenLookup\bin\Release\net10.0-windows10.0.22621.0\publish\win-x86\*"; DestDir: "{app}"; Excludes: "x64"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
