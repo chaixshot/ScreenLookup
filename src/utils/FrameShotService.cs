@@ -38,10 +38,10 @@ namespace ScreenLookup.src.utils
         private readonly Action<string> log;
 
         // Internal Input Processing Mirrors
+        private bool isButtonComboInRage;
+        private bool isButtonComboPressed;
         private bool leftHeld;
         private bool rightHeld;
-        private bool leftTriggerHeld;
-        private bool rightTriggerHeld;
         private bool leftHeldPrev;
         private bool rightHeldPrev;
 
@@ -218,55 +218,69 @@ namespace ScreenLookup.src.utils
                 {
                     LastError = "SteamVR Disconnected";
                     Disconnect();
+                    OnVRQuit?.Invoke();
                     return;
                 }
             }
 
-            // Gather inputs via sub-service
+            // Refresh controller input states
             inputService.UpdatePosesAndIndices();
 
             leftHeldPrev = leftHeld;
             rightHeldPrev = rightHeld;
-
             leftHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.GripButtonId);
             rightHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.GripButtonId);
-            leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
-            rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
 
-            Vector3 L_Coords = Vector3.Zero, R_Coords = Vector3.Zero;
+            // Evaluate framing gestures and coordinate collection
+            Vector3 leftCoords = Vector3.Zero;
+            Vector3 rightCoords = Vector3.Zero;
             bool wasFraming = IsFraming;
-            bool isButtonCombo = leftHeld && rightHeld;
 
-            if (isButtonCombo)
+            if (leftHeld && rightHeld)
             {
-                bool isInRange = inputService.TryGetHandPositions(App.setting.ActivationRadius, out L_Coords, out R_Coords);
+                if (!isButtonComboPressed)
+                {
+                    isButtonComboInRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
+                    isButtonComboPressed = true;
+                }
+            }
+            else
+            {
+                isButtonComboPressed = false;
+                isButtonComboInRage = false;
+            }
 
-                if (!wasFraming && isInRange)
+            // Update active state based on proximity range check
+            IsFraming = isButtonComboInRage;
+
+            // Execute UI updates, audio cues, and rendering behaviors
+            if (IsFraming)
+            {
+                if (!wasFraming)
                 {
                     AppUtilities.PlaySound("ready.wav");
                     App.captureWindow.HideWindow();
-
-                    EnsureMirrorPipeline(); // Warm up the mirror texture pipeline so the first capture isn't black
+                    EnsureMirrorPipeline(); // Warm up pipeline so the first capture isn't black
                 }
 
-                IsFraming = wasFraming || isInRange;
+                UpdateFrameAndRender(leftCoords, rightCoords);
             }
-            else
-                IsFraming = false;
-
-            if (IsFraming)
-                UpdateFrameAndRender(L_Coords, R_Coords);
             else if (wasFraming)
             {
                 OpenVR.Overlay.HideOverlay(overlayHandle);
 
+                // Screenshot condition: User released RIGHT grip while continuing to hold LEFT grip
                 if (rightHeldPrev && !rightHeld && leftHeld)
                 {
                     AppUtilities.PlaySound("screenshot.wav");
 
+                    // Cache trigger button states immediately before thread delays alter input metrics
+                    bool leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
+                    bool rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
+
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(100); // Allow OpenVR overlay a frame to hide completely
                         CaptureAndSave(leftTriggerHeld || rightTriggerHeld);
                     }));
                 }
