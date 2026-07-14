@@ -144,11 +144,21 @@ namespace ScreenLookup.src.controls
 
             FollowMouse();
 
-            var stripped = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
+            string stripped = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
+
             if (!string.IsNullOrEmpty(stripped))
                 word = char.ToUpper(stripped[0]) + (stripped.Length > 1 ? stripped[1..].ToLower() : string.Empty);
 
-            message = Regex.Replace(message, @"\s*([.!?。！、])\s*", "$1\n"); // Newline next sentence
+            // Filter the message to only include sentences containing the processed word
+            if (!string.IsNullOrEmpty(message))
+            {
+                string[] sentences = Regex.Split(message, @"(?<=[.!?。！？，、;{}\[\]()])"); // Split by punctuation, keeping the punctuation delimiters in the resulting array
+
+                IEnumerable<string> filteredSentences = sentences.Where(s => s.Contains(word, StringComparison.OrdinalIgnoreCase)).Select(s => s.Trim()); // Filter sentences that contain the word (case-insensitive check against the processed word)
+
+                message = string.Join("\n", filteredSentences); // Join them back together, adding a newline after each sentence's punctuation
+                message = Regex.Replace(message, $@"\s*([{{}}\[\]])\s*", "");
+            }
 
             OriginalWord = word;
             OriginalMessage = message;
