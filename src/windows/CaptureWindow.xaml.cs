@@ -32,7 +32,7 @@ namespace ScreenLookup.src.windows
         private int LastHistoryID;
 
         private Bitmap CapturedImage;
-        private Bitmap CapturedImageEdited;
+        private Bitmap CapturedImageEditable;
 
         private static CancellationTokenSource ProcessImageCancelToken;
         private static CancellationTokenSource TranslatesCancelToken;
@@ -224,7 +224,7 @@ namespace ScreenLookup.src.windows
             }
 
             CapturedImage = image;
-            CapturedImageEdited = CapturedImage;
+                CapturedImageEditable = CapturedImage;
 
             // Option mode
             if (isRightMouse)
@@ -251,7 +251,7 @@ namespace ScreenLookup.src.windows
             }
 
             ShowWindow(false);
-            ChangeCaptureImage(CapturedImageEdited);
+            ChangeCaptureImage(CapturedImageEditable);
 
             if (App.setting.LookupOnImage)
             {
@@ -619,18 +619,18 @@ namespace ScreenLookup.src.windows
             Contol_Undo.Visibility = Visibility.Hidden;
             Contol_Confirm.Visibility = Visibility.Visible;
 
-            CapturedImageEdited = CapturedImage;
+            CapturedImageEditable = CapturedImage;
 
             EditRotate = 0;
             EditZoom = 1.0;
 
-            ChangeCaptureImage(CapturedImageEdited);
+            ChangeCaptureImage(CapturedImageEditable);
             SetWindowSize();
         }
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            if (CapturedImageEdited == CapturedImage)
+            if (CapturedImageEditable == CapturedImage)
                 Contol_Undo.Visibility = Visibility.Collapsed;
             Contol_Confirm.Visibility = Visibility.Collapsed;
 
@@ -673,11 +673,11 @@ namespace ScreenLookup.src.windows
 
         private void ApplyCaptureEdit()
         {
-            CapturedImageEdited = CapturedImage;
-            CapturedImageEdited = Convertor.BitmapRescale(CapturedImageEdited, EditZoom);
-            CapturedImageEdited = Convertor.BitmapRotate(CapturedImageEdited, EditRotate);
+            CapturedImageEditable = CapturedImage;
+            CapturedImageEditable = Convertor.BitmapRescale(CapturedImageEditable, EditZoom);
+            CapturedImageEditable = Convertor.BitmapRotate(CapturedImageEditable, EditRotate);
 
-            ChangeCaptureImage(CapturedImageEdited);
+            ChangeCaptureImage(CapturedImageEditable);
             SetWindowSize();
             SetWindowPosition(new Point(this.Left, this.Top));
         }
