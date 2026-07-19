@@ -277,16 +277,16 @@ namespace ScreenLookup.src.windows
                 SetWindowPosition();
             }
 
-            ProcessImage();
+            ProcessImage(CapturedImageEditable);
         }
 
-        private void ProcessImage()
+        private void ProcessImage(Bitmap image)
         {
             Task.Run(async () =>
             {
                 try
                 {
-                    using var tesseractPage = await GetTesseractPageFromBitmap(CapturedImageEdited).ConfigureAwait(false);
+                    using var tesseractPage = await GetTesseractPageFromBitmap(image).ConfigureAwait(false);
                     var pageText = tesseractPage.Text;
                     var captureWords = TesseractCaptureWordsySimplify(tesseractPage);
                     // Offload heavy XML parsing to background thread
@@ -635,7 +635,7 @@ namespace ScreenLookup.src.windows
             Contol_Confirm.Visibility = Visibility.Collapsed;
 
             IsCapturing = true;
-            ProcessImage();
+            ProcessImage(CapturedImageEditable);
         }
 
         private void RotateLeft_Click(object sender, RoutedEventArgs e)
