@@ -222,20 +222,28 @@
 
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Controls:Button
-                                        Uid="{Binding Uid}"
-                                        Width="{Binding Width}"
-                                        Height="{Binding Height}"
-                                        Padding="0"
-                                        Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
-                                        BorderBrush="{wpfui:ThemeResource AccentTextFillColorSecondaryBrush}"
-                                        BorderThickness="1"
-                                        Click="Button_Message"
-                                        MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
-                                        Opacity="0.2"
-                                        Tag="{Binding SourceLanguage}"
-                                        ToolTip="{Binding Word}" />
+                                    <Grid>
+                                        <Controls:Button
+                                            Width="{Binding Width}"
+                                            Height="{Binding Height}"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderBrush="{wpfui:ThemeResource AccentTextFillColorSecondaryBrush}"
+                                            BorderThickness="1"
+                                            Opacity="0.6" />
 
+                                        <Controls:Button
+                                            Uid="{Binding Uid}"
+                                            Width="{Binding Width}"
+                                            Height="{Binding Height}"
+                                            Padding="0"
+                                            Background="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Click="Button_Message"
+                                            MouseOverBackground="{wpfui:ThemeResource AccentTextFillColorDisabledBrush}"
+                                            Opacity="0.2"
+                                            Tag="{Binding SourceLanguage}"
+                                            ToolTip="{Binding Word}" />
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
 
