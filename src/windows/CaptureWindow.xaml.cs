@@ -223,8 +223,8 @@ namespace ScreenLookup.src.windows
                 AppUtilities.PlaySound("screenshot.wav");
             }
 
-            CapturedImage = image;
-                CapturedImageEditable = CapturedImage;
+            CapturedImage = IsVR ? SetBitmapDimension(image) : image;
+            CapturedImageEditable = CapturedImage;
 
             // Option mode
             if (isRightMouse)
@@ -330,6 +330,43 @@ namespace ScreenLookup.src.windows
                 catch (OperationCanceledException) { }
                 catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OCR Error: {ex.Message}"); }
             }, ProcessImageCancelToken.Token);
+        }
+
+        private static Bitmap SetBitmapDimension(Bitmap bmp)
+        {
+            int canvasWidth = 1080;
+            int canvasHeight = 720;
+
+            // Calculate the scaling ratio to fit inside the box perfectly
+            double ratioX = (double)canvasWidth / bmp.Width;
+            double ratioY = (double)canvasHeight / bmp.Height;
+            double ratio = Math.Min(ratioX, ratioY);
+
+            // Compute the size of the scaled image
+            int newWidth = (int)(bmp.Width * ratio);
+            int newHeight = (int)(bmp.Height * ratio);
+
+            if (newWidth < 1) newWidth = 1;
+            if (newHeight < 1) newHeight = 1;
+
+            int posX = (canvasWidth - newWidth) / 2;
+            int posY = (canvasHeight - newHeight) / 2;
+
+            Bitmap resizedBmp = new Bitmap(canvasWidth, canvasHeight);
+
+            using (Graphics g = Graphics.FromImage(resizedBmp))
+            {
+                g.Clear(Color.White);
+
+                // Render flags for professional, sharp downscaling quality
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                g.DrawImage(bmp, posX, posY, newWidth, newHeight);
+            }
+
+            return resizedBmp;
         }
 
         private async Task TranlsateImageExpander()
