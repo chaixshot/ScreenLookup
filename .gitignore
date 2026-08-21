@@ -54,3 +54,4 @@ TestResult.xml
 nunit-*.xml
 InnoSetup/ScreenLookup*.exe
 /.vs
+/Properties/PublishProfiles
