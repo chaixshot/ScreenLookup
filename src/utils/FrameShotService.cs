@@ -423,7 +423,10 @@ namespace ScreenLookup.src.utils
                 return;
 
             PointF[]? corners = ProjectFrameCorners(mirrorW, mirrorH);
-            if (corners == null) return;
+            if (corners == null || corners.Length < 4) return;
+
+            // Guard against invalid source dimensions
+            if (lastFrameWidth <= 0 || lastFrameHeight <= 0) return;
 
             Bitmap? mirrorBmp = null;
             lock (d3dLock)
@@ -434,56 +437,74 @@ namespace ScreenLookup.src.utils
                                  mirrorFormat == Format.R8G8B8A8_Typeless;
 
                 d3dContext!.CopyResource(mirrorStaging!, mirrorTexCached!);
-                d3dContext.Flush(); // Ensure the GPU has finished the copy before we attempt to map and read the memory.
+                d3dContext.Flush();
                 MappedSubresource box = d3dContext.Map(mirrorStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
-                BitmapData? bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
 
-                unsafe
+                try
                 {
-                    for (int y = 0; y < mirrorH; y++)
-                    {
-                        byte* srcPtr = (byte*)box.DataPointer + (y * box.RowPitch);
-                        byte* dstPtr = (byte*)bData.Scan0 + (y * bData.Stride);
+                    mirrorBmp = new Bitmap(mirrorW, mirrorH, PixelFormat.Format32bppArgb);
+                    BitmapData bData = mirrorBmp.LockBits(new Rectangle(0, 0, mirrorW, mirrorH), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
 
-                        for (int x = 0; x < mirrorW; x++)
+                    unsafe
+                    {
+                        for (int y = 0; y < mirrorH; y++)
                         {
-                            if (needsSwap)
+                            byte* srcPtr = (byte*)box.DataPointer + (y * box.RowPitch);
+                            byte* dstPtr = (byte*)bData.Scan0 + (y * bData.Stride);
+
+                            for (int x = 0; x < mirrorW; x++)
                             {
-                                dstPtr[0] = srcPtr[2]; // B
-                                dstPtr[1] = srcPtr[1]; // G
-                                dstPtr[2] = srcPtr[0]; // R
+                                if (needsSwap)
+                                {
+                                    dstPtr[0] = srcPtr[2]; // B
+                                    dstPtr[1] = srcPtr[1]; // G
+                                    dstPtr[2] = srcPtr[0]; // R
+                                }
+                                else
+                                {
+                                    *(uint*)dstPtr = *(uint*)srcPtr;
+                                }
+                                dstPtr[3] = 255; // Alpha
+                                srcPtr += 4;
+                                dstPtr += 4;
                             }
-                            else
-                            {
-                                *(uint*)dstPtr = *(uint*)srcPtr;
-                            }
-                            dstPtr[3] = 255; // Alpha
-                            srcPtr += 4;
-                            dstPtr += 4;
                         }
                     }
-                }
 
-                mirrorBmp.UnlockBits(bData);
-                d3dContext.Unmap(mirrorStaging!, 0);
+                    mirrorBmp.UnlockBits(bData);
+                }
+                finally
+                {
+                    d3dContext.Unmap(mirrorStaging!, 0);
+                }
             }
 
-            int outW = (int)MathF.Max(2, Vector2.Distance(new Vector2(corners[0].X, corners[0].Y), new Vector2(corners[1].X, corners[1].Y)));
-            int outH = (int)MathF.Round(outW * (lastFrameHeight / lastFrameWidth));
+            // Validate width and height calculations
+            float dist = Vector2.Distance(new Vector2(corners[0].X, corners[0].Y), new Vector2(corners[1].X, corners[1].Y));
+            int outW = (int)MathF.Max(2, dist);
+            int outH = (int)MathF.Max(2, MathF.Round(outW * (lastFrameHeight / lastFrameWidth)));
 
             using (Bitmap outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb))
             {
                 using (Graphics g = Graphics.FromImage(outBmp))
                 {
+                    using Matrix mtx = new Matrix(new RectangleF(0, 0, outW, outH), new[] { corners[0], corners[1], corners[3] });
+                    // Ensure matrix is invertible before applying to Graphics context
+                    if (!mtx.IsInvertible)
+                    {
+                        mirrorBmp.Dispose();
+                        return;
+                    }
+
+                    mtx.Invert();
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    Matrix mtx = new(new RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
-                    mtx.Invert(); g.Transform = mtx;
+                    g.Transform = mtx;
                     g.DrawImage(mirrorBmp, 0, 0);
                 }
 
                 OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone(), isTriggerHeld);
             }
+
             mirrorBmp.Dispose();
         }
 
