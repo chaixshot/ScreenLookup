@@ -1,4 +1,4 @@
-﻿﻿using NAudio.Wave;
+using NAudio.Wave;
 using System.IO;
 using GLanguage = GTranslate.Language;
 
@@ -60,20 +60,47 @@ namespace ScreenLookup.src.utils
                     audioStreamCTS.Remove(Text);
                 }, cancelToken.Token);
 
-                // Play sound stream
-                audioStream.Position = 0;
-                using WaveStream blockAlignedStream =
-                    new BlockAlignReductionStream(
-                        WaveFormatConversionStream.CreatePcmStream(
-                            new Mp3FileReader(audioStream)));
-                WaveOut waveOut = new(WaveCallbackInfo.FunctionCallback());
-                waveOut.Init(blockAlignedStream);
-                waveOut.Play();
-                while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
+                // Play sound stream.
+                long resumePosition = 0;
+                bool keepPlaying = true;
+
+                while (keepPlaying && !token.IsCancellationRequested)
                 {
-                    await Task.Delay(100);
+                    audioStream.Position = 0;
+                    using WaveStream blockAlignedStream =
+                        new BlockAlignReductionStream(
+                            WaveFormatConversionStream.CreatePcmStream(
+                                new Mp3FileReader(audioStream)));
+
+                    // Seek to resume position after a device swap
+                    if (resumePosition > 0 && blockAlignedStream.CanSeek)
+                        blockAlignedStream.Position = Math.Min(resumePosition, blockAlignedStream.Length);
+
+                    // WaveOutEvent drives its own thread — safe on background Task threads
+                    // and always targets device -1 (current Windows default output).
+                    using WaveOutEvent waveOut = new() { DeviceNumber = -1 };
+                    try
+                    {
+                        waveOut.Init(blockAlignedStream);
+                        waveOut.Play();
+
+                        while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
+                        {
+                            await Task.Delay(100);
+                        }
+                        keepPlaying = false; // Finished or cancelled normally
+                    }
+                    catch (NAudio.MmException ex) when (
+                        ex.Result == NAudio.MmResult.InvalidHandle ||
+                        ex.Result == NAudio.MmResult.BadDeviceId ||
+                        ex.Result == NAudio.MmResult.NoDriver)
+                    {
+                        // Device changed mid-playback — save position and retry on new device
+                        resumePosition = blockAlignedStream.Position;
+                        await Task.Delay(300); // Wait for the new device to settle
+                    }
                 }
-                waveOut.Dispose();
+
 
                 return null;
             }
