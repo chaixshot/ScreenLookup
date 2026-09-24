@@ -1,4 +1,4 @@
-﻿﻿using ScreenGrab;
+﻿using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using System.Drawing;
@@ -500,39 +500,150 @@ namespace ScreenLookup.src.windows
             return items;
         }
 
+        private static bool IsCjk(char c)
+        {
+            return (c >= 0x4E00 && c <= 0x9FFF) || // CJK Unified Ideographs
+                   (c >= 0x3040 && c <= 0x309F) || // Hiragana
+                   (c >= 0x30A0 && c <= 0x30FF) || // Katakana
+                   (c >= 0x3400 && c <= 0x4DBF) || // CJK Extension A
+                   (c >= 0xAC00 && c <= 0xD7AF) || // Hangul Syllables
+                   (c >= 0x3000 && c <= 0x303F) || // CJK Symbols and Punctuation
+                   (c >= 0xFF00 && c <= 0xFFEF);   // Halfwidth and Fullwidth Forms
+        }
+
         private List<CaptureAltoEntry> TesseractAltoTextProcess(TesseractOCR.Page page)
         {
             XmlDocument xmlDoc = new();
             xmlDoc.LoadXml(page.AltoText);
             List<CaptureAltoEntry> items = [];
 
-            var composedBlocks = xmlDoc.GetElementsByTagName("ComposedBlock");
-            foreach (XmlElement item in composedBlocks)
+            var textBlocks = xmlDoc.GetElementsByTagName("TextBlock");
+            foreach (XmlElement textBlock in textBlocks)
             {
-                var textBlocks = item.GetElementsByTagName("TextBlock");
-                foreach (XmlElement textBlock in textBlocks)
+                // Build fullTextBlock for the entire TextBlock (Uid / translation context)
+                var allStrings = textBlock.GetElementsByTagName("String");
+                System.Text.StringBuilder fullTextBuilder = new();
+                string prevContent = string.Empty;
+
+                foreach (XmlElement data in allStrings)
                 {
-                    string fullTextBlock = string.Empty;
-                    var strings = textBlock.GetElementsByTagName("String");
+                    string content = data.GetAttribute("CONTENT");
+                    if (string.IsNullOrEmpty(content)) continue;
 
-                    foreach (XmlElement data in strings)
+                    if (fullTextBuilder.Length > 0 && !string.IsNullOrEmpty(prevContent))
                     {
-                        fullTextBlock += data.GetAttribute("CONTENT") + " ";
+                        char lastChar = prevContent[^1];
+                        char firstChar = content[0];
+                        if (!IsCjk(lastChar) || !IsCjk(firstChar))
+                            fullTextBuilder.Append(' ');
                     }
+                    fullTextBuilder.Append(content);
+                    prevContent = content;
+                }
+                string fullTextBlock = fullTextBuilder.ToString();
 
-                    foreach (XmlElement data in strings)
+                var textLines = textBlock.GetElementsByTagName("TextLine");
+                if (textLines.Count == 0)
+                {
+                    // Fallback if no TextLine tags exist in ALTO
+                    foreach (XmlElement data in allStrings)
                     {
-                        string Word = data.GetAttribute("CONTENT");
+                        string word = data.GetAttribute("CONTENT");
+                        if (string.IsNullOrWhiteSpace(word)) continue;
+
                         if (App.setting.HunSpell)
-                            Word = HunspellHelper.CorrectionWord(Word);
+                            word = HunspellHelper.CorrectionWord(word);
 
                         items.Add(new CaptureAltoEntry
                         {
-                            Word = Word,
-                            X = Int32.Parse(data.GetAttribute("HPOS")),
-                            Y = Int32.Parse(data.GetAttribute("VPOS")) - 3,
-                            Width = Int32.Parse(data.GetAttribute("WIDTH")) + 2,
-                            Height = Int32.Parse(data.GetAttribute("HEIGHT")) + 5,
+                            Word = word,
+                            X = int.TryParse(data.GetAttribute("HPOS"), out int x) ? x : 0,
+                            Y = Math.Max(0, (int.TryParse(data.GetAttribute("VPOS"), out int y) ? y : 0) - 2),
+                            Width = Math.Max(4, (int.TryParse(data.GetAttribute("WIDTH"), out int w) ? w : 0) + 2),
+                            Height = Math.Max(8, (int.TryParse(data.GetAttribute("HEIGHT"), out int h) ? h : 0) + 4),
+                            SourceLanguage = App.setting.SourceLanguage,
+                            TargetLanguage = App.setting.TargetLanguage,
+                            Uid = fullTextBlock,
+                        });
+                    }
+                    continue;
+                }
+
+                foreach (XmlElement textLine in textLines)
+                {
+                    int lineX = int.TryParse(textLine.GetAttribute("HPOS"), out int lx) ? lx : 0;
+                    int lineY = int.TryParse(textLine.GetAttribute("VPOS"), out int ly) ? ly : 0;
+                    int lineWidth = int.TryParse(textLine.GetAttribute("WIDTH"), out int lw) ? lw : 0;
+                    int lineHeight = int.TryParse(textLine.GetAttribute("HEIGHT"), out int lh) ? lh : 0;
+                    bool isVertical = lineHeight > lineWidth && lineWidth > 0;
+
+                    var lineStrings = textLine.GetElementsByTagName("String");
+                    for (int i = 0; i < lineStrings.Count; i++)
+                    {
+                        XmlElement data = (XmlElement)lineStrings[i];
+                        string word = data.GetAttribute("CONTENT");
+                        if (string.IsNullOrWhiteSpace(word)) continue;
+
+                        if (App.setting.HunSpell)
+                            word = HunspellHelper.CorrectionWord(word);
+
+                        int strX = int.TryParse(data.GetAttribute("HPOS"), out int sx) ? sx : lineX;
+                        int strY = int.TryParse(data.GetAttribute("VPOS"), out int sy) ? sy : lineY;
+                        int strW = int.TryParse(data.GetAttribute("WIDTH"), out int sw) ? sw : 0;
+                        int strH = int.TryParse(data.GetAttribute("HEIGHT"), out int sh) ? sh : 0;
+
+                        double x, y, width, height;
+
+                        if (!isVertical)
+                        {
+                            // Horizontal text line:
+                            // Anchor Y and Height to the TextLine bounds so individual characters/punctuation
+                            // with unstable or exaggerated VPOS/HEIGHT don't overflow vertically into lines below.
+                            y = Math.Max(0, lineY - 2);
+                            height = Math.Max(8, lineHeight + 4);
+
+                            x = Math.Max(0, strX);
+
+                            // Clamp width so adjacent items on the same line never overlap
+                            int availableW = strW + 2;
+                            if (i + 1 < lineStrings.Count)
+                            {
+                                XmlElement nextData = (XmlElement)lineStrings[i + 1];
+                                if (int.TryParse(nextData.GetAttribute("HPOS"), out int nextX) && nextX > strX)
+                                {
+                                    availableW = Math.Min(availableW, nextX - strX);
+                                }
+                            }
+                            width = Math.Max(4, availableW);
+                        }
+                        else
+                        {
+                            // Vertical text line:
+                            // Anchor X and Width to the column bounds, allowing Y and Height to flow vertically.
+                            x = Math.Max(0, lineX - 2);
+                            width = Math.Max(8, lineWidth + 4);
+
+                            y = Math.Max(0, strY);
+
+                            int availableH = strH + 2;
+                            if (i + 1 < lineStrings.Count)
+                            {
+                                XmlElement nextData = (XmlElement)lineStrings[i + 1];
+                                if (int.TryParse(nextData.GetAttribute("VPOS"), out int nextY) && nextY > strY)
+                                {
+                                    availableH = Math.Min(availableH, nextY - strY);
+                                }
+                            }
+                            height = Math.Max(4, availableH);
+                        }
+
+                        items.Add(new CaptureAltoEntry
+                        {
+                            Word = word,
+                            X = x,
+                            Y = y,
+                            Width = width,
+                            Height = height,
                             SourceLanguage = App.setting.SourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
