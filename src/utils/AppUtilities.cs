@@ -125,5 +125,14 @@ namespace ScreenLookup.src.utils
                 }
             }
         }
+
+        internal static bool IsCjk(char c)
+        {
+            return (c >= 0x4E00 && c <= 0x9FFF) || // CJK Unified Ideographs
+                   (c >= 0x3040 && c <= 0x309F) || // Hiragana
+                   (c >= 0x30A0 && c <= 0x30FF) || // Katakana
+                   (c >= 0x3400 && c <= 0x4DBF) || // CJK Extension A
+                   (c >= 0xAC00 && c <= 0xD7AF);   // Hangul Syllables
+        }
     }
 }
