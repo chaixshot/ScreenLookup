@@ -289,6 +289,9 @@ namespace ScreenLookup.src.windows
 
         private void ProcessImage(Bitmap image)
         {
+            UpdateOverlayScale();
+            ProcessImageOverlay.Visibility = Visibility.Visible;
+
             Task.Run(async () =>
             {
                 try
@@ -336,6 +339,13 @@ namespace ScreenLookup.src.windows
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OCR Error: {ex.Message}"); }
+                finally
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        ProcessImageOverlay.Visibility = Visibility.Collapsed;
+                    });
+                }
             }, ProcessImageCancelToken.Token);
         }
 
@@ -409,6 +419,7 @@ namespace ScreenLookup.src.windows
             translatedCard.Visibility = Visibility.Collapsed;
 
             originalWordsLoading.Visibility = Visibility.Visible;
+            ProcessImageOverlay.Visibility = Visibility.Collapsed;
             Contol_Undo.Visibility = Visibility.Collapsed;
             Contol_Confirm.Visibility = Visibility.Collapsed;
 
@@ -434,9 +445,20 @@ namespace ScreenLookup.src.windows
                 captureImage.Height = Math.Min(captureImage.Height, screenHeight / 2);
             }
 
+            UpdateOverlayScale();
+
             this.MaxWidth = screenWidth - 50;
             this.MaxHeight = screenHeight - 50;
             this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
+        }
+
+        private void UpdateOverlayScale()
+        {
+            if (captureImage.Width > 0 && captureImage.Height > 0)
+            {
+                ProcessImageOverlayViewbox.MaxHeight = Math.Max(20, captureImage.Height * 0.35);
+                ProcessImageOverlayViewbox.MaxWidth = Math.Max(60, captureImage.Width * 0.85);
+            }
         }
 
         private void SetWindowPosition(Point gotoPoint = new())
@@ -679,6 +701,7 @@ namespace ScreenLookup.src.windows
                 captureImage.Source = Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
                 captureImage.Width = bmp.Width;
                 captureImage.Height = bmp.Height;
+                UpdateOverlayScale();
             }
             finally { DeleteObject(handle); }
         }
