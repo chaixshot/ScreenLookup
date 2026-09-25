@@ -184,8 +184,8 @@ namespace ScreenLookup.src.windows
 
         public async void StartCaptureScreen(Bitmap? image = null, bool isRightMouse = false)
         {
-            if (IsCapturing)
-                HideWindow();
+            if (IsCapturing || ScreenGrabber.IsCapturing)
+                return;
 
             if (!IsLoaded)
                 ShowWindow(true);
@@ -213,7 +213,14 @@ namespace ScreenLookup.src.windows
             if (!IsVR)
             {
                 AppUtilities.PlaySound("ready.wav");
-                (image, isRightMouse, startPoint, endPoint) = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
+                var captureResult = ScreenGrabber.CaptureDialog(App.setting.ShowAuxiliary);
+                if (captureResult == null)
+                {
+                    IsCapturing = false;
+                    return;
+                }
+
+                (image, isRightMouse, startPoint, endPoint) = captureResult;
 
                 if (image == null)
                 {
