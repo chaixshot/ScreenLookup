@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using NAudio.Wave;
+using System.Diagnostics;
 using System.IO;
 using System.Media;
 using System.Net.Http;
@@ -14,8 +15,6 @@ namespace ScreenLookup.src.utils
         public const string GitHubRepoUrl = "https://github.com/chaixshot/ScreenLookup";
         public const string GitHubReleasesUrl = "https://github.com/chaixshot/ScreenLookup/releases";
         public const string GitHubLatestReleaseApi = "https://api.github.com/repos/chaixshot/ScreenLookup/releases/latest";
-
-        private static SoundPlayer soundPlayer;
 
         internal static bool IsPackaged()
         {
@@ -73,14 +72,44 @@ namespace ScreenLookup.src.utils
 
         internal static void PlaySound(string soundName)
         {
-            string soundPath = Path.Combine(Environment.CurrentDirectory, "src\\sounds", soundName);
+            string soundPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", "sounds", soundName);
+            if (!File.Exists(soundPath))
+            {
+                soundPath = Path.Combine(Environment.CurrentDirectory, "src", "sounds", soundName);
+            }
 
             // Verify the file exists before attempting to play it
             if (File.Exists(soundPath))
             {
-                soundPlayer ??= new(soundPath);
-                soundPlayer.SoundLocation = soundPath;
-                soundPlayer.Play();
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        using var audioFile = new AudioFileReader(soundPath);
+                        using var outputDevice = new WasapiOut(NAudio.CoreAudioApi.AudioClientShareMode.Shared, 100);
+
+                        outputDevice.Init(audioFile);
+                        outputDevice.Play();
+
+                        while (outputDevice.PlaybackState == PlaybackState.Playing)
+                        {
+                            Thread.Sleep(20);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[PlaySound] NAudio playback error: {ex.Message}");
+                        try
+                        {
+                            using var player = new SoundPlayer(soundPath);
+                            player.PlaySync();
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            Debug.WriteLine($"[PlaySound] Fallback SoundPlayer error: {fallbackEx.Message}");
+                        }
+                    }
+                });
             }
         }
 
