@@ -136,14 +136,12 @@
                                         <ListItem>
                                             <Paragraph>
                                                 <Controls:TextBlock Text="On Image - Place words on top of the image" />
-                                                <Controls:Image Source="/src/images/OnImage.png" />
                                             </Paragraph>
                                         </ListItem>
 
                                         <ListItem>
                                             <Paragraph>
                                                 <Controls:TextBlock Text="On Line - Place all words into the box" />
-                                                <Controls:Image Source="/src/images/OnLine.png" />
                                             </Paragraph>
                                         </ListItem>
                                     </List>
