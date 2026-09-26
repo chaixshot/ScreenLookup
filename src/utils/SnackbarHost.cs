@@ -10,6 +10,15 @@ namespace ScreenLookup.src.utils
 
         public static void Show(string title = "", string message = "", SnackbarType type = SnackbarType.Info, int timeout = 5, int width = 500, bool showMainWindow = false, bool closeButton = true)
         {
+            if (System.Windows.Application.Current != null && !System.Windows.Application.Current.Dispatcher.CheckAccess())
+            {
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    Show(title, message, type, timeout, width, showMainWindow, closeButton);
+                }));
+                return;
+            }
+
             ControlAppearance appearance;
             SymbolIcon icon;
             Snackbar? snackbar;
