@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
@@ -51,6 +52,15 @@ namespace ScreenLookup.src.pages
             {
                 dataGrid.Height = App.mainWindow.ActualHeight - 212;
             };
+
+            PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Escape)
+                {
+                    if (flayOut.IsOpen)
+                        flayOut.IsOpen = false;
+                }
+            };
         }
 
         public void OnPropertyChanged([CallerMemberName] string? propName = null)
@@ -95,6 +105,9 @@ namespace ScreenLookup.src.pages
 
         private void ScrollTop()
         {
+            if (flayOut != null && flayOut.IsOpen)
+                flayOut.IsOpen = false;
+
             if (dataGrid != null && VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
             {
                 var scrollViewer = border.Child as ScrollViewer;
@@ -284,6 +297,21 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region Buttons
+        private void Button_Word(object sender, RoutedEventArgs e)
+        {
+            Button? button = sender as Button;
+            if (button == null) return;
+
+            string word = button.ToolTip?.ToString() ?? string.Empty;
+            int sourceLang = Int32.Parse(button.Uid?.ToString() ?? "0");
+            int targetLang = Int32.Parse(button.Tag?.ToString() ?? "0");
+
+            if (string.IsNullOrWhiteSpace(word))
+                return;
+
+            flayOut.Show(word, string.Empty, sourceLang, targetLang);
+        }
+
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
