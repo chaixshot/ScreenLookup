@@ -146,6 +146,8 @@
                     </StackPanel>
                 </Grid>
 
+                <xControls:WordFlyout x:Name="flayOut" />
+
                 <Controls:Card
                     Grid.Row="2"
                     Margin="0,10,0,0"
@@ -228,10 +230,18 @@
                                                 Tag="{Binding Original}"
                                                 ToolTip="Copy" />
 
-                                            <Controls:TextBlock
+                                            <Controls:Button
+                                                Uid="{Binding SourceLanguage}"
                                                 Margin="15,0,0,0"
+                                                Padding="4,2,4,2"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
+                                                Click="Button_Word"
+                                                Content="{Binding Original}"
                                                 FontFamily="{Binding FontFace}"
-                                                Text="{Binding Original}" />
+                                                Tag="{Binding TargetLanguage}"
+                                                ToolTip="{Binding Original}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
