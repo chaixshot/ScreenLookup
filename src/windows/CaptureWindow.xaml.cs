@@ -760,6 +760,8 @@ namespace ScreenLookup.src.windows
         #region Capture edit control panel
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
+            AltoText.ItemsSource = null;
+
             Contol_Undo.Visibility = Visibility.Hidden;
             Contol_Confirm.Visibility = Visibility.Visible;
 
@@ -774,6 +776,8 @@ namespace ScreenLookup.src.windows
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
+            AltoText.ItemsSource = null;
+
             if (CapturedImageEditable == CapturedImage)
                 Contol_Undo.Visibility = Visibility.Collapsed;
             Contol_Confirm.Visibility = Visibility.Collapsed;
