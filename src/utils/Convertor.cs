@@ -1,4 +1,4 @@
-﻿using ScreenLookup.src.models;
+using ScreenLookup.src.models;
 using System.Drawing.Drawing2D;
 using Bitmap = System.Drawing.Bitmap;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -9,16 +9,37 @@ namespace ScreenLookup.src.utils
 {
     class Convertor
     {
-        public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsSimplifiedEntry> data, int sourceLanguage, int targetLanguage, double width)
+        public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsSimplifiedEntry> data, int sourceLanguage, int targetLanguage, double width = 0)
         {
             List<CaptureWordsEntry> itemsForCard = [];
             bool isFirstLine = true;
 
             double padding = Math.Max(1.7, App.setting.FontSizeS / 5.5);
-            foreach (var item in data)
+            int pendingStop = 0;
+
+            for (int i = 0; i < data.Count; i++)
             {
-                if (item.Stop == 0)// Normal
+                var item = data[i];
+                if (item.Stop == 0) // Normal
                 {
+                    if (pendingStop > 0 && !isFirstLine)
+                    {
+                        itemsForCard.Add(new CaptureWordsEntry()
+                        {
+                            Word = string.Empty,
+                            Width = 0,
+                            Height = 0,
+                            Padding = "0",
+                            Border = 0,
+                            FontSizeS = App.setting.FontSizeS,
+                            FontFace = new FontFamily(App.setting.FontFace),
+                            SourceLanguage = 0,
+                            TargetLanguage = 0,
+                            Stop = pendingStop
+                        });
+                        pendingStop = 0;
+                    }
+
                     isFirstLine = false;
                     itemsForCard.Add(new CaptureWordsEntry()
                     {
@@ -30,51 +51,19 @@ namespace ScreenLookup.src.utils
                         FontSizeS = App.setting.FontSizeS,
                         FontFace = new FontFamily(App.setting.FontFace),
                         SourceLanguage = sourceLanguage,
-                        TargetLanguage = targetLanguage
+                        TargetLanguage = targetLanguage,
+                        Stop = 0
                     });
                 }
-
-                if (!isFirstLine)
+                else
                 {
-                    if (item.Stop == 1) // New line
-                        itemsForCard.Add(new CaptureWordsEntry()
-                        {
-                            Word = string.Empty,
-                            Width = width,
-                            Height = 0,
-                            Padding = "0",
-                            Border = 0,
-                            FontSizeS = App.setting.FontSizeS,
-                            FontFace = new FontFamily(App.setting.FontFace),
-                            SourceLanguage = 0,
-                            TargetLanguage = 0
-                        });
-                    if (item.Stop == 2) // New paragraph
-                        itemsForCard.Add(new CaptureWordsEntry()
-                        {
-                            Word = string.Empty,
-                            Width = width,
-                            Height = Double.NaN,
-                            Padding = "0",
-                            Border = 0,
-                            FontSizeS = App.setting.FontSizeS,
-                            FontFace = new FontFamily(App.setting.FontFace),
-                            SourceLanguage = 0,
-                            TargetLanguage = 0
-                        });
-                    if (item.Stop == 3) // New block
-                        itemsForCard.Add(new CaptureWordsEntry()
-                        {
-                            Word = string.Empty,
-                            Width = width,
-                            Height = Double.NaN,
-                            Padding = "0",
-                            Border = 0,
-                            FontSizeS = App.setting.FontSizeS,
-                            FontFace = new FontFamily(App.setting.FontFace),
-                            SourceLanguage = 0,
-                            TargetLanguage = 0
-                        });
+                    // It's a stop (1 = new line, 2 = paragraph, 3 = block)
+                    // If multiple stops occur consecutively (e.g. Stop 1, then 2, then 3),
+                    // collapse them into the highest stop (paragraph/block break)
+                    if (!isFirstLine)
+                    {
+                        pendingStop = Math.Max(pendingStop, item.Stop);
+                    }
                 }
             }
 
