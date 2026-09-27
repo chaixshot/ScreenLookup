@@ -14,7 +14,7 @@ namespace ScreenLookup.src.utils
         public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
 
         private static SqliteConnection _sharedConnection;
-        private static readonly object _connectionLock = new();
+        private static readonly Lock _connectionLock = new();
 
         static SavedWordLogger()
         {
@@ -153,7 +153,7 @@ namespace ScreenLookup.src.utils
         public static async Task<(List<SavedWordEntry>, int)> LoadAsync(
             int page, int maxRow, string searchText, int searchSourceLanguage, string orderBy)
         {
-            List<SavedWordEntry> history = new();
+            List<SavedWordEntry> history = [];
             int totalCount = 0;
             using (SqliteCommand command = new(@"
                 SELECT COUNT(*) 
@@ -186,6 +186,7 @@ namespace ScreenLookup.src.utils
                 command.Parameters.AddWithValue("@offset", offset);
                 command.Parameters.AddWithValue("@orderBy", orderBy);
 
+                FontFamily fontFace = new(App.setting.FontFace);
                 using SqliteDataReader reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -197,7 +198,7 @@ namespace ScreenLookup.src.utils
                         SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage")),
                         TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage")),
                         ScoreVisibility = Int32.Parse(reader.GetString(reader.GetOrdinal("Score"))) > 0 ? Visibility.Visible : Visibility.Collapsed,
-                        FontFace = new FontFamily(App.setting.FontFace),
+                        FontFace = fontFace
                     });
                 }
             }
@@ -206,7 +207,7 @@ namespace ScreenLookup.src.utils
 
         public static async Task ExportToCSV(string filePath)
         {
-            List<SavedWordEntry> history = new();
+            List<SavedWordEntry> history = [];
 
             string selectQuery = @"
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage

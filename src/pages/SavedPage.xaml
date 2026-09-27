@@ -159,10 +159,11 @@
                         BorderThickness="0,0,0,0"
                         GridLinesVisibility="Horizontal"
                         IsReadOnly="True"
-                        ItemsSource="{Binding SavedItems, IsAsync=True, Mode=OneWay}"
-                        ScrollViewer.CanContentScroll="False"
+                        ItemsSource="{Binding SavedItems, Mode=OneWay}"
+                        ScrollViewer.CanContentScroll="True"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.IsVirtualizingWhenGrouping="False"
+                        VirtualizingPanel.ScrollUnit="Pixel"
                         VirtualizingPanel.VirtualizationMode="Recycling">
                         <Controls:DataGrid.VerticalGridLinesBrush>
                             <LinearGradientBrush MappingMode="Absolute" EndPoint="0,3">

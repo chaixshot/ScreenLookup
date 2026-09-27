@@ -78,29 +78,19 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void LoadSavedWord()
+        private async void LoadSavedWord()
         {
-            ThreadPool.QueueUserWorkItem(_ =>
+            var data = await Task.Run(() => SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, OrderBy));
+
+            if (data.Item2 > 0 && currentPage > data.Item2)
             {
-                Thread.Sleep(100);
+                currentPage = data.Item2;
+                data = await Task.Run(() => SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, OrderBy));
+            }
 
-                //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
-                Dispatcher.BeginInvoke(new Action(async () =>
-                {
-                start:
-                    var data = await SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, OrderBy);
-
-                    SavedItems = data.Item1;
-                    maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-                    PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
-
-                    if (currentPage > maxPage)
-                    {
-                        currentPage = maxPage;
-                        goto start;
-                    }
-                }));
-            });
+            maxPage = (data.Item2 > 0) ? data.Item2 : 1;
+            SavedItems = data.Item1;
+            PageNumber.Text = $"{currentPage}/{maxPage}";
         }
 
         private void ScrollTop()
@@ -117,6 +107,7 @@ namespace ScreenLookup.src.pages
 
         private void LoadSourceLanguageItems()
         {
+            if (sourceLanguage.ItemsSource != null) return;
             int langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
             items.Add(new ComboBoxItem()
