@@ -9,13 +9,12 @@ namespace ScreenLookup.src.controls
     /// </summary>
     public partial class TranslationBox : UserControl
     {
-        private readonly Dictionary<string, string> translatedCache = [];
-
         private string Original = string.Empty;
         public string Translated = string.Empty;
 
         private int SourceLanguage;
         private int TargetLanguage;
+        private bool IsWord;
 
         private static CancellationTokenSource TranslatesCancelToken;
 
@@ -27,7 +26,6 @@ namespace ScreenLookup.src.controls
 
         public void Clear()
         {
-            translatedCache.Clear();
             ResetDefaultState();
         }
 
@@ -41,43 +39,39 @@ namespace ScreenLookup.src.controls
             Refresh.Visibility = Visibility.Visible;
         }
 
-        public async Task Translate(string text, int sourceLang, int targetLang, CancellationTokenSource token)
+        public async Task Translate(bool isWord, string text, int sourceLang, int targetLang, CancellationTokenSource token)
         {
             ResetDefaultState();
 
             Original = text;
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
+            IsWord = isWord;
             TranslatesCancelToken = token;
 
-            if (!string.IsNullOrEmpty(Original))
+            if (string.IsNullOrEmpty(Original))
+                return;
+
+            string mainText = await Translation.GetTranslated(IsWord, Original, sourceLang, targetLang);
+
+            if (token.IsCancellationRequested)
+                return;
+
+            Loading.Visibility = Visibility.Collapsed;
+
+            if (string.IsNullOrEmpty(mainText))
             {
-                if (!translatedCache.TryGetValue(Original, out string translatedText))
-                {
-                    translatedText = await Translation.GetTranslated(Original, sourceLang, targetLang);
-
-                    if (!string.IsNullOrEmpty(translatedText))
-                        translatedCache.TryAdd(Original, translatedText);
-
-                    if (token.IsCancellationRequested)
-                        return;
-                }
-
-                Loading.Visibility = Visibility.Collapsed;
-
-                if (string.IsNullOrEmpty(translatedText))
-                    Refresh.Visibility = Visibility.Visible;
-                else
-                {
-                    TranslatedText.Text = translatedText;
-                    TranslatedText.Visibility = Visibility.Visible;
-                    Refresh.Visibility = Visibility.Collapsed;
-
-                    Translated = translatedText;
-                }
-
-                this.Tag = translatedText;
+                Refresh.Visibility = Visibility.Visible;
+                ExtraMeaningsList.Visibility = Visibility.Collapsed;
+                return;
             }
+
+            // Display Main Translation
+            TranslatedText.Text = mainText;
+            TranslatedText.Visibility = Visibility.Visible;
+            Refresh.Visibility = Visibility.Collapsed;
+            Translated = mainText;
+            this.Tag = mainText;
         }
 
         public void ResetDefaultState()
@@ -107,7 +101,7 @@ namespace ScreenLookup.src.controls
             TranslatesCancelToken?.Cancel();
             TranslatesCancelToken = new();
 
-            await Translate(Original, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+            await Translate(IsWord, Original, SourceLanguage, TargetLanguage, TranslatesCancelToken);
         }
     }
 }

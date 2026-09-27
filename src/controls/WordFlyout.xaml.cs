@@ -186,10 +186,16 @@ namespace ScreenLookup.src.controls
                     TranslatesCancelToken = new();
 
                     // Word
-                    await translationWord.Translate(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+                    _ = Task.Run(async () =>
+                    {
+                        await Dispatcher.InvokeAsync(() => translationWord.Translate(isWord: true, OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken));
+                    });
 
                     // Message
-                    await translationMessage.Translate(OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+                    _ = Task.Run(async () =>
+                    {
+                        await Dispatcher.InvokeAsync(() => translationMessage.Translate(isWord: false, OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken));
+                    });
                 }));
             });
         }
