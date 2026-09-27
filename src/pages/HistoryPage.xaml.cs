@@ -30,6 +30,8 @@ namespace ScreenLookup.src.pages
 
         public List<HistoryLoggerPageEntry> historyItems;
 
+        private Grid? previousExpandedCell;
+
         public HistoryPage()
         {
             DataContext = this;
@@ -48,6 +50,7 @@ namespace ScreenLookup.src.pages
             {
                 TextToSpeech.StopTTS();
                 translatedCache.Clear();
+                previousExpandedCell = null;
             };
 
             SizeChanged += (s, e) =>
@@ -80,29 +83,21 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void LoadHistoryLogger()
+        private async void LoadHistoryLogger()
         {
-            ThreadPool.QueueUserWorkItem(_ =>
+            previousExpandedCell = null;
+            double windowWidth = App.mainWindow.Width;
+            var data = await Task.Run(() => HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, windowWidth));
+
+            if (data.Item2 > 0 && currentPage > data.Item2)
             {
-                Thread.Sleep(100);
+                currentPage = data.Item2;
+                data = await Task.Run(() => HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, windowWidth));
+            }
 
-                //Longer Process (//set the operation in another thread so that the UI thread is kept responding)
-                Dispatcher.BeginInvoke(new Action(async () =>
-                {
-                start:
-                    var data = await HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage);
-
-                    HistoryItems = data.Item1;
-                    maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-                    PageNumber.Text = currentPage.ToString() + "/" + maxPage.ToString();
-
-                    if (currentPage > maxPage)
-                    {
-                        currentPage = maxPage;
-                        goto start;
-                    }
-                }));
-            });
+            maxPage = (data.Item2 > 0) ? data.Item2 : 1;
+            HistoryItems = data.Item1;
+            PageNumber.Text = $"{currentPage}/{maxPage}";
         }
 
         private void ScrollTop()
@@ -116,6 +111,7 @@ namespace ScreenLookup.src.pages
 
         private void LoadSourceLanguageItems()
         {
+            if (sourceLanguage.ItemsSource != null) return;
             int langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
             items.Add(new ComboBoxItem()
@@ -164,14 +160,29 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private void Original_MouseEnter(object sender, MouseEventArgs e)
+        private async void Original_MouseEnter(object sender, MouseEventArgs e)
         {
-            var parent = sender as Grid;
-            var originalWords = parent.FindName("originalWords") as ItemsControl;
-            var original = parent.FindName("original") as Wpf.Ui.Controls.TextBlock;
+            if (sender is not Grid parent) return;
 
-            originalWords.Visibility = Visibility.Visible;
-            original.Visibility = Visibility.Collapsed;
+            if (parent.Children.Count >= 3)
+            {
+                UIElement originalWords = parent.Children[1];
+                if (originalWords.Visibility != Visibility.Visible)
+                {
+                    await Task.Delay(150);
+                    if (!parent.IsMouseOver) return;
+
+                    if (previousExpandedCell != null && previousExpandedCell != parent && previousExpandedCell.Children.Count >= 3)
+                    {
+                        previousExpandedCell.Children[1].Visibility = Visibility.Collapsed;
+                        previousExpandedCell.Children[2].Visibility = Visibility.Visible;
+                    }
+                    previousExpandedCell = parent;
+
+                    originalWords.Visibility = Visibility.Visible;
+                    parent.Children[2].Visibility = Visibility.Collapsed;
+                }
+            }
         }
 
         #region Control
