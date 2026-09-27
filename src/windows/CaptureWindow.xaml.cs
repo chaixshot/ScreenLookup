@@ -299,13 +299,28 @@ namespace ScreenLookup.src.windows
                     using var tesseractPage = await GetTesseractPageFromBitmap(image).ConfigureAwait(false);
                     var pageText = tesseractPage.Text;
                     var captureWords = TesseractCaptureWordsySimplify(tesseractPage);
-                    // Offload heavy XML parsing to background thread
                     var altoEntries = App.setting.LookupOnImage ? TesseractAltoTextProcess(tesseractPage) : null;
 
-                    await Dispatcher.InvokeAsync(async () =>
+                    // Offload History DB INSERT to background thread
+                    int historyId = 0;
+                    if (!string.IsNullOrWhiteSpace(pageText))
+                    {
+                        historyId = await HistoryLogger.Add(pageText, captureWords, string.Empty, App.setting.SourceLanguage, App.setting.TargetLanguage).ConfigureAwait(false);
+                    }
+
+                    // Pre-convert UI ViewModels on background thread
+                    double windowWidth = 800;
+                    await Dispatcher.InvokeAsync(() => windowWidth = this.Width);
+
+                    var cardWords = (!App.setting.LookupOnImage && !string.IsNullOrWhiteSpace(pageText))
+                        ? Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, windowWidth)
+                        : null;
+
+                    await Dispatcher.InvokeAsync(() =>
                     {
                         if (!IsCapturing) return;
                         TesseractPageText = pageText;
+                        LastHistoryID = historyId;
 
                         if (string.IsNullOrWhiteSpace(TesseractPageText))
                         {
@@ -315,13 +330,12 @@ namespace ScreenLookup.src.windows
                         else
                         {
                             ocrText.Text = TesseractPageText;
-                            LastHistoryID = await AddToHistory(ocrText.Text, captureWords);
 
                             if (App.setting.LookupOnImage)
                                 AltoText.ItemsSource = altoEntries;
                             else
                             {
-                                originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, this.Width);
+                                originalWords.ItemsSource = cardWords;
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
                                 originalCard.Visibility = Visibility.Visible;
                                 translatedCard.Visibility = Visibility.Visible;
@@ -493,7 +507,7 @@ namespace ScreenLookup.src.windows
             using MemoryStream ms = new();
             // BMP is significantly faster to encode than PNG for internal memory transfers
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-            byte[] fileBytes = ms.ToArray();
+            byte[] fileBytes = ms.GetBuffer();
 
             TesseractOCR.Pix.Image img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
             return TesseractEngine.Process(img);
