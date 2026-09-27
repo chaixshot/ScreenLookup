@@ -135,7 +135,7 @@ namespace ScreenLookup.src.utils
         }
 
         public static async Task<(List<HistoryLoggerPageEntry>, int)> LoadAsync(
-            int page, int maxRow, string searchText, int searchSourceLanguage)
+            int page, int maxRow, string searchText, int searchSourceLanguage, double windowWidth = 800)
         {
             var history = new List<HistoryLoggerPageEntry>();
             int totalCount = 0;
@@ -164,6 +164,8 @@ namespace ScreenLookup.src.utils
                 command.Parameters.AddWithValue("@maxRow", maxRow);
                 command.Parameters.AddWithValue("@offset", offset);
 
+                FontFamily fontFace = new(App.setting.FontFace);
+                int fontSizeS = App.setting.FontSizeS;
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -173,7 +175,7 @@ namespace ScreenLookup.src.utils
                     string Translated = reader.GetString(reader.GetOrdinal("Translated"));
 
                     List<CaptureWordsSimplifiedEntry> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsSimplifiedEntry>>(OriginalWords);
-                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(SourceLanguage), Int32.Parse(TargetLanguage), App.mainWindow.Width);
+                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(SourceLanguage), Int32.Parse(TargetLanguage), windowWidth);
 
                     history.Add(new HistoryLoggerPageEntry
                     {
@@ -184,8 +186,8 @@ namespace ScreenLookup.src.utils
                         Translated = Translated,
                         SourceLanguage = SourceLanguage,
                         TargetLanguage = TargetLanguage,
-                        FontSizeS = App.setting.FontSizeS,
-                        FontFace = new FontFamily(App.setting.FontFace),
+                        FontSizeS = fontSizeS,
+                        FontFace = fontFace,
                     });
                 }
             }

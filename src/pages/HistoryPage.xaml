@@ -173,10 +173,11 @@
                         EnableRowVirtualization="True"
                         GridLinesVisibility="Horizontal"
                         IsReadOnly="True"
-                        ItemsSource="{Binding HistoryItems, IsAsync=True, Mode=OneWay}"
-                        ScrollViewer.CanContentScroll="False"
+                        ItemsSource="{Binding HistoryItems, Mode=OneWay}"
+                        ScrollViewer.CanContentScroll="True"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.IsVirtualizingWhenGrouping="False"
+                        VirtualizingPanel.ScrollUnit="Pixel"
                         VirtualizingPanel.VirtualizationMode="Recycling">
 
                         <Controls:DataGrid.VerticalGridLinesBrush>
