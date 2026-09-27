@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="ScreenLookup.src.pages.HistoryPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -246,7 +246,7 @@
                                                 Visibility="Collapsed">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
-                                                        <WrapPanel Orientation="Horizontal" />
+                                                        <xControls:WordWrapPanel />
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
 
@@ -257,7 +257,7 @@
                                                             Width="{Binding Width}"
                                                             Height="{Binding Height}"
                                                             Margin="0"
-                                                            Padding="1.7,0,1.7,0"
+                                                            Padding="{Binding Padding}"
                                                             HorizontalAlignment="Left"
                                                             Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
                                                             BorderThickness="{Binding Border}"
@@ -265,7 +265,8 @@
                                                             Content="{Binding Word}"
                                                             FontFamily="{Binding FontFace}"
                                                             Tag="{Binding TargetLanguage}"
-                                                            ToolTip="{Binding Word}" />
+                                                            ToolTip="{Binding Word}"
+                                                            Visibility="{Binding Visibility}" />
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>

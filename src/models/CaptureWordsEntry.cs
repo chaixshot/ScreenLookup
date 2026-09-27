@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 
 namespace ScreenLookup.src.models
 {
@@ -13,6 +13,8 @@ namespace ScreenLookup.src.models
         public FontFamily FontFace { get; set; }
         public int SourceLanguage { get; set; }
         public int TargetLanguage { get; set; }
+        public int Stop { get; set; } = 0;
+        public System.Windows.Visibility Visibility => string.IsNullOrEmpty(Word) ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
     }
 
     public class CaptureWordsSimplifiedEntry
