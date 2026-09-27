@@ -20,27 +20,46 @@ namespace ScreenLookup.src.utils
         {
             try
             {
+                int ttsProviderID = App.setting.TTSProvider;
+
                 // Get sound stream
                 if (!audioStreamCache.TryGetValue(Text, out Stream audioStream))
                 {
-                    Stream stream;
-                    try
+                    // Check local SQLite BLOB audio cache
+                    byte[]? cachedAudio = await TTSCacheLogger.GetTtsAudioAsync(Text, langID, ttsProviderID);
+                    if (cachedAudio != null && cachedAudio.Length > 0)
                     {
-                        stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6393FromID(langID));
+                        audioStream = new MemoryStream(cachedAudio);
+                        audioStreamCache.TryAdd(Text, audioStream);
                     }
-                    catch
+                    else
                     {
-                        stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6391FromID(langID));
-                    }
+                        // Fetch audio stream from TTS provider over internet
+                        Stream stream;
+                        try
+                        {
+                            stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6393FromID(langID));
+                        }
+                        catch
+                        {
+                            stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6391FromID(langID));
+                        }
 
-                    audioStream = new MemoryStream();
-                    byte[] buffer = new byte[32768];
-                    int read;
-                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        audioStream.Write(buffer, 0, read);
+                        var memStream = new MemoryStream();
+                        byte[] buffer = new byte[32768];
+                        int read;
+                        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            memStream.Write(buffer, 0, read);
+                        }
+
+                        audioStream = memStream;
+                        audioStreamCache.TryAdd(Text, audioStream);
+
+                        // Save audio bytes to SQLite database BLOB
+                        byte[] audioBytes = memStream.ToArray();
+                        _ = TTSCacheLogger.SaveTtsAudioAsync(Text, langID, ttsProviderID, audioBytes);
                     }
-                    audioStreamCache.TryAdd(Text, audioStream);
                 }
 
                 // Release sound stream
