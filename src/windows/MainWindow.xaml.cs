@@ -18,10 +18,10 @@ namespace ScreenLookup
         public MainWindow()
         {
             InitializeComponent();
-            WindowStateRestore();
 
             Loaded += (s, e) =>
             {
+                WindowStateRestore();
                 ApplicationThemeManager.ApplySystemTheme();
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
 
@@ -91,18 +91,21 @@ namespace ScreenLookup
         #region Window Persistence State
         private async void MainWindow_BoundsChanged(object sender, EventArgs e)
         {
-            saveWindowStateCTS?.Cancel();
-            saveWindowStateCTS = new CancellationTokenSource();
-
-            try
+            if (IsLoaded)
             {
-                await Task.Delay(1000, saveWindowStateCTS.Token);
+                saveWindowStateCTS?.Cancel();
+                saveWindowStateCTS = new CancellationTokenSource();
 
-                App.setting.Window["Bounds"] = this.RestoreBounds.ToString();
-                App.setting.Window["State"] = this.WindowState.ToString();
-                App.setting.Save();
+                try
+                {
+                    await Task.Delay(1000, saveWindowStateCTS.Token);
+
+                    App.setting.Window["Bounds"] = this.RestoreBounds.ToString();
+                    App.setting.Window["State"] = this.WindowState.ToString();
+                    App.setting.Save();
+                }
+                catch (OperationCanceledException) { }
             }
-            catch (OperationCanceledException) { }
         }
 
         private void WindowStateRestore()

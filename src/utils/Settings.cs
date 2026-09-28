@@ -124,11 +124,34 @@ namespace ScreenLookup.src.utils
             }
         }
 
+        private CancellationTokenSource? _saveCts;
         public void Save()
         {
-            using FileStream fileStream = File.Open(settingFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
-            JsonSerializer.Serialize(fileStream, this, new JsonSerializerOptions() { WriteIndented = true });
-            fileStream.Close();
+            // Cancel any existing pending save operation
+            _saveCts?.Cancel();
+            _saveCts?.Dispose();
+
+            // Create a new cancellation token source for this save request
+            _saveCts = new CancellationTokenSource();
+            var token = _saveCts.Token;
+
+            Task.Delay(500, token).ContinueWith(task =>
+            {
+                // Exit if canceled by a newer Save() call
+                if (task.IsCanceled || token.IsCancellationRequested)
+                    return;
+
+                try
+                {
+                    using FileStream fileStream = File.Open(settingFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
+                    JsonSerializer.Serialize(fileStream, this, new JsonSerializerOptions() { WriteIndented = true });
+                    fileStream.Close();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Settings] Failed to save settings: {ex.Message}");
+                }
+            }, TaskScheduler.Default);
         }
 
         public static void Reset()
@@ -136,8 +159,7 @@ namespace ScreenLookup.src.utils
             settingFile.Delete();
         }
 
-        #region
-
+        #region Global Variable
         public int SourceLanguageAccuracy
         {
             get => sourceLanguageAccuracy;
@@ -178,19 +200,12 @@ namespace ScreenLookup.src.utils
             get => hunSpell;
             set
             {
-                if (value == true)
-                {
-                    if (HunspellHelper.IsInstalled(SourceLanguage))
-                    {
-                        hunSpell = true;
-                        HunspellHelper.CreateHunspellEngine(SourceLanguage);
-                    }
-                }
-                else
-                {
-                    hunSpell = false;
+                hunSpell = value;
+
+                if (value && HunspellHelper.IsInstalled(SourceLanguage))
+                    HunspellHelper.CreateHunspellEngine(SourceLanguage);
+                else if (!value)
                     HunspellHelper.RemoveHunspellEngine();
-                }
 
                 OnPropertyChanged();
             }
@@ -242,9 +257,9 @@ namespace ScreenLookup.src.utils
                 startupWithWindows = value;
 
                 if (startupWithWindows)
-                    App.setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
+                    RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
                 else
-                    App.setting.RegAutorun.DeleteValue("ScreenLookup", false);
+                    RegAutorun.DeleteValue("ScreenLookup", false);
 
                 OnPropertyChanged();
             }
