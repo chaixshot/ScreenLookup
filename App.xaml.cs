@@ -52,6 +52,9 @@ namespace ScreenLookup
                 mainWindow.Activate();
             }
 
+            if (setting.AutoConnectStamVR)
+                FrameShotPage.AutoConnectSteamVR();
+
             ToggleTopmost();
 
             // Handle for explorer.exe restart

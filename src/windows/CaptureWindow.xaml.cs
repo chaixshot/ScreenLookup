@@ -47,13 +47,14 @@ namespace ScreenLookup.src.windows
             DataContext = App.setting;
             InitializeComponent();
 
-            ResetDefaultState();
-            LoadInstalledLanguage();
-
             Loaded += (s, e) =>
             {
                 ApplicationThemeManager.ApplySystemTheme();
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
+
+                ResetDefaultState();
+                LoadInstalledLanguage();
+                CreateTesseractEngine();
             };
 
             PreviewKeyDown += (s, e) =>

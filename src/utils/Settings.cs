@@ -4,7 +4,6 @@ using ScreenLookup.src.pages;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows.Input;
 
@@ -125,11 +124,22 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public void Save()
+        private CancellationTokenSource? _saveCts;
+        public async void Save()
         {
-            using FileStream fileStream = File.Open(settingFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
-            JsonSerializer.Serialize(fileStream, this, new JsonSerializerOptions() { WriteIndented = true });
-            fileStream.Close();
+            _saveCts?.Cancel();
+            var token = (_saveCts = new CancellationTokenSource()).Token;
+
+            try
+            {
+                await Task.Delay(500, token);
+                File.WriteAllText(settingFile.FullName, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Settings] Failed to save settings: {ex.Message}");
+            }
         }
 
         public static void Reset()
@@ -137,8 +147,7 @@ namespace ScreenLookup.src.utils
             settingFile.Delete();
         }
 
-        #region
-
+        #region Global Variable
         public int SourceLanguageAccuracy
         {
             get => sourceLanguageAccuracy;
@@ -146,10 +155,13 @@ namespace ScreenLookup.src.utils
             {
                 sourceLanguageAccuracy = value;
 
-                App.captureWindow.LoadInstalledLanguage();
-                App.captureWindow.CreateTesseractEngine();
+                if (App.mainWindow.IsLoaded)
+                {
+                    App.captureWindow.LoadInstalledLanguage();
+                    App.captureWindow.CreateTesseractEngine();
 
-                App.settingPage?.LoadSourceLanguageContent();
+                    App.settingPage?.LoadSourceLanguageContent();
+                }
 
                 OnPropertyChanged();
             }
@@ -165,10 +177,13 @@ namespace ScreenLookup.src.utils
                 if (!HunspellHelper.IsInstalled(sourceLanguage))
                     HunSpell = false;
 
-                App.captureWindow.CreateTesseractEngine();
-                App.captureWindow.SelectConfigLanguage();
+                if (App.mainWindow.IsLoaded)
+                {
+                    App.captureWindow.CreateTesseractEngine();
+                    App.captureWindow.SelectConfigLanguage();
 
-                App.settingPage?.SelectSourceLanguage();
+                    App.settingPage?.SelectSourceLanguage();
+                }
 
                 OnPropertyChanged();
             }
@@ -179,18 +194,14 @@ namespace ScreenLookup.src.utils
             get => hunSpell;
             set
             {
-                if (value == true)
+                hunSpell = value;
+
+                if (App.mainWindow.IsLoaded)
                 {
-                    if (HunspellHelper.IsInstalled(SourceLanguage))
-                    {
-                        hunSpell = true;
+                    if (value && HunspellHelper.IsInstalled(SourceLanguage))
                         HunspellHelper.CreateHunspellEngine(SourceLanguage);
-                    }
-                }
-                else
-                {
-                    hunSpell = false;
-                    HunspellHelper.RemoveHunspellEngine();
+                    else if (!value)
+                        HunspellHelper.RemoveHunspellEngine();
                 }
 
                 OnPropertyChanged();
@@ -215,7 +226,8 @@ namespace ScreenLookup.src.utils
             {
                 translationProvider = value;
 
-                Translation.ChangeTranslationProvider(value);
+                if (App.mainWindow.IsLoaded)
+                    Translation.ChangeTranslationProvider(value);
 
                 OnPropertyChanged();
             }
@@ -228,8 +240,8 @@ namespace ScreenLookup.src.utils
             {
                 ttsProvider = value;
 
-                TextToSpeech.ChangeTextToSpeechProvider(value);
-
+                if (App.mainWindow.IsLoaded)
+                    TextToSpeech.ChangeTextToSpeechProvider(value);
 
                 OnPropertyChanged();
             }
@@ -243,9 +255,9 @@ namespace ScreenLookup.src.utils
                 startupWithWindows = value;
 
                 if (startupWithWindows)
-                    App.setting.RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
+                    RegAutorun.SetValue("ScreenLookup", $"\"{AppDomain.CurrentDomain.BaseDirectory}\\ScreenLookup.exe\"");
                 else
-                    App.setting.RegAutorun.DeleteValue("ScreenLookup", false);
+                    RegAutorun.DeleteValue("ScreenLookup", false);
 
                 OnPropertyChanged();
             }
@@ -368,8 +380,9 @@ namespace ScreenLookup.src.utils
             {
                 autoConnectStamVR = value;
 
-                if (value)
-                    FrameShotPage.AutoConnectSteamVR();
+                if (App.mainWindow.IsLoaded)
+                    if (autoConnectStamVR)
+                        FrameShotPage.AutoConnectSteamVR();
 
                 OnPropertyChanged();
             }
@@ -381,6 +394,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayEnable = value;
+
                 OnPropertyChanged();
             }
         }
@@ -391,6 +405,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayHigh = value;
+
                 OnPropertyChanged();
             }
         }
@@ -401,6 +416,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayDistance = value;
+
                 OnPropertyChanged();
             }
         }
@@ -411,6 +427,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayScale = value;
+
                 OnPropertyChanged();
             }
         }
@@ -421,6 +438,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayScrollSpeed = value;
+
                 OnPropertyChanged();
             }
         }
@@ -431,6 +449,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayCurve = value;
+
                 OnPropertyChanged();
             }
         }
@@ -463,6 +482,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 hmdRotationThreshold = value;
+
                 OnPropertyChanged();
             }
         }
@@ -473,6 +493,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 useRightEye = value;
+
                 OnPropertyChanged();
             }
         }
@@ -483,6 +504,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 frameOffset = value;
+
                 OnPropertyChanged();
             }
         }
@@ -547,8 +569,11 @@ namespace ScreenLookup.src.utils
 
         public void OnPropertyChanged([CallerMemberName] string? propName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            Save();
+            if (App.mainWindow.IsLoaded)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+                Save();
+            }
         }
     }
 }

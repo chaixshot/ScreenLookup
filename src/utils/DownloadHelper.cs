@@ -281,6 +281,11 @@ internal class HunspellHelper
         {"vie", "vi/vi_VN"},
     };
 
+    static HunspellHelper()
+    {
+        CreateHunspellEngine(App.setting.SourceLanguage);
+    }
+
     public static bool IsInstalled(int langID)
     {
         return App.setting.LoadedHunspell.ContainsKey(langID.ToString());
