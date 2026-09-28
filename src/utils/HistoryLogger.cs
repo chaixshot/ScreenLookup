@@ -73,6 +73,10 @@ namespace ScreenLookup.src.utils
                 INSERT INTO history (Original, OriginalWords, Translated, SourceLanguage, TargetLanguage)
                 VALUES (@Original, @OriginalWords, @Translated, @SourceLanguage, @TargetLanguage);
 
+                DELETE FROM history WHERE rowid NOT IN (
+                    SELECT rowid FROM history ORDER BY rowid DESC LIMIT 200
+                );
+
                 SELECT last_insert_rowid();";
 
             using var command = new SqliteCommand(insertQuery, GetConnection());
