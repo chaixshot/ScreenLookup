@@ -152,9 +152,12 @@ namespace ScreenLookup.src.controls
             // Filter the message to only include sentences containing the processed word
             if (!string.IsNullOrEmpty(message))
             {
+                bool hasCjk = word.Any(AppUtilities.IsCjk);
+                string wordPattern = hasCjk ? Regex.Escape(word) : $@"(?<!\w){Regex.Escape(word)}(?!\w)";
+
                 string[] sentences = Regex.Split(message, @"(?<=[.!?。！？，、;{}\[\]()])"); // Split by punctuation, keeping the punctuation delimiters in the resulting array
 
-                IEnumerable<string> filteredSentences = sentences.Where(s => s.Contains(word, StringComparison.OrdinalIgnoreCase)).Select(s => s.Trim()); // Filter sentences that contain the word (case-insensitive check against the processed word)
+                IEnumerable<string> filteredSentences = sentences.Where(s => Regex.IsMatch(s, wordPattern, RegexOptions.IgnoreCase)).Select(s => s.Trim()); // Filter sentences that contain the word (case-insensitive check against the processed word)
 
                 message = string.Join("\n", filteredSentences); // Join them back together, adding a newline after each sentence's punctuation
                 message = Regex.Replace(message, $@"\s*([{{}}\[\]])\s*", "");
