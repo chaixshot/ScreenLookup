@@ -165,12 +165,12 @@
 
                             <WrapPanel Margin="5,0,0,0" Orientation="Horizontal">
                                 <Controls:TextBlock
+                                    x:Name="originalMessageBlock"
                                     Margin="2"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     FontFamily="{Binding FontFace}"
                                     FontSize="{Binding FontSizeS}"
-                                    Text="{Binding OriginalMessage}"
                                     TextWrapping="Wrap" />
                             </WrapPanel>
                         </Controls:DynamicScrollViewer>

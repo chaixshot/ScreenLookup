@@ -552,6 +552,18 @@ namespace ScreenLookup.src.windows
             var textBlocks = xmlDoc.GetElementsByTagName("TextBlock");
             foreach (XmlElement textBlock in textBlocks)
             {
+                Dictionary<string, int> wordOccurrenceCounter = new(StringComparer.OrdinalIgnoreCase);
+
+                int GetOccurrenceIndex(string w)
+                {
+                    string clean = AppUtilities.RegexPunctuation().Replace(w, "").Trim().Normalize(System.Text.NormalizationForm.FormC);
+                    if (string.IsNullOrEmpty(clean)) return -1;
+                    clean = char.ToUpper(clean[0]) + (clean.Length > 1 ? clean[1..].ToLower() : string.Empty);
+                    int count = wordOccurrenceCounter.GetValueOrDefault(clean, 0);
+                    wordOccurrenceCounter[clean] = count + 1;
+                    return count;
+                }
+
                 // Build fullTextBlock for the entire TextBlock (Uid / translation context)
                 var allStrings = textBlock.GetElementsByTagName("String");
                 System.Text.StringBuilder fullTextBuilder = new();
@@ -596,6 +608,7 @@ namespace ScreenLookup.src.windows
                             SourceLanguage = App.setting.SourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
+                            WordOccurrenceIndex = GetOccurrenceIndex(word),
                         });
                     }
                     continue;
@@ -679,6 +692,7 @@ namespace ScreenLookup.src.windows
                             SourceLanguage = App.setting.SourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
+                            WordOccurrenceIndex = GetOccurrenceIndex(word),
                         });
                     }
                 }
@@ -762,10 +776,14 @@ namespace ScreenLookup.src.windows
             string message = button.Uid.ToString();
             int sourceLang = Int32.Parse(button.Tag.ToString());
 
+            int occurrenceIndex = -1;
+            if (button.DataContext is CaptureAltoEntry entry)
+                occurrenceIndex = entry.WordOccurrenceIndex;
+
             if (string.IsNullOrWhiteSpace(word))
                 return;
 
-            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage);
+            flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage, occurrenceIndex);
 
             CloseTranslatedExpanded();
         }
