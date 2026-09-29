@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="ScreenGrab/src/ScreenGrab/ScreenGrab.csproj" />
   <Project Path="ScreenLookup.csproj" />
+  <Project Path="third-party/ScreenGrab/src/ScreenGrab/ScreenGrab.csproj" />
 </Solution>
