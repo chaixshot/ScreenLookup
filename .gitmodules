@@ -1,6 +1,7 @@
-[submodule "ScreenGrab"]
-	path = ScreenGrab
-	url = https://github.com/chaixshot/ScreenGrab.git
 [submodule "third-party/openvr"]
 	path = third-party/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "third-party/ScreenGrab"]
+	path = third-party/ScreenGrab
+	url = https://github.com/chaixshot/ScreenGrab.git
+	branch = CustomFeature

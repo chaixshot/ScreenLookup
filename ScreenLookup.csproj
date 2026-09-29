@@ -25,7 +25,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ScreenGrab\**" />
     <Compile Remove="third-party\openvr\bin\androidarm64\**" />
     <Compile Remove="third-party\openvr\bin\linux32\**" />
     <Compile Remove="third-party\openvr\bin\linux64\**" />
@@ -37,7 +36,7 @@
     <Compile Remove="third-party\openvr\lib\**" />
     <Compile Remove="third-party\openvr\samples\**" />
     <Compile Remove="third-party\openvr\src\**" />
-    <EmbeddedResource Remove="ScreenGrab\**" />
+    <Compile Remove="third-party\ScreenGrab\**" />
     <EmbeddedResource Remove="third-party\openvr\bin\androidarm64\**" />
     <EmbeddedResource Remove="third-party\openvr\bin\linux32\**" />
     <EmbeddedResource Remove="third-party\openvr\bin\linux64\**" />
@@ -49,7 +48,7 @@
     <EmbeddedResource Remove="third-party\openvr\lib\**" />
     <EmbeddedResource Remove="third-party\openvr\samples\**" />
     <EmbeddedResource Remove="third-party\openvr\src\**" />
-    <None Remove="ScreenGrab\**" />
+    <EmbeddedResource Remove="third-party\ScreenGrab\**" />
     <None Remove="third-party\openvr\bin\androidarm64\**" />
     <None Remove="third-party\openvr\bin\linux32\**" />
     <None Remove="third-party\openvr\bin\linux64\**" />
@@ -61,7 +60,7 @@
     <None Remove="third-party\openvr\lib\**" />
     <None Remove="third-party\openvr\samples\**" />
     <None Remove="third-party\openvr\src\**" />
-    <Page Remove="ScreenGrab\**" />
+    <None Remove="third-party\ScreenGrab\**" />
     <Page Remove="third-party\openvr\bin\androidarm64\**" />
     <Page Remove="third-party\openvr\bin\linux32\**" />
     <Page Remove="third-party\openvr\bin\linux64\**" />
@@ -73,6 +72,7 @@
     <Page Remove="third-party\openvr\lib\**" />
     <Page Remove="third-party\openvr\samples\**" />
     <Page Remove="third-party\openvr\src\**" />
+    <Page Remove="third-party\ScreenGrab\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -111,7 +111,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="ScreenGrab\src\ScreenGrab\ScreenGrab.csproj" />
+    <ProjectReference Include="third-party\ScreenGrab\src\ScreenGrab\ScreenGrab.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="('$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.Contains('x86'))) Or '$(PlatformTarget)' == 'x86' Or '$(Platform)' == 'x86' Or '$(Platform)' == 'Win32'">
