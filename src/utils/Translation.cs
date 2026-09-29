@@ -38,8 +38,6 @@
             int providerID = App.setting.TranslationProvider;
             string resultText = string.Empty;
 
-            // Fallback 1: Tesseract Tags
-            try
             // Check local dictionary
             if (isWord)
             {
@@ -47,35 +45,44 @@
                 if (localEntry != null && !string.IsNullOrWhiteSpace(localEntry.Translated))
                     resultText = localEntry.Translated;
             }
-            catch { }
 
             if (string.IsNullOrEmpty(resultText))
-            {
-                // Fallback 2: ISO 639-1 Tags
-                try
-                {
-                    var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetLanguageISO6391FromID(targetLang), LanguageList.GetLanguageISO6391FromID(sourceLang));
-                    resultText = translateResult.Translation;
-                }
-                catch { }
-            }
 
+            // Fallbacks via tag type loop
             if (string.IsNullOrEmpty(resultText))
             {
-                // Fallback 3: ISO 639-3 Tags
-                try
+                Func<int, string>[] tagGetters = [
+                    LanguageList.GetTesseractTagFromID,
+                    LanguageList.GetLanguageISO6391FromID,
+                    LanguageList.GetLanguageISO6393FromID
+                ];
+
+                for (int i = 0; i < tagGetters.Length; i++)
                 {
-                    var translateResult = await TranslationProvider.TranslateAsync(text, LanguageList.GetLanguageISO6393FromID(targetLang), LanguageList.GetLanguageISO6393FromID(sourceLang));
-                    resultText = translateResult.Translation;
-                }
-                catch (Exception ex)
-                {
-                    SnackbarHost.Show("Translation Error", ex.StackTrace, SnackbarType.Error);
-                    return string.Empty;
+                    try
+                    {
+                        string targetTag = tagGetters[i](targetLang);
+                        string sourceTag = tagGetters[i](sourceLang);
+                        var translateResult = await TranslationProvider.TranslateAsync(text, targetTag, sourceTag);
+
+                        if (!string.IsNullOrEmpty(translateResult.Translation))
+                        {
+                            resultText = translateResult.Translation;
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Show snackbar and exit early only on the final fallback failure
+                        if (i == tagGetters.Length - 1)
+                        {
+                            SnackbarHost.Show("Translation Error", ex.StackTrace, SnackbarType.Error);
+                            return string.Empty;
+                        }
+                    }
                 }
             }
 
-            // Save translated result to local dictionary cache ONLY for single words / short phrases
             // Save translated result to local dictionary
             if (isWord && !string.IsNullOrEmpty(resultText))
                 await DictionaryLogger.SaveTranslatedAsync(text, resultText, sourceLang, targetLang, providerID);
