@@ -19,7 +19,12 @@ namespace ScreenLookup.src.models
 
     public class CaptureWordsSimplifiedEntry
     {
-        public required string Word { get; set; }
+        private string _word = string.Empty;
+        public required string Word
+        {
+            get => _word;
+            set => _word = value?.Trim().Normalize(System.Text.NormalizationForm.FormC) ?? string.Empty;
+        }
         public required int Stop { get; set; }
     }
 
