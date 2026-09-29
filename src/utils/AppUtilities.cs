@@ -9,12 +9,21 @@ using Windows.ApplicationModel;
 
 namespace ScreenLookup.src.utils
 {
-    internal class AppUtilities
+    internal partial class AppUtilities
     {
 
         public const string GitHubRepoUrl = "https://github.com/chaixshot/ScreenLookup";
         public const string GitHubReleasesUrl = "https://github.com/chaixshot/ScreenLookup/releases";
         public const string GitHubLatestReleaseApi = "https://api.github.com/repos/chaixshot/ScreenLookup/releases/latest";
+
+        [GeneratedRegex(@"\s*([.!?,。！？，、:;{}\[\]()'‘’""])\s*")]
+        internal static partial Regex RegexPunctuation();
+
+        [GeneratedRegex(@"\s*([{}\[\]])\s*")]
+        internal static partial Regex RegexBracket();
+
+        [GeneratedRegex(@"(?<=[.!?。！？，、;{}\[\]()])")]
+        internal static partial Regex PunctuationBoundary();
 
         internal static bool IsPackaged()
         {

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Wpf.Ui.Controls;
@@ -22,6 +23,7 @@ namespace ScreenLookup.src.controls
         public int targetLanguage = 1;
         public string originalWord = string.Empty;
         public string originalMessage = string.Empty;
+        public int wordOccurrenceIndex = -1;
         public double width = double.NaN;
         public double height = double.NaN;
         public bool isOpen = false;
@@ -69,6 +71,7 @@ namespace ScreenLookup.src.controls
             {
                 originalWord = value;
                 OnPropertyChanged();
+                UpdateOriginalMessageHighlight();
             }
         }
 
@@ -79,6 +82,7 @@ namespace ScreenLookup.src.controls
             {
                 originalMessage = value;
                 OnPropertyChanged();
+                UpdateOriginalMessageHighlight();
             }
         }
 
@@ -136,15 +140,16 @@ namespace ScreenLookup.src.controls
         }
         #endregion
 
-        public void Show(string word, string message, int sourceLang, int targetLang)
+        public void Show(string word, string message, int sourceLang, int targetLang, int occurrenceIndex = -1)
         {
             IsOpen = false;
+            wordOccurrenceIndex = occurrenceIndex;
             FontSizeS = FontSizeS;
             FontFace = FontFace;
 
             FollowMouse();
 
-            string stripped = Regex.Replace(word, @"\s*([.!?,。！？，、;{}\[\]()'‘’""])\s*", ""); // Remove punctuation
+            string stripped = AppUtilities.RegexPunctuation().Replace(word, ""); // Remove punctuation
 
             if (!string.IsNullOrEmpty(stripped))
                 word = char.ToUpper(stripped[0]) + (stripped.Length > 1 ? stripped[1..].ToLower() : string.Empty);
@@ -155,12 +160,12 @@ namespace ScreenLookup.src.controls
                 bool hasCjk = word.Any(AppUtilities.IsCjk);
                 string wordPattern = hasCjk ? Regex.Escape(word) : $@"(?<!\w){Regex.Escape(word)}(?!\w)";
 
-                string[] sentences = Regex.Split(message, @"(?<=[.!?。！？，、;{}\[\]()])"); // Split by punctuation, keeping the punctuation delimiters in the resulting array
+                string[] sentences = AppUtilities.PunctuationBoundary().Split(message); // Split by punctuation, keeping the punctuation delimiters in the resulting array
 
                 IEnumerable<string> filteredSentences = sentences.Where(s => Regex.IsMatch(s, wordPattern, RegexOptions.IgnoreCase)).Select(s => s.Trim()); // Filter sentences that contain the word (case-insensitive check against the processed word)
 
                 message = string.Join("\n", filteredSentences); // Join them back together, adding a newline after each sentence's punctuation
-                message = Regex.Replace(message, $@"\s*([{{}}\[\]])\s*", "");
+                message = AppUtilities.RegexBracket().Replace(message, "");
             }
 
             // Clean & normalize inputs (Fixes diacritic ordering)
@@ -250,6 +255,70 @@ namespace ScreenLookup.src.controls
 
             wordSave.Visibility = isExist ? Visibility.Collapsed : Visibility.Visible;
             wordSaveScore.Visibility = isExist ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void UpdateOriginalMessageHighlight()
+        {
+            originalMessageBlock.Inlines.Clear();
+
+            if (string.IsNullOrEmpty(OriginalMessage))
+                return;
+
+            if (string.IsNullOrEmpty(OriginalWord))
+            {
+                originalMessageBlock.Inlines.Add(new Run(OriginalMessage));
+                return;
+            }
+
+            Brush accentBackground = Application.Current.TryFindResource("AccentFillColorDefaultBrush") as Brush
+                                  ?? Application.Current.TryFindResource("AccentTextFillColorPrimaryBrush") as Brush
+                                  ?? SystemColors.HighlightBrush;
+
+            Brush textOnAccent = Application.Current.TryFindResource("TextOnAccentFillColorPrimaryBrush") as Brush
+                              ?? Brushes.White;
+
+            bool hasCjk = OriginalWord.Any(AppUtilities.IsCjk);
+            string pattern = hasCjk
+                ? $@"({Regex.Escape(OriginalWord)})"
+                : $@"(?<!\w)({Regex.Escape(OriginalWord)})(?!\w)";
+
+            string[] parts = Regex.Split(OriginalMessage, pattern, RegexOptions.IgnoreCase);
+
+            int currentMatchIndex = 0;
+
+            foreach (string part in parts)
+            {
+                if (string.IsNullOrEmpty(part))
+                    continue;
+
+                bool isMatch = string.Equals(part, OriginalWord, StringComparison.OrdinalIgnoreCase);
+                if (isMatch && (wordOccurrenceIndex < 0 || currentMatchIndex == wordOccurrenceIndex))
+                {
+                    originalMessageBlock.Inlines.Add(new InlineUIContainer(new Border
+                    {
+                        Background = accentBackground,
+                        CornerRadius = new CornerRadius(3),
+                        Padding = new Thickness(1, 1, 1, 1),
+                        Child = new System.Windows.Controls.TextBlock
+                        {
+                            Text = part,
+                            Foreground = textOnAccent,
+                            FontFamily = FontFace,
+                            FontSize = FontSizeS,
+                            FontWeight = FontWeights.SemiBold,
+                            VerticalAlignment = VerticalAlignment.Center
+                        }
+                    })
+                    { BaselineAlignment = BaselineAlignment.Center });
+                }
+                else
+                {
+                    originalMessageBlock.Inlines.Add(new Run(part));
+                }
+
+                if (isMatch)
+                    currentMatchIndex++;
+            }
         }
 
         #region Button Click
