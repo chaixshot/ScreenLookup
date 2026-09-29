@@ -62,7 +62,6 @@ namespace ScreenLookup.src.controls
             if (string.IsNullOrEmpty(mainText))
             {
                 Refresh.Visibility = Visibility.Visible;
-                ExtraMeaningsList.Visibility = Visibility.Collapsed;
                 return;
             }
 

@@ -23,6 +23,7 @@ namespace ScreenLookup.src.controls
         public int targetLanguage = 1;
         public string originalWord = string.Empty;
         public string originalMessage = string.Empty;
+        public string phoneticText = string.Empty;
         public int wordOccurrenceIndex = -1;
         public double width = double.NaN;
         public double height = double.NaN;
@@ -83,6 +84,17 @@ namespace ScreenLookup.src.controls
                 originalMessage = value;
                 OnPropertyChanged();
                 UpdateOriginalMessageHighlight();
+            }
+        }
+
+        public string PhoneticText
+        {
+            get { return phoneticText; }
+            set
+            {
+                phoneticText = value;
+                OnPropertyChanged();
+                phoneticTextBlock?.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
             }
         }
 
@@ -206,12 +218,33 @@ namespace ScreenLookup.src.controls
                     {
                         await Dispatcher.InvokeAsync(() => translationMessage.Translate(isWord: false, OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken));
                     });
+
+                    // Word extra details
+                    _ = Task.Run(async () =>
+                    {
+                        var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+
+                        if (!TranslatesCancelToken.IsCancellationRequested)
+                        {
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                PhoneticText = phonetic;
+
+                                if (extraMeanings != null && extraMeanings.Count > 0)
+                                {
+                                    ExtraMeaningsList.ItemsSource = extraMeanings;
+                                    ExtraMeaningsList.Visibility = Visibility.Visible;
+                                }
+                            });
+                        }
+                    });
                 }));
             });
         }
 
         private void OnClose(Flyout sender, RoutedEventArgs args)
         {
+            TranslatesCancelToken?.Cancel();
             TextToSpeech.StopTTS();
         }
 
@@ -241,6 +274,9 @@ namespace ScreenLookup.src.controls
                 messageSection.Visibility = Visibility.Collapsed;
             else
                 messageSection.Visibility = Visibility.Visible;
+
+            ExtraMeaningsList.ItemsSource = null;
+            ExtraMeaningsList.Visibility = Visibility.Collapsed;
         }
 
         public void ClearCache()
@@ -249,12 +285,12 @@ namespace ScreenLookup.src.controls
             translationMessage.Clear();
         }
 
-        private async void SavedWordButtonStateChange(string word)
+        private async void SavedWordButtonStateChange(string word, bool? isExist = null)
         {
-            bool isExist = await SavedWordLogger.IsExist(word);
+            bool exists = isExist ?? await SavedWordLogger.IsExist(word);
 
-            wordSave.Visibility = isExist ? Visibility.Collapsed : Visibility.Visible;
-            wordSaveScore.Visibility = isExist ? Visibility.Visible : Visibility.Collapsed;
+            wordSave.Visibility = exists ? Visibility.Collapsed : Visibility.Visible;
+            wordSaveScore.Visibility = exists ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void UpdateOriginalMessageHighlight()
@@ -363,7 +399,7 @@ namespace ScreenLookup.src.controls
                     closeButton: false
                 );
                 SavedWordLogger.ToggleSaved(OriginalWord, translated, SourceLanguage, TargetLanguage);
-                SavedWordButtonStateChange(OriginalWord);
+                SavedWordButtonStateChange(OriginalWord, isExist: wordSave.Visibility != Visibility.Collapsed);
             }
         }
 

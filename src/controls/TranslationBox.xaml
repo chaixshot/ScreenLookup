@@ -14,37 +14,41 @@
         IsScrollingVertically="True"
         VerticalScrollBarVisibility="Visible">
 
-        <WrapPanel Orientation="Horizontal">
-            <Controls:TextBlock
-                x:Name="TranslatedText"
-                Margin="2,2,10,2"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                FontFamily="{Binding FontFace}"
-                FontSize="{Binding FontSizeS}"
-                TextWrapping="Wrap" />
+        <StackPanel Orientation="Vertical">
 
-            <wpfui:ProgressRing
-                x:Name="Loading"
-                Width="12"
-                Height="12"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                IsIndeterminate="True" />
+            <WrapPanel Orientation="Horizontal">
+                <Controls:TextBlock
+                    x:Name="TranslatedText"
+                    Margin="2,2,10,2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="{Binding FontFace}"
+                    FontSize="{Binding FontSizeS}"
+                    TextWrapping="Wrap" />
 
-            <Controls:Button
-                x:Name="Refresh"
-                Width="{Binding Width, ElementName=flayoutOriginalTSS}"
-                Height="{Binding Height, ElementName=flayoutOriginalTSS}"
-                Padding="0"
-                VerticalAlignment="Top"
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Click="Refresh_Click"
-                Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
-                                        Filled=False}"
-                ToolTip="Refresh" />
-        </WrapPanel>
+                <wpfui:ProgressRing
+                    x:Name="Loading"
+                    Width="12"
+                    Height="12"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                    IsIndeterminate="True" />
+
+                <Controls:Button
+                    x:Name="Refresh"
+                    Width="{Binding Width, ElementName=flayoutOriginalTSS}"
+                    Height="{Binding Height, ElementName=flayoutOriginalTSS}"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Click="Refresh_Click"
+                    Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
+                                            Filled=False}"
+                    ToolTip="Refresh" />
+            </WrapPanel>
+
+        </StackPanel>
     </Controls:DynamicScrollViewer>
 </UserControl>

@@ -52,6 +52,9 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Custom
 InnoSetup/ScreenLookup*.exe
 /.vs
-/Properties/PublishProfiles
+/Properties
+/.idea
