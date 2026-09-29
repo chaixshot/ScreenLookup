@@ -163,8 +163,9 @@ namespace ScreenLookup.src.controls
                 message = Regex.Replace(message, $@"\s*([{{}}\[\]])\s*", "");
             }
 
-            OriginalWord = word;
-            OriginalMessage = message;
+            // Clean & normalize inputs (Fixes diacritic ordering)
+            OriginalWord = word.Trim().Normalize(System.Text.NormalizationForm.FormC);
+            OriginalMessage = message.Trim().Normalize(System.Text.NormalizationForm.FormC);
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
@@ -173,15 +174,16 @@ namespace ScreenLookup.src.controls
 
         private void OnOpen(Flyout sender, RoutedEventArgs args)
         {
-            ResetDefaultState();
-
-            TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
-            SavedWordButtonStateChange(OriginalWord);
-
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 Dispatcher.BeginInvoke(new Action(async () =>
                 {
+                    ResetDefaultState();
+
+                    TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
+                    SavedWordButtonStateChange(OriginalWord);
+
+                    PhoneticText = string.Empty;
                     translationWord.ResetDefaultState();
                     translationMessage.ResetDefaultState();
 

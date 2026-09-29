@@ -4,6 +4,7 @@ using ScreenLookup.src.models;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
@@ -15,7 +16,7 @@ namespace ScreenLookup.src.utils
         public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
 
         private static SqliteConnection _sharedConnection;
-        private static readonly object _connectionLock = new();
+        private static readonly Lock _connectionLock = new();
 
         static HistoryLogger()
         {
@@ -67,7 +68,7 @@ namespace ScreenLookup.src.utils
 
         public static async Task<int> Add(string Original, List<CaptureWordsSimplifiedEntry> OriginalWords, string Translated, int SourceLanguage, int TargetLanguage)
         {
-            var originalWordsJson = JsonSerializer.Serialize(OriginalWords);
+            string originalWordsJson = JsonSerializer.Serialize(OriginalWords, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
             string insertQuery = @"
                 INSERT INTO history (Original, OriginalWords, Translated, SourceLanguage, TargetLanguage)

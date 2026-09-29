@@ -4,6 +4,7 @@ using ScreenLookup.src.pages;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows.Input;
 
@@ -144,7 +145,7 @@ namespace ScreenLookup.src.utils
                 try
                 {
                     using FileStream fileStream = File.Open(settingFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
-                    JsonSerializer.Serialize(fileStream, this, new JsonSerializerOptions() { WriteIndented = true });
+                    JsonSerializer.Serialize(fileStream, this, new JsonSerializerOptions() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
                     fileStream.Close();
                 }
                 catch (Exception ex)
