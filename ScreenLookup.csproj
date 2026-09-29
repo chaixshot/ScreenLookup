@@ -26,9 +26,62 @@
 
   <ItemGroup>
     <Compile Remove="ScreenGrab\**" />
+    <Compile Remove="third-party\openvr\bin\androidarm64\**" />
+    <Compile Remove="third-party\openvr\bin\linux32\**" />
+    <Compile Remove="third-party\openvr\bin\linux64\**" />
+    <Compile Remove="third-party\openvr\bin\linuxarm64\**" />
+    <Compile Remove="third-party\openvr\bin\osx32\**" />
+    <Compile Remove="third-party\openvr\codegen\**" />
+    <Compile Remove="third-party\openvr\controller_callouts\**" />
+    <Compile Remove="third-party\openvr\docs\**" />
+    <Compile Remove="third-party\openvr\lib\**" />
+    <Compile Remove="third-party\openvr\samples\**" />
+    <Compile Remove="third-party\openvr\src\**" />
     <EmbeddedResource Remove="ScreenGrab\**" />
+    <EmbeddedResource Remove="third-party\openvr\bin\androidarm64\**" />
+    <EmbeddedResource Remove="third-party\openvr\bin\linux32\**" />
+    <EmbeddedResource Remove="third-party\openvr\bin\linux64\**" />
+    <EmbeddedResource Remove="third-party\openvr\bin\linuxarm64\**" />
+    <EmbeddedResource Remove="third-party\openvr\bin\osx32\**" />
+    <EmbeddedResource Remove="third-party\openvr\codegen\**" />
+    <EmbeddedResource Remove="third-party\openvr\controller_callouts\**" />
+    <EmbeddedResource Remove="third-party\openvr\docs\**" />
+    <EmbeddedResource Remove="third-party\openvr\lib\**" />
+    <EmbeddedResource Remove="third-party\openvr\samples\**" />
+    <EmbeddedResource Remove="third-party\openvr\src\**" />
     <None Remove="ScreenGrab\**" />
+    <None Remove="third-party\openvr\bin\androidarm64\**" />
+    <None Remove="third-party\openvr\bin\linux32\**" />
+    <None Remove="third-party\openvr\bin\linux64\**" />
+    <None Remove="third-party\openvr\bin\linuxarm64\**" />
+    <None Remove="third-party\openvr\bin\osx32\**" />
+    <None Remove="third-party\openvr\codegen\**" />
+    <None Remove="third-party\openvr\controller_callouts\**" />
+    <None Remove="third-party\openvr\docs\**" />
+    <None Remove="third-party\openvr\lib\**" />
+    <None Remove="third-party\openvr\samples\**" />
+    <None Remove="third-party\openvr\src\**" />
     <Page Remove="ScreenGrab\**" />
+    <Page Remove="third-party\openvr\bin\androidarm64\**" />
+    <Page Remove="third-party\openvr\bin\linux32\**" />
+    <Page Remove="third-party\openvr\bin\linux64\**" />
+    <Page Remove="third-party\openvr\bin\linuxarm64\**" />
+    <Page Remove="third-party\openvr\bin\osx32\**" />
+    <Page Remove="third-party\openvr\codegen\**" />
+    <Page Remove="third-party\openvr\controller_callouts\**" />
+    <Page Remove="third-party\openvr\docs\**" />
+    <Page Remove="third-party\openvr\lib\**" />
+    <Page Remove="third-party\openvr\samples\**" />
+    <Page Remove="third-party\openvr\src\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="third-party\openvr\.git" />
+    <None Remove="third-party\openvr\.gitattributes" />
+    <None Remove="third-party\openvr\CMakeLists.txt" />
+    <None Remove="third-party\openvr\LICENSE" />
+    <None Remove="third-party\openvr\README.md" />
+    <None Remove="third-party\openvr\Toolchain-clang.cmake" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,10 +114,21 @@
     <ProjectReference Include="ScreenGrab\src\ScreenGrab\ScreenGrab.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="openvr_api.dll">
+  <ItemGroup Condition="('$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.Contains('x86'))) Or '$(PlatformTarget)' == 'x86' Or '$(Platform)' == 'x86' Or '$(Platform)' == 'Win32'">
+    <Content Include="third-party\openvr\bin\win32\openvr_api.dll">
+      <Link>openvr_api.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="!('$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.Contains('x86'))) And '$(PlatformTarget)' != 'x86' And '$(Platform)' != 'x86' And '$(Platform)' != 'Win32'">
+    <Content Include="third-party\openvr\bin\win64\openvr_api.dll">
+      <Link>openvr_api.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="src\images\applicationIcon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Pack>True</Pack>
@@ -80,9 +144,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="src\sounds\screenshot.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="third-party\bin\win64\openvr_api.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
