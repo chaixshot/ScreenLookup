@@ -58,19 +58,33 @@
                         Tag="{Binding OriginalWord}"
                         ToolTip="Copy" />
 
-                    <WrapPanel
+                    <StackPanel
                         Grid.Column="2"
                         Margin="5,0,0,0"
-                        Orientation="Horizontal">
+                        VerticalAlignment="Center"
+                        Orientation="Vertical">
+
                         <Controls:TextBlock
-                            Margin="2"
-                            HorizontalAlignment="Center"
+                            Margin="2,0,2,0"
+                            HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontFamily="{Binding FontFace}"
                             FontSize="{Binding FontSizeS}"
                             Text="{Binding OriginalWord}"
                             TextWrapping="Wrap" />
-                    </WrapPanel>
+
+                        <!--  Phonetic  -->
+                        <Controls:TextBlock
+                            x:Name="phoneticTextBlock"
+                            Margin="2,2,2,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontSize="{Binding FontSizeS}"
+                            Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{Binding PhoneticText}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+                    </StackPanel>
                 </Grid>
 
                 <Grid Margin="10,10,10,0">
@@ -109,10 +123,39 @@
                         Tag="{Binding Tag, ElementName=translationWord}"
                         ToolTip="Copy" />
 
-                    <local:TranslationBox
-                        x:Name="translationWord"
+                    <StackPanel
                         Grid.Column="2"
-                        Margin="5,0,0,0" />
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical">
+
+                        <local:TranslationBox x:Name="translationWord" />
+
+                        <!--  Extra Meanings  -->
+                        <ItemsControl
+                            x:Name="ExtraMeaningsList"
+                            Margin="2,2,2,0"
+                            Visibility="Collapsed">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock
+                                            FontFamily="{Binding FontFace}"
+                                            FontSize="{Binding FontSizeS}"
+                                            FontWeight="Bold"
+                                            Foreground="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Text="{Binding Pos}" />
+                                        <TextBlock
+                                            FontFamily="{Binding FontFace}"
+                                            FontSize="{Binding FontSizeS}"
+                                            Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding MeaningsFormatted}"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                 </Grid>
 
                 <StackPanel

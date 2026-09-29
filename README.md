@@ -126,3 +126,4 @@ ScreenLookup includes native **SteamVR / OpenVR** integration allowing you to ca
 * **[OpenVR](https://github.com/ValveSoftware/openvr)**: Valve OpenVR SDK for SteamVR 3D controller tracking and overlays.
 * **[HotkeyUtility](https://github.com/iPylum/HotkeyUtility)**: Global hotkey management library.
 * **[WpfScreenHelper](https://github.com/micdenny/WpfScreenHelper)**: Multi-monitor display helper for WPF.
+* **[Porter2Stemmer](https://github.com/micdenny/WpfScreenHelper)**: An implementation of the Porter2 stemming algorithm in C#.

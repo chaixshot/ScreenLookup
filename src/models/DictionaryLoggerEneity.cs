@@ -10,4 +10,26 @@
         public List<ExtraMeaningEntity>? ExtraMeanings { get; set; }
         public string Phonetic { get; set; } = string.Empty;
     }
+
+    public class ExtraMeaningEntity
+    {
+        private string _pos = string.Empty;
+        public string Pos
+        {
+            get => _pos;
+            set => _pos = value?.Trim().Normalize(System.Text.NormalizationForm.FormC) ?? string.Empty;
+        }
+
+        private List<string> _meanings = [];
+        public List<string> Meanings
+        {
+            get => _meanings;
+            set => _meanings = value?
+                .Where(m => !string.IsNullOrWhiteSpace(m))
+                .Select(m => m.Trim().Normalize(System.Text.NormalizationForm.FormC))
+                .ToList() ?? [];
+        }
+
+        public string MeaningsFormatted => string.Join(", ", Meanings);
+    }
 }
