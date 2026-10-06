@@ -311,6 +311,7 @@ namespace ScreenLookup.src.utils
         #endregion
 
         private bool isWaitingForSecondPress = false;
+        private bool isRecentering = false;
         private CancellationTokenSource? doublePressCts;
 
         private void ProcessInput()
@@ -406,14 +407,20 @@ namespace ScreenLookup.src.utils
                                 {
                                     try
                                     {
+                                        isRecentering = true;
+                                        isOverlayDirty = true;
                                         AppUtilities.PlaySound("recenter.wav");
                                         await Task.Delay(1000, doublePressCts.Token);
 
                                         // Reset anchor token flags so that the render system re-snaps perspective down onto head projection coordinates
+                                        isRecentering = false;
                                         hasAnchorTransform = false;
                                         isOverlayDirty = true;
                                     }
-                                    catch (TaskCanceledException) { }
+                                    catch (TaskCanceledException)
+                                    {
+                                        isRecentering = false;
+                                    }
                                 });
                             }
                         }
@@ -716,6 +723,34 @@ namespace ScreenLookup.src.utils
                         currentY += fontHeight + lineSpacing;
                     }
                 }
+
+                if (isRecentering)
+                {
+                    string recenterText = "Recentering...";
+                    using (Font font = new(App.setting.FontFace ?? "Segoe UI", 16f, System.Drawing.FontStyle.Bold))
+                    {
+                        SizeF sz = sharedCaptureGraphics.MeasureString(recenterText, font);
+                        float padX = 24f, padY = 14f;
+                        float boxW = sz.Width + padX * 2f;
+                        float boxH = sz.Height + padY * 2f;
+                        float boxX = (compositeWidth - boxW) / 2f;
+                        float boxY = (compositeHeight - boxH) / 2f;
+
+                        RectangleF boxRect = new(boxX, boxY, boxW, boxH);
+                        using GraphicsPath boxPath = CreateRoundedRectanglePath(boxRect, 8f);
+                        using SolidBrush bgBrush = new(Color.FromArgb(220, 20, 20, 28));
+                        using Pen borderPen = new(Color.FromArgb(255, 218, 96, 255), 2f);
+                        using SolidBrush textBrush = new(Color.FromArgb(245, 245, 245));
+
+                        sharedCaptureGraphics.SmoothingMode = SmoothingMode.AntiAlias;
+                        sharedCaptureGraphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+
+                        sharedCaptureGraphics.FillPath(bgBrush, boxPath);
+                        sharedCaptureGraphics.DrawPath(borderPen, boxPath);
+                        sharedCaptureGraphics.DrawString(recenterText, font, textBrush, boxX + padX, boxY + padY);
+                    }
+                }
+
                 // Direct3D Hardware Copy Block
                 lock (d3dLock)
                 {
