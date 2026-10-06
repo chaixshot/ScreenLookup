@@ -175,8 +175,10 @@ namespace ScreenLookup.src.windows
                     translatedCard.Visibility = Visibility.Visible;
                 }
 
-                this.Topmost = App.setting.Topmost;
+                this.Topmost = App.setting.Topmost || IsVR;
             }
+
+            TopmostButton.Visibility = IsVR ? Visibility.Collapsed : Visibility.Visible;
 
             this.Show();
             this.Activate();
@@ -725,7 +727,7 @@ namespace ScreenLookup.src.windows
 
         private void App_Deactivated(object sender, EventArgs e)
         {
-            if (App.setting.CloseLostFocus)
+            if (App.setting.CloseLostFocus && !IsVR)
                 HideWindow();
         }
 
