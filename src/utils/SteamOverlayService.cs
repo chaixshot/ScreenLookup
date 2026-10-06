@@ -95,7 +95,11 @@ namespace ScreenLookup.src.utils
 
                 targetWindow.LayoutUpdated += (s, e) =>
                 {
-                    isOverlayDirty = true;
+                    targetWindow.Dispatcher.BeginInvoke(new Action(async () =>
+                    {
+                        await Task.Delay(10); // Wait for next UI frame
+                        isOverlayDirty = true;
+                    }));
                 };
 
                 targetWindow.IsVisibleChanged += (s, e) =>
