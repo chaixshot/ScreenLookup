@@ -355,40 +355,109 @@ namespace ScreenLookup.src.utils
             lastFrameHeight = heightM;
 
             // Calculate draw dimensions based on the aspect ratio of the physical frame
-            int drawW = FRAME_TEX_W;
-            int drawH = (int)MathF.Round(FRAME_TEX_W * (heightM / widthM));
+            DrawFrameTexture(center, widthM, heightM, out float totalWidthM, out Vector3 overlayCenter);
 
-            // Constrain to texture bounds
-            if (drawH > FRAME_TEX_H)
-            {
-                drawH = FRAME_TEX_H;
-                drawW = (int)MathF.Round(FRAME_TEX_H * (widthM / heightM));
-            }
+            OpenVR.Overlay.SetOverlayWidthInMeters(overlayHandle, totalWidthM);
 
-            DrawFrameTexture(drawW, drawH);
-            OpenVR.Overlay.SetOverlayWidthInMeters(overlayHandle, widthM);
-
-            HmdMatrix34_t transform = new HmdMatrix34_t { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = center.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = center.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = center.Z };
+            HmdMatrix34_t transform = new HmdMatrix34_t { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = overlayCenter.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = overlayCenter.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = overlayCenter.Z };
             OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
             OpenVR.Overlay.ShowOverlay(overlayHandle);
         }
 
-        private void DrawFrameTexture(int drawW, int drawH)
+        private void DrawFrameTexture(Vector3 center, float widthM, float heightM, out float totalWidthM, out Vector3 overlayCenter)
         {
+            totalWidthM = widthM;
+            overlayCenter = center;
+
             if (frameBitmap == null || d3dContext == null || stagingTex == null || overlayTex == null)
                 return;
+
+            bool showHint = widthM <= 0.2f && heightM <= 0.2f;
+
+            string[] hintLines =
+            [
+                "- Release Right Grip to capture, Left Grip to cancel.",
+                "- Holding Left Trigger, then capture to show options.",
+                "- Press Right Trigger to show the last result."
+            ];
+
+            const float fontSize = 0.007f;
+            const float paddingLeft = 0.010f;
+            const float paddingRight = 0.020f;
+            const float paddingTop = 0.008f;
+            const float paddingBottom = 0.012f;
+            const float lineSpacing = 0.003f;
+            const float marginY = 0.012f;
+            const float cornerRadius = 0.004f;
+
+            float boxWidthM = 0f, boxHeightM = 0f, hintRegionHM = 0f;
+
+            if (showHint)
+            {
+                float maxLineAspect = 0f;
+                using (Graphics gTemp = Graphics.FromImage(frameBitmap))
+                {
+                    gTemp.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                    using Font refFont = new(App.setting.FontFace, 16f, FontStyle.Regular);
+                    float refLineHeight = refFont.GetHeight(gTemp);
+                    foreach (string line in hintLines)
+                    {
+                        float aspect = gTemp.MeasureString(line, refFont).Width / refLineHeight;
+                        if (aspect > maxLineAspect) maxLineAspect = aspect;
+                    }
+                }
+
+                boxWidthM = maxLineAspect * fontSize + paddingLeft + paddingRight;
+                boxHeightM = hintLines.Length * fontSize + (hintLines.Length - 1) * lineSpacing + paddingTop + paddingBottom;
+                hintRegionHM = boxHeightM + marginY;
+                totalWidthM = Math.Max(widthM, boxWidthM);
+            }
+
+            float totalHeightM = heightM + hintRegionHM;
+            float texScale = MathF.Min(MathF.Min((float)FRAME_TEX_W / totalWidthM, (float)FRAME_TEX_H / totalHeightM), 3000f);
+
+            int totalPixelW = Math.Min(FRAME_TEX_W, (int)MathF.Ceiling(totalWidthM * texScale));
+            int totalPixelH = Math.Min(FRAME_TEX_H, (int)MathF.Ceiling(totalHeightM * texScale));
+            int drawW = Math.Max(16, (int)MathF.Round(widthM * texScale));
+            int drawH = Math.Max(16, (int)MathF.Round(heightM * texScale));
+            int frameX = 0, frameY = (int)MathF.Ceiling(hintRegionHM * texScale);
 
             using (Graphics g = Graphics.FromImage(frameBitmap))
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
                 g.Clear(Color.Transparent);
 
-                // Calculate pen thickness based on the maximum dimension (width or height) in meters.
-                // This keeps the line thickness visually consistent in VR, even in portrait mode where the width is small.
-                float penThickness = Math.Max(1f, 4f / Math.Max(lastFrameWidth, lastFrameHeight));
+                if (showHint)
+                {
+                    int boxPixelW = (int)MathF.Ceiling(boxWidthM * texScale);
+                    int boxPixelH = (int)MathF.Ceiling(boxHeightM * texScale);
+                    RectangleF boxRect = new(1f, 1f, boxPixelW - 2f, boxPixelH - 2f);
+
+                    using GraphicsPath boxPath = CreateRoundedRectanglePath(boxRect, cornerRadius * texScale);
+                    using SolidBrush bgBrush = new(Color.FromArgb(200, 20, 20, 28));
+                    using Pen borderPen = new(Color.FromArgb(180, 218, 96, 255), Math.Max(1f, 0.0015f * texScale));
+                    using SolidBrush textBrush = new(Color.FromArgb(245, 245, 245));
+                    using Font font = new("Segoe UI", Math.Max(8f, fontSize * texScale * 0.75f), FontStyle.Regular);
+
+                    g.FillPath(bgBrush, boxPath);
+                    g.DrawPath(borderPen, boxPath);
+
+                    float textX = 1f + paddingLeft * texScale;
+                    float currentY = 1f + paddingTop * texScale;
+                    float lineStep = (fontSize + lineSpacing) * texScale;
+
+                    foreach (string line in hintLines)
+                    {
+                        g.DrawString(line, font, textBrush, textX, currentY);
+                        currentY += lineStep;
+                    }
+                }
+
+                float penThickness = Math.Max(1f, (4f / 1024f) * texScale);
                 float inset = penThickness / 2f;
                 using Pen pen = new(Color.FromArgb(255, 218, 96, 255), penThickness);
-                g.DrawRectangle(pen, inset, inset, drawW - penThickness - 1, drawH - penThickness - 1);
+                g.DrawRectangle(pen, frameX + inset, frameY + inset, drawW - penThickness - 1, drawH - penThickness - 1);
             }
 
             Rectangle rect = new(0, 0, FRAME_TEX_W, FRAME_TEX_H);
@@ -419,13 +488,29 @@ namespace ScreenLookup.src.utils
             }
             finally { if (bData != null) frameBitmap.UnlockBits(bData); }
 
+            float offsetX_meters = ((frameX + drawW / 2.0f) - totalPixelW / 2.0f) / texScale;
+            float offsetY_meters = ((totalPixelH / 2.0f) - (frameY + drawH / 2.0f)) / texScale;
+            overlayCenter = center - hmdRight * offsetX_meters - hmdUp * offsetY_meters;
+
             VRTextureBounds_t bounds = new()
-            { uMin = 0f, vMin = 0f, uMax = (float)drawW / FRAME_TEX_W, vMax = (float)drawH / FRAME_TEX_H };
+            { uMin = 0f, vMin = 0f, uMax = (float)totalPixelW / FRAME_TEX_W, vMax = (float)totalPixelH / FRAME_TEX_H };
             OpenVR.Overlay.SetOverlayTextureBounds(overlayHandle, ref bounds);
 
             Texture_t vrTex = new() { handle = overlayTex!.NativePointer, eType = ETextureType.DirectX, eColorSpace = EColorSpace.Auto };
             OpenVR.Overlay.SetOverlayTexture(overlayHandle, ref vrTex);
             lock (d3dLock) { d3dContext?.Flush(); }
+        }
+
+        private static GraphicsPath CreateRoundedRectanglePath(RectangleF rect, float r)
+        {
+            GraphicsPath path = new();
+            float d = r * 2f;
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
         }
 
         public void CaptureAndSave(bool leftTriggerHeld)
