@@ -1,5 +1,7 @@
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -668,6 +670,52 @@ namespace ScreenLookup.src.utils
                     }
                 });
 
+                // Draw Hint Box at top right corner
+                string[] hintLines =
+                [
+                    "- Press A/X once at overlay to close, twice to recenter."
+                ];
+
+                using (Font font = new(App.setting.FontFace ?? "Segoe UI", 12f, System.Drawing.FontStyle.Regular))
+                {
+                    float paddingX = 12f, paddingY = 8f, lineSpacing = 4f;
+                    float maxLineW = 0f, totalTextH = 0f;
+
+                    for (int i = 0; i < hintLines.Length; i++)
+                    {
+                        SizeF sz = sharedCaptureGraphics.MeasureString(hintLines[i], font);
+                        if (sz.Width > maxLineW) maxLineW = sz.Width;
+                        totalTextH += sz.Height;
+                        if (i < hintLines.Length - 1) totalTextH += lineSpacing;
+                    }
+
+                    float boxW = maxLineW + paddingX * 2f;
+                    float boxH = totalTextH + paddingY * 2f;
+                    float boxX = Math.Max(0f, compositeWidth - boxW - 12f);
+                    float boxY = 12f;
+
+                    RectangleF boxRect = new(boxX, boxY, boxW, boxH);
+                    using GraphicsPath boxPath = CreateRoundedRectanglePath(boxRect, 6f);
+                    using SolidBrush bgBrush = new(Color.FromArgb(200, 20, 20, 28));
+                    using Pen borderPen = new(Color.FromArgb(180, 218, 96, 255), 1.5f);
+                    using SolidBrush textBrush = new(Color.FromArgb(245, 245, 245));
+
+                    sharedCaptureGraphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    sharedCaptureGraphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+
+                    sharedCaptureGraphics.FillPath(bgBrush, boxPath);
+                    sharedCaptureGraphics.DrawPath(borderPen, boxPath);
+
+                    float textX = boxX + paddingX;
+                    float currentY = boxY + paddingY;
+                    float fontHeight = font.GetHeight(sharedCaptureGraphics);
+
+                    foreach (string line in hintLines)
+                    {
+                        sharedCaptureGraphics.DrawString(line, font, textBrush, textX, currentY);
+                        currentY += fontHeight + lineSpacing;
+                    }
+                }
                 // Direct3D Hardware Copy Block
                 lock (d3dLock)
                 {
@@ -830,6 +878,18 @@ namespace ScreenLookup.src.utils
                 overlayHandle = OpenVR.k_ulOverlayHandleInvalid;
                 isInitialized = false;
             }
+        }
+
+        private static GraphicsPath CreateRoundedRectanglePath(RectangleF rect, float r)
+        {
+            GraphicsPath path = new();
+            float d = r * 2f;
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
         }
     }
 }
