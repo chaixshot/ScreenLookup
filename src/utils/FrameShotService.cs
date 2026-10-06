@@ -256,14 +256,25 @@ namespace ScreenLookup.src.utils
             // Execute UI updates, audio cues, and rendering behaviors
             if (IsFraming)
             {
-                if (!wasFraming)
-                {
-                    AppUtilities.PlaySound("ready.wav");
-                    App.captureWindow.HideWindow();
-                    EnsureMirrorPipeline(); // Warm up pipeline so the first capture isn't black
-                }
+                bool rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
 
-                UpdateFrameAndRender(leftCoords, rightCoords);
+                if (rightTriggerHeld)
+                {
+                    App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        App.captureWindow.ShowWindow();
+                    }));
+                }
+                else
+                {
+                    if (!wasFraming)
+                    {
+                        AppUtilities.PlaySound("ready.wav");
+                        App.captureWindow.HideWindow();
+                        EnsureMirrorPipeline(); // Warm up pipeline so the first capture isn't black
+                    }
+                    UpdateFrameAndRender(leftCoords, rightCoords);
+                }
             }
             else if (wasFraming)
             {
@@ -274,14 +285,14 @@ namespace ScreenLookup.src.utils
                 {
                     AppUtilities.PlaySound("screenshot.wav");
 
-                    // Cache trigger button states immediately before thread delays alter input metrics
-                    bool leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
-                    bool rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
-
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
+                        // Cache trigger button states immediately before thread delays alter input metrics
+                        bool leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
+
                         await Task.Delay(100); // Allow OpenVR overlay a frame to hide completely
-                        CaptureAndSave(leftTriggerHeld || rightTriggerHeld);
+
+                        CaptureAndSave(leftTriggerHeld);
                     }));
                 }
             }
@@ -417,7 +428,7 @@ namespace ScreenLookup.src.utils
             lock (d3dLock) { d3dContext?.Flush(); }
         }
 
-        public void CaptureAndSave(bool isTriggerHeld)
+        public void CaptureAndSave(bool leftTriggerHeld)
         {
             if (!EnsureMirrorPipeline())
                 return;
@@ -521,7 +532,7 @@ namespace ScreenLookup.src.utils
                     }
                 }
 
-                OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone(), isTriggerHeld);
+                OnPhotoSaved?.Invoke((Bitmap)outBmp.Clone(), leftTriggerHeld);
             }
 
             mirrorBmp.Dispose();

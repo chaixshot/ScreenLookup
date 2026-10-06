@@ -356,11 +356,12 @@
                     <TextBlock FontWeight="SemiBold" Text="How to use" />
                     <TextBlock Margin="0,5,0,0" TextWrapping="Wrap">
                         1. Bring both VR controllers together in Activation Radius.<LineBreak />
-                        2. Hold the Grip buttons on both.<LineBreak />
+                        2. Hold both Grip buttons.<LineBreak />
                         3. Pull hands apart to create the capture frame.<LineBreak />
                         4. Release Right Grip to capture, Left Grip to cancel.<LineBreak />
-                        5. Hold Trigger and release Right Grip to enter option mode.<LineBreak />
-                        6. Press A/X once at overlay to close, twice to recenter.</TextBlock>
+                        &#160;&#160;&#160;&#160;&#x2013; Holding Left Trigger, then capture to show options.<LineBreak />
+                        &#160;&#160;&#160;&#160;&#x2013; Press Right Trigger to show the last result.<LineBreak />
+                        9. Press A/X once at overlay to close, twice to recenter.</TextBlock>
                 </StackPanel>
             </Controls:Card>
         </StackPanel>

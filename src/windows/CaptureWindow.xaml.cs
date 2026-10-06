@@ -134,7 +134,7 @@ namespace ScreenLookup.src.windows
             this.Hide();
         }
 
-        public void ShowWindow(bool IsConfig)
+        public void ShowWindow(bool IsConfig = false)
         {
             if (IsConfig)
             {
@@ -257,7 +257,7 @@ namespace ScreenLookup.src.windows
                     return;
             }
 
-            ShowWindow(false);
+            ShowWindow();
             ChangeCaptureImage(CapturedImageEditable);
 
             if (App.setting.LookupOnImage)

@@ -56,11 +56,11 @@ namespace ScreenLookup.src.pages
             {
                 FrameShot = new FrameShotService(msg => System.Diagnostics.Debug.WriteLine($"[FrameShot] {msg}"));
 
-                FrameShot.OnPhotoSaved += (image, triggerHeld) =>
+                FrameShot.OnPhotoSaved += (image, leftTriggerHeld) =>
                 {
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        App.captureWindow.StartCaptureScreen(image, triggerHeld);
+                        App.captureWindow.StartCaptureScreen(image, leftTriggerHeld);
                     }));
                 };
 
