@@ -164,7 +164,7 @@
 
                     <StackPanel
                         x:Name="captureCardButton"
-                        Margin="14,67,0,10"
+                        Margin="14,70,0,10"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
 
@@ -300,8 +300,10 @@
                         Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                         BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
                         ContentPadding="0"
-                        CornerRadius="0,0,8,0"
-                        Header="Translation">
+                        CornerRadius="0,0,8,0">
+                        <wpfui:CardExpander.Header>
+                            <wpfui:SymbolIcon FontSize="26" Symbol="Translate24" />
+                        </wpfui:CardExpander.Header>
 
                         <Border
                             x:Name="imageTranslatedExpanderContent"
