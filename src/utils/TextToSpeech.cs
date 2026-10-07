@@ -138,6 +138,9 @@ namespace ScreenLookup.src.utils
 
         public static async void StartTTS(string Text, int langID)
         {
+            if (string.IsNullOrEmpty(Text))
+                return;
+
             StopTTS();
             PlayTTSCancelToken = new();
 

@@ -324,7 +324,7 @@ namespace ScreenLookup.src.windows
             imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
 
             await translationImage.Translate(isWord: false, TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
-
+            translationMessage.Translated = translationImage.Translated;
             HistoryLogger.Update(LastHistoryID, translationImage.Translated);
         }
 
