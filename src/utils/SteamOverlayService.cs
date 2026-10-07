@@ -99,7 +99,7 @@ namespace ScreenLookup.src.utils
                 {
                     targetWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
-                        await Task.Delay(10); // Wait for next UI frame
+                        await Task.Delay(100); // Wait for next UI frame
                         isOverlayDirty = true;
                     }));
                 };
@@ -321,136 +321,140 @@ namespace ScreenLookup.src.utils
             VREvent_t vrEvent = new();
             uint eventSize = (uint)Marshal.SizeOf<VREvent_t>();
 
-            while (OpenVR.Overlay.PollNextOverlayEvent(overlayHandle, ref vrEvent, eventSize))
+            try
             {
-                uint button = vrEvent.data.controller.button;
-
-                switch ((EVREventType)vrEvent.eventType)
+                while (OpenVR.Overlay.PollNextOverlayEvent(overlayHandle, ref vrEvent, eventSize))
                 {
-                    case EVREventType.VREvent_MouseMove:
-                        // OpenVR mouse events pass absolute coordinates native to the 
-                        // composite dimensions set via SetOverlayMouseScale.
-                        float vrX = vrEvent.data.mouse.x;
-                        float vrY = vrEvent.data.mouse.y;
+                    uint button = vrEvent.data.controller.button;
 
-                        // SteamVR tracks 0,0 from the bottom-left of textures. 
-                        // Invert the Y coordinates relative to our current composite height scale.
-                        int screenX = _cachedMinLeft + (int)vrX;
-                        int screenY = _cachedMinTop + (_cachedCompositeHeight - (int)vrY);
+                    switch ((EVREventType)vrEvent.eventType)
+                    {
+                        case EVREventType.VREvent_MouseMove:
+                            // OpenVR mouse events pass absolute coordinates native to the 
+                            // composite dimensions set via SetOverlayMouseScale.
+                            float vrX = vrEvent.data.mouse.x;
+                            float vrY = vrEvent.data.mouse.y;
 
-                        SetCursorPos(screenX, screenY);
-                        isOverlayDirty = true;
-                        break;
+                            // SteamVR tracks 0,0 from the bottom-left of textures. 
+                            // Invert the Y coordinates relative to our current composite height scale.
+                            int screenX = _cachedMinLeft + (int)vrX;
+                            int screenY = _cachedMinTop + (_cachedCompositeHeight - (int)vrY);
 
-                    case EVREventType.VREvent_MouseButtonDown:
-                        if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
-                        {
-                            targetWindow.Dispatcher.InvokeAsync(async () =>
+                            SetCursorPos(screenX, screenY);
+                            isOverlayDirty = true;
+                            break;
+
+                        case EVREventType.VREvent_MouseButtonDown:
+                            if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                             {
-                                if (!IsTargetWindowFronted())
+                                targetWindow.Dispatcher.InvokeAsync(async () =>
                                 {
-                                    SetForegroundWindow(targetHwnd);
-                                    await Task.Delay(50);
-                                }
-                                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-                                isOverlayDirty = true;
-                            });
-                        }
-                        break;
-
-                    case EVREventType.VREvent_MouseButtonUp:
-                        if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
-                        {
-                            targetWindow.Dispatcher.InvokeAsync(async () =>
-                            {
-                                if (!IsTargetWindowFronted())
-                                {
-                                    SetForegroundWindow(targetHwnd);
-                                    await Task.Delay(50);
-                                }
-                                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-                                isOverlayDirty = true;
-                            });
-                        }
-                        break;
-
-                    case EVREventType.VREvent_ButtonPress:
-                        if (button == inputService.AButtonId)
-                        {
-                            if (!isWaitingForSecondPress) // HideWindow
-                            {
-                                isWaitingForSecondPress = true;
-
-                                doublePressCts?.Cancel();
-                                doublePressCts = new CancellationTokenSource();
-
-                                // Start an async timeout window without blocking the main thread
-                                Task.Run(async () =>
-                                {
-                                    try
+                                    if (!IsTargetWindowFronted())
                                     {
-                                        await Task.Delay(300, doublePressCts.Token);
-                                        isWaitingForSecondPress = false;
-                                        targetWindow.Dispatcher.Invoke(() => App.captureWindow.HideWindow());
+                                        SetForegroundWindow(targetHwnd);
+                                        await Task.Delay(50);
                                     }
-                                    catch (TaskCanceledException) { }
+                                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                                    isOverlayDirty = true;
                                 });
                             }
-                            else // Double press re-center
+                            break;
+
+                        case EVREventType.VREvent_MouseButtonUp:
+                            if (vrEvent.data.mouse.button == (uint)EVRMouseButton.Left)
                             {
-                                isWaitingForSecondPress = false;
-
-                                doublePressCts?.Cancel();
-                                doublePressCts = new CancellationTokenSource();
-
-                                Task.Run(async () =>
+                                targetWindow.Dispatcher.InvokeAsync(async () =>
                                 {
-                                    try
+                                    if (!IsTargetWindowFronted())
                                     {
-                                        isRecentering = true;
-                                        isOverlayDirty = true;
-                                        AppUtilities.PlaySound("recenter.wav");
-                                        await Task.Delay(1000, doublePressCts.Token);
-
-                                        // Reset anchor token flags so that the render system re-snaps perspective down onto head projection coordinates
-                                        isRecentering = false;
-                                        hasAnchorTransform = false;
-                                        isOverlayDirty = true;
+                                        SetForegroundWindow(targetHwnd);
+                                        await Task.Delay(50);
                                     }
-                                    catch (TaskCanceledException)
-                                    {
-                                        isRecentering = false;
-                                    }
+                                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                                    isOverlayDirty = true;
                                 });
                             }
-                        }
-                        break;
+                            break;
 
-                    case EVREventType.VREvent_ScrollSmooth:
-                        // Some controllers use X for horizontal and Y for vertical
-                        float scrollX = vrEvent.data.scroll.xdelta;
-                        float scrollY = vrEvent.data.scroll.ydelta;
+                        case EVREventType.VREvent_ButtonPress:
+                            if (button == inputService.AButtonId)
+                            {
+                                if (!isWaitingForSecondPress) // HideWindow
+                                {
+                                    isWaitingForSecondPress = true;
 
-                        // Direct the scroll to the target window
-                        // MOUSEEVENTF_WHEEL is for vertical, MOUSEEVENTF_HWHEEL is for horizontal
-                        if (scrollY != 0)
-                        {
-                            // mouse_event dwData expects the scroll amount * sensitivity
-                            int scrollAmount = (int)(scrollY * App.setting.OverlayScrollSpeed);
-                            targetWindow.Dispatcher.Invoke(() => mouse_event(0x0800, 0, 0, (uint)scrollAmount, 0));
-                        }
+                                    doublePressCts?.Cancel();
+                                    doublePressCts = new CancellationTokenSource();
 
-                        if (scrollX != 0)
-                        {
-                            int scrollAmount = (int)(scrollX * App.setting.OverlayScrollSpeed);
-                            targetWindow.Dispatcher.Invoke(() => mouse_event(0x1000, 0, 0, (uint)scrollAmount, 0));
-                        }
+                                    // Start an async timeout window without blocking the main thread
+                                    Task.Run(async () =>
+                                    {
+                                        try
+                                        {
+                                            await Task.Delay(300, doublePressCts.Token);
+                                            isWaitingForSecondPress = false;
+                                            targetWindow.Dispatcher.Invoke(() => App.captureWindow.CloseWindow());
+                                        }
+                                        catch (TaskCanceledException) { }
+                                    });
+                                }
+                                else // Double press re-center
+                                {
+                                    isWaitingForSecondPress = false;
 
-                        isOverlayDirty = true;
-                        break;
+                                    doublePressCts?.Cancel();
+                                    doublePressCts = new CancellationTokenSource();
 
+                                    Task.Run(async () =>
+                                    {
+                                        try
+                                        {
+                                            isRecentering = true;
+                                            isOverlayDirty = true;
+                                            AppUtilities.PlaySound("recenter.wav");
+                                            await Task.Delay(1000, doublePressCts.Token);
+
+                                            // Reset anchor token flags so that the render system re-snaps perspective down onto head projection coordinates
+                                            isRecentering = false;
+                                            hasAnchorTransform = false;
+                                            isOverlayDirty = true;
+                                        }
+                                        catch (TaskCanceledException)
+                                        {
+                                            isRecentering = false;
+                                        }
+                                    });
+                                }
+                            }
+                            break;
+
+                        case EVREventType.VREvent_ScrollSmooth:
+                            // Some controllers use X for horizontal and Y for vertical
+                            float scrollX = vrEvent.data.scroll.xdelta;
+                            float scrollY = vrEvent.data.scroll.ydelta;
+
+                            // Direct the scroll to the target window
+                            // MOUSEEVENTF_WHEEL is for vertical, MOUSEEVENTF_HWHEEL is for horizontal
+                            if (scrollY != 0)
+                            {
+                                // mouse_event dwData expects the scroll amount * sensitivity
+                                int scrollAmount = (int)(scrollY * App.setting.OverlayScrollSpeed);
+                                targetWindow.Dispatcher.Invoke(() => mouse_event(0x0800, 0, 0, (uint)scrollAmount, 0));
+                            }
+
+                            if (scrollX != 0)
+                            {
+                                int scrollAmount = (int)(scrollX * App.setting.OverlayScrollSpeed);
+                                targetWindow.Dispatcher.Invoke(() => mouse_event(0x1000, 0, 0, (uint)scrollAmount, 0));
+                            }
+
+                            isOverlayDirty = true;
+                            break;
+
+                    }
                 }
             }
+            catch { }
         }
 
         private void RenderFrame()

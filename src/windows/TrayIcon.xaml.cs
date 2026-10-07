@@ -22,7 +22,7 @@ namespace ScreenLookup.src.windows
         private void Tray_LeftClick(Wpf.Ui.Tray.Controls.NotifyIcon sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            App.captureWindow.StartCaptureScreen();
+            App.captureWindow.DesktopCaptureScreen();
         }
 
         private void TrayItemSettings_Click(object sender, RoutedEventArgs e)
@@ -52,7 +52,7 @@ namespace ScreenLookup.src.windows
 
         private void TrayItemCapture_Click(object sender, RoutedEventArgs e)
         {
-            App.captureWindow.StartCaptureScreen();
+            App.captureWindow.DesktopCaptureScreen();
         }
 
         private void TrayItemExit_Click(object sender, RoutedEventArgs e)

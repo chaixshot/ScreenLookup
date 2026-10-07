@@ -262,7 +262,7 @@ namespace ScreenLookup.src.utils
                 {
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        App.captureWindow.ShowWindow();
+                        App.captureWindow.OpenWindow();
                     }));
                 }
                 else
@@ -270,7 +270,6 @@ namespace ScreenLookup.src.utils
                     if (!wasFraming)
                     {
                         AppUtilities.PlaySound("ready.wav");
-                        App.captureWindow.HideWindow();
                         EnsureMirrorPipeline(); // Warm up pipeline so the first capture isn't black
                     }
                     UpdateFrameAndRender(leftCoords, rightCoords);

@@ -60,7 +60,7 @@ namespace ScreenLookup.src.pages
                 {
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        App.captureWindow.StartCaptureScreen(image, leftTriggerHeld);
+                        App.captureWindow.PrepairCaptureWindow(image, leftTriggerHeld, isVR: true);
                     }));
                 };
 

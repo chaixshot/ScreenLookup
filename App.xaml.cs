@@ -123,7 +123,7 @@ namespace ScreenLookup
 
             hotkey = new(shortcutKey.NonModifierKey, modifierKey, (s, e) =>
             {
-                captureWindow.StartCaptureScreen();
+                captureWindow.DesktopCaptureScreen();
             });
 
             try
