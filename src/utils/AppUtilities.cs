@@ -68,7 +68,47 @@ namespace ScreenLookup.src.utils
             return latestVersion;
         }
 
-        // Open explorer and select file
+        internal static async void CheckForUpdate()
+        {
+            string currentVersion = GetAppVersion();
+            string latestVersion;
+
+            try
+            {
+                latestVersion = await GetLatestVersionAsync();
+            }
+            catch (Exception ex)
+            {
+                SnackbarHost.Show("Error", $"Update Check Failed:\n\"{ex.Message}\"", type: SnackbarType.Error);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(latestVersion) && latestVersion != currentVersion)
+            {
+                bool isYes = await DialogBox.Show(
+                    "New Version Available",
+                    $"A new version has been detected: {latestVersion}\n" +
+                    $"Current version: {currentVersion}\n" +
+                    $"Please visit GitHub to download the latest release.",
+                    "Update", "Dismiss");
+
+                if (isYes)
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = GitHubReleasesUrl,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        SnackbarHost.Show("Error", $"Open Browser Failed:\n\"{ex.Message}\"", type: SnackbarType.Error);
+                    }
+                }
+            }
+        }
         #endregion
 
         #region System Helpers
@@ -122,48 +162,6 @@ namespace ScreenLookup.src.utils
                         }
                     }
                 });
-            }
-        }
-
-        internal static async void ChackForUpdate()
-        {
-            string currentVersion = GetAppVersion();
-            string latestVersion = string.Empty;
-
-            try
-            {
-                latestVersion = await GetLatestVersionAsync();
-            }
-            catch (Exception ex)
-            {
-                SnackbarHost.Show("Error", $"Update Check Failed:\n\"{ex.Message}\"", type: SnackbarType.Error);
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(latestVersion) && latestVersion != currentVersion)
-            {
-                bool isYes = await DialogBox.Show("New Version Available",
-                $"A new version has been detected: {latestVersion}\n" +
-                $"Current version: {currentVersion}\n" +
-                $"Please visit GitHub to download the latest release.",
-                "Update", "Dismiss");
-
-                if (isYes)
-                {
-                    string url = GitHubReleasesUrl;
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = url,
-                            UseShellExecute = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        SnackbarHost.Show("Error", $"Open Browser Failed:\n\"{ex.Message}\"", type: SnackbarType.Error);
-                    }
-                }
             }
         }
 

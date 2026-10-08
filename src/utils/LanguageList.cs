@@ -1,21 +1,17 @@
-﻿using GTranslate.Translators;
+using GTranslate.Translators;
 using System.Globalization;
 using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.utils
 {
-    internal class LanguageList
+    internal static class LanguageList
     {
-        private static readonly Dictionary<string, string> displayNative = [];
-        private static readonly Dictionary<string, string> displayName = [];
+        private static readonly Dictionary<string, string> DisplayNative = [];
+        private static readonly Dictionary<string, string> DisplayName = [];
 
         /// <summary>
         /// Removes known Tesseract tag suffixes from the specified tag string.
         /// </summary>
-        /// <remarks>This method is useful for normalizing Tesseract tag names by stripping common variant
-        /// suffixes. The comparison is case-sensitive.</remarks>
-        /// <param name="tesseractTag">The tag string from which to remove Tesseract-specific suffixes. Cannot be null.</param>
-        /// <returns>A string with the '_frak', '_old', '_latn', and '_vert' suffixes removed from the original tag, if present.</returns>
         public static string ClearTesseractTag(string tesseractTag)
         {
             tesseractTag = tesseractTag.Replace("_frak", string.Empty);
@@ -27,23 +23,19 @@ namespace ScreenLookup.src.utils
         }
 
         /// <summary>
-        /// Get Tesseract language tag from language ID
+        /// Get Tesseract language tag from language ID (e.g. tha, eng, chi_sim)
         /// </summary>
-        /// <param name="langID"></param>
-        /// <returns>Tesseract tag (tha, eng, chi_sim)</returns>
         public static string GetTesseractTagFromID(int langID)
         {
             return TesseractHelper.LangList[langID];
         }
 
         /// <summary>
-        /// 
+        /// Gets ISO-639-1 two-letter language code from language ID (e.g. th, en, zh)
         /// </summary>
-        /// <param name="langID"></param>
-        /// <returns>th, en, ch</returns>
         public static string GetLanguageISO6391FromID(int langID)
         {
-            string tessTag = ClearTesseractTag(LanguageList.GetTesseractTagFromID(langID));
+            string tessTag = ClearTesseractTag(GetTesseractTagFromID(langID));
 
             try
             {
@@ -57,18 +49,16 @@ namespace ScreenLookup.src.utils
             }
             catch
             {
-                return tessTag.Substring(0, 2);
+                return tessTag.Length >= 2 ? tessTag[..2] : tessTag;
             }
         }
 
         /// <summary>
-        /// 
+        /// Gets ISO-639-3 three-letter language code from language ID
         /// </summary>
-        /// <param name="langID"></param>
-        /// <returns>tha, eng, chi</returns>
         public static string GetLanguageISO6393FromID(int langID)
         {
-            string tessTag = ClearTesseractTag(LanguageList.GetTesseractTagFromID(langID));
+            string tessTag = ClearTesseractTag(GetTesseractTagFromID(langID));
 
             try
             {
@@ -82,36 +72,27 @@ namespace ScreenLookup.src.utils
             }
             catch
             {
-                return tessTag.Substring(0, 3);
+                return tessTag.Length >= 3 ? tessTag[..3] : tessTag;
             }
         }
 
         /// <summary>
         /// Gets the human-readable display name for a given Tesseract language tag.
         /// </summary>
-        /// <remarks>The method attempts to resolve the display name using internal mappings and language
-        /// data. If the tag is not found, it falls back to using culture information and may append notes such as
-        /// "(Fraktur)", "(Old)", or "Vertical" for certain tags. The result is cached for future calls.</remarks>
-        /// <param name="tesseractTag">The Tesseract language tag to convert to a display name. This value should correspond to a valid Tesseract
-        /// language code.</param>
-        /// <param name="isNative">true to return the display name in the language's native form; otherwise, false to return the name in
-        /// English.</param>
-        /// <returns>A string containing the display name corresponding to the specified Tesseract language tag. If the tag is
-        /// not recognized, returns a best-effort display name based on available information.</returns>
         public static string GetDisplayNameFromTesseractTag(string tesseractTag, bool isNative)
         {
             string tessLangTag = ClearTesseractTag(tesseractTag);
 
             if (isNative)
             {
-                if (displayNative.TryGetValue(tessLangTag, out string name))
+                if (DisplayNative.TryGetValue(tessLangTag, out string? name))
                 {
                     return name;
                 }
             }
             else
             {
-                if (displayName.TryGetValue(tessLangTag, out string name))
+                if (DisplayName.TryGetValue(tessLangTag, out string? name))
                 {
                     return name;
                 }
@@ -123,9 +104,9 @@ namespace ScreenLookup.src.utils
                 string name = isNative ? languageData.NativeName : languageData.Name;
 
                 if (isNative)
-                    displayNative.TryAdd(tessLangTag, name);
+                    DisplayNative.TryAdd(tessLangTag, name);
                 else
-                    displayName.TryAdd(tessLangTag, name);
+                    DisplayName.TryAdd(tessLangTag, name);
 
                 return name;
             }
@@ -139,53 +120,37 @@ namespace ScreenLookup.src.utils
                 };
                 string note = string.Empty;
 
-                if (tesseractTag == "dan_frak")
+                if (tesseractTag == "dan_frak" || tesseractTag == "deu_frak" || tesseractTag == "slk_frak")
                     note = "(Fraktur)";
-
-                if (tesseractTag == "deu_frak")
-                    note = "(Fraktur)";
-
-                if (tesseractTag == "ita_old")
+                else if (tesseractTag == "ita_old" || tesseractTag == "kat_old" || tesseractTag == "spa_old")
                     note = "(Old)";
-
-                if (tesseractTag == "kat_old")
-                    note = "(Old)";
-
-                if (tesseractTag == "slk_frak")
-                    note = "(Fraktur)";
-
-                if (tesseractTag == "spa_old")
-                    note = "(Old)";
-
-                if (tesseractTag == "srp_latn")
+                else if (tesseractTag == "srp_latn")
                     note = "(Latin)";
-
-                if (tesseractTag.Contains("vert"))
+                else if (tesseractTag.Contains("vert"))
                     note = "Vertical";
-
-                if (tesseractTag.Contains("script"))
+                else if (tesseractTag.Contains("script"))
                     note = "Script";
 
                 try
                 {
                     GLanguage languageData = GLanguage.GetLanguage(cultureInfo.DisplayName);
-                    string name = isNative ? $"{languageData.NativeName} {note}" : $"{languageData.Name} {note}";
+                    string name = isNative ? $"{languageData.NativeName} {note}".Trim() : $"{languageData.Name} {note}".Trim();
 
                     if (isNative)
-                        displayNative.TryAdd(tessLangTag, name);
+                        DisplayNative.TryAdd(tessLangTag, name);
                     else
-                        displayName.TryAdd(tessLangTag, name);
+                        DisplayName.TryAdd(tessLangTag, name);
 
                     return name;
                 }
                 catch
                 {
-                    string name = $"{cultureInfo.DisplayName} {note}";
+                    string name = $"{cultureInfo.DisplayName} {note}".Trim();
 
                     if (isNative)
-                        displayNative.TryAdd(tessLangTag, name);
+                        DisplayNative.TryAdd(tessLangTag, name);
                     else
-                        displayName.TryAdd(tessLangTag, name);
+                        DisplayName.TryAdd(tessLangTag, name);
 
                     return name;
                 }
@@ -195,11 +160,6 @@ namespace ScreenLookup.src.utils
         /// <summary>
         /// Returns the display name of a language corresponding to the specified language identifier.
         /// </summary>
-        /// <param name="langID">The identifier of the language for which to retrieve the display name.</param>
-        /// <param name="isNative">true to return the display name in the language's native form; otherwise, false to return the name in
-        /// English.</param>
-        /// <returns>A string containing the display name of the specified language. Returns an empty string if the language
-        /// identifier is not recognized.</returns>
         public static string GetDisplayNameFromID(int langID, bool isNative)
         {
             string tessTag = GetTesseractTagFromID(langID);

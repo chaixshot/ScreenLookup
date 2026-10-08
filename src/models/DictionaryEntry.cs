@@ -1,4 +1,4 @@
-﻿namespace ScreenLookup.src.models
+namespace ScreenLookup.src.models
 {
     public class DictionaryEntry
     {
