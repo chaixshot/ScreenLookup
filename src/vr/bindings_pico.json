@@ -1,0 +1,125 @@
+{
+    "action_manifest_version": 0,
+    "alias_info": {},
+    "bindings": {
+        "/actions/screenlookup": {
+            "chords": [],
+            "haptics": [],
+            "poses": [
+                {
+                    "output": "/actions/screenlookup/in/pointer_left",
+                    "path": "/user/hand/left/pose/pointer"
+                },
+                {
+                    "output": "/actions/screenlookup/in/pointer_right",
+                    "path": "/user/hand/right/pose/pointer"
+                }
+            ],
+            "skeleton": [],
+            "sources": [
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/stick_click_left"
+                        },
+                        "position": {
+                            "output": "/actions/screenlookup/in/thumbstick_left"
+                        }
+                    },
+                    "mode": "joystick",
+                    "path": "/user/hand/left/input/joystick"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/stick_click_right"
+                        },
+                        "position": {
+                            "output": "/actions/screenlookup/in/thumbstick_right"
+                        }
+                    },
+                    "mode": "joystick",
+                    "path": "/user/hand/right/input/joystick"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/recenter"
+                        }
+                    },
+                    "mode": "button",
+                    "path": "/user/hand/left/input/y"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/recenter"
+                        }
+                    },
+                    "mode": "button",
+                    "path": "/user/hand/right/input/b"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/close"
+                        }
+                    },
+                    "mode": "button",
+                    "path": "/user/hand/left/input/x"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/close"
+                        }
+                    },
+                    "mode": "button",
+                    "path": "/user/hand/right/input/a"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/grip_left"
+                        }
+                    },
+                    "mode": "trigger",
+                    "path": "/user/hand/left/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/grip_right"
+                        }
+                    },
+                    "mode": "trigger",
+                    "path": "/user/hand/right/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/trigger_left"
+                        }
+                    },
+                    "mode": "trigger",
+                    "path": "/user/hand/left/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/trigger_right"
+                        }
+                    },
+                    "mode": "trigger",
+                    "path": "/user/hand/right/input/trigger"
+                }
+            ]
+        }
+    },
+    "category": "steamvr_input",
+    "controller_type": "pico_controller",
+    "description": "Default Bindings for PICO Controllers.",
+    "name": "ScreenLookup Default Bindings for PICO",
+    "options": {},
+    "simulated_actions": []
+}

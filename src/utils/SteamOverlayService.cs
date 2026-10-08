@@ -46,6 +46,7 @@ namespace ScreenLookup.src.utils
 
         private ulong overlayHandle = OpenVR.k_ulOverlayHandleInvalid;
         private bool isInitialized = false;
+        private bool isVisible = false;
 
         private ID3D11Device? d3dDevice;
         private ID3D11DeviceContext? d3dContext;
@@ -84,6 +85,7 @@ namespace ScreenLookup.src.utils
         private int _cachedCompositeHeight = 0;
 
         public bool IsInitialized => isInitialized;
+        public bool IsVisible => isVisible;
 
         public SteamOverlayService()
         {
@@ -164,6 +166,8 @@ namespace ScreenLookup.src.utils
             {
                 overlay.HideOverlay(overlayHandle);
             }
+
+            isVisible = visible;
         }
 
         private void SetWindow()

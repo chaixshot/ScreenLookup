@@ -8,8 +8,7 @@ namespace ScreenLookup.src.pages
 {
     public partial class FrameShotPage : Page
     {
-        private static FrameShotService? FrameShot;
-        private static SteamOverlayService? SteamOverlay;
+        public static FrameShotService? FrameShot;
         public static FrameShotPage? Instance;
 
         public FrameShotPage()
@@ -116,7 +115,7 @@ namespace ScreenLookup.src.pages
                 StatusButton.Content = "Connect to SteamVR";
 
                 FrameShot?.Dispose();
-                SteamOverlay?.Dispose();
+                FrameShot = null;
             }
 
             StatusButton.IsEnabled = true;
@@ -151,7 +150,7 @@ namespace ScreenLookup.src.pages
                 if (FrameShot!.Connect())
                 {
                     if (App.setting.OverlayEnable)
-                        SteamOverlay = new SteamOverlayService();
+                        FrameShot.SteamOverlay = new SteamOverlayService();
                 }
                 else
                     SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);

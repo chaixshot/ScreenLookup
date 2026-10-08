@@ -1,4 +1,3 @@
-
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -22,6 +21,7 @@ namespace ScreenLookup.src.utils
         public bool IsConnected { get; private set; }
         public bool IsFraming { get; private set; }
         public string? LastError { get; private set; }
+        public SteamOverlayService? SteamOverlay { get; set; }
 
         // Events
         public event Action<object>? OnStateUpdate;
@@ -172,6 +172,8 @@ namespace ScreenLookup.src.utils
             }
 
             OpenVR.Shutdown();
+            SteamOverlay?.Dispose();
+            SteamOverlay = null;
             IsConnected = false;
             EmitState();
         }
@@ -180,6 +182,10 @@ namespace ScreenLookup.src.utils
         {
             if (running)
                 return;
+
+            // Initialise action handles now that the manifest is registered (by SteamOverlayService).
+            // Both services share the same OpenVR session, so no second SetActionManifestPath needed.
+            inputService.InitActionHandles();
 
             cts = new CancellationTokenSource();
             running = true;
@@ -223,13 +229,29 @@ namespace ScreenLookup.src.utils
                 }
             }
 
-            // Refresh controller input states
+            if (SteamOverlay?.IsVisible == true)
+            {
+                if (IsFraming)
+                {
+                    OpenVR.Overlay.HideOverlay(overlayHandle);
+                    IsFraming = false;
+                }
+                isButtonComboPressed = false;
+                isButtonComboInRage = false;
+                leftHeld = false;
+                rightHeld = false;
+                return;
+            }
+
             inputService.UpdatePosesAndIndices();
+
+            // Update IVRInput action state for this tick (grip + trigger reads below depend on this)
+            inputService.UpdateActionState();
 
             leftHeldPrev = leftHeld;
             rightHeldPrev = rightHeld;
-            leftHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.GripButtonId);
-            rightHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.GripButtonId);
+            leftHeld = inputService.IsActionHeld(inputService.GripLeftHandle);
+            rightHeld = inputService.IsActionHeld(inputService.GripRightHandle);
 
             // Evaluate framing gestures and coordinate collection
             Vector3 leftCoords = Vector3.Zero;
@@ -256,24 +278,24 @@ namespace ScreenLookup.src.utils
             // Execute UI updates, audio cues, and rendering behaviors
             if (IsFraming)
             {
-                bool rightTriggerHeld = inputService.IsButtonHeld(inputService.RightControllerIdx, inputService.TriggerButtonId);
-
-                if (rightTriggerHeld)
+                if (inputService.IsActionJustPressed(inputService.TriggerLeftHandle) || inputService.IsActionJustReleased(inputService.TriggerLeftHandle))
+                    inputService.TriggerHapticPulse(inputService.LeftControllerIdx, 4000);
+                else if (inputService.IsActionJustPressed(inputService.TriggerRightHandle))
                 {
+                    inputService.TriggerHapticPulseBoth(50000);
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         App.captureWindow.OpenWindow();
                     }));
                 }
-                else
+                else if (!wasFraming)
                 {
-                    if (!wasFraming)
-                    {
-                        AppUtilities.PlaySound("ready.wav");
-                        EnsureMirrorPipeline(); // Warm up pipeline so the first capture isn't black
-                    }
-                    UpdateFrameAndRender(leftCoords, rightCoords);
+                    AppUtilities.PlaySound("ready.wav");
+                    inputService.TriggerHapticPulseBoth(50000);
+                    EnsureMirrorPipeline();
                 }
+
+                UpdateFrameAndRender(leftCoords, rightCoords);
             }
             else if (wasFraming)
             {
@@ -283,11 +305,12 @@ namespace ScreenLookup.src.utils
                 if (rightHeldPrev && !rightHeld && leftHeld)
                 {
                     AppUtilities.PlaySound("screenshot.wav");
+                    inputService.TriggerHapticPulseBoth(50000);
 
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
-                        // Cache trigger button states immediately before thread delays alter input metrics
-                        bool leftTriggerHeld = inputService.IsButtonHeld(inputService.LeftControllerIdx, inputService.TriggerButtonId);
+                        // Cache trigger button state immediately before thread delays alter input metrics
+                        bool leftTriggerHeld = inputService.IsActionHeld(inputService.TriggerLeftHandle);
 
                         await Task.Delay(100); // Allow OpenVR overlay a frame to hide completely
 

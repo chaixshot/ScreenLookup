@@ -1,0 +1,123 @@
+{
+    "default_bindings": [
+        {
+            "controller_type": "knuckles",
+            "binding_url": "bindings_knuckles.json"
+        },
+        {
+            "controller_type": "oculus_touch",
+            "binding_url": "bindings_oculus_touch.json"
+        },
+        {
+            "controller_type": "pico_controller",
+            "binding_url": "bindings_pico.json"
+        },
+        {
+            "controller_type": "holographic_controller",
+            "binding_url": "bindings_holographic.json"
+        },
+        {
+            "controller_type": "vive_controller",
+            "binding_url": "bindings_vive.json"
+        },
+        {
+            "controller_type": "vive_cosmos_controller",
+            "binding_url": "bindings_holographic.json"
+        }
+    ],
+    "actions": [
+        {
+            "name": "/actions/screenlookup/in/recenter",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/close",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/grip_left",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/grip_right",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/trigger_left",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/trigger_right",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/pointer_left",
+            "type": "pose",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/pointer_right",
+            "type": "pose",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/thumbstick_left",
+            "type": "vector2",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/thumbstick_right",
+            "type": "vector2",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/stick_click_left",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/stick_click_right",
+            "type": "boolean",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/trackpad_knuckles_left",
+            "type": "vector2",
+            "requirement": "optional"
+        },
+        {
+            "name": "/actions/screenlookup/in/trackpad_knuckles_right",
+            "type": "vector2",
+            "requirement": "optional"
+        }
+    ],
+    "action_sets": [
+        {
+            "name": "/actions/screenlookup",
+            "usage": "overlay"
+        }
+    ],
+    "localization": [
+        {
+            "language_tag": "en_us",
+            "/actions/screenlookup/in/recenter": "Recenter Overlay",
+            "/actions/screenlookup/in/close": "Close Overlay",
+            "/actions/screenlookup/in/grip_left": "Left Grip",
+            "/actions/screenlookup/in/grip_right": "Right Grip",
+            "/actions/screenlookup/in/trigger_left": "Left Trigger",
+            "/actions/screenlookup/in/trigger_right": "Right Trigger",
+            "/actions/screenlookup/in/thumbstick_left": "Left Thumbstick",
+            "/actions/screenlookup/in/thumbstick_right": "Right Thumbstick",
+            "/actions/screenlookup/in/stick_click_left": "Left Stick Click",
+            "/actions/screenlookup/in/stick_click_right": "Right Stick Click",
+            "/actions/screenlookup/in/trackpad_knuckles_left": "Left Index Trackpad",
+            "/actions/screenlookup/in/trackpad_knuckles_right": "Right Index Trackpad"
+        }
+    ]
+}
