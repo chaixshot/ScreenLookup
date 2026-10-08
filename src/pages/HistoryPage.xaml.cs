@@ -1,5 +1,6 @@
 ﻿using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
+using ScreenLookup.src.utils.Database;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
