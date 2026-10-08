@@ -361,7 +361,8 @@
                         4. Release Right Grip to capture, Left Grip to cancel.<LineBreak />
                         &#160;&#160;&#160;&#160;&#x2013; Holding Left Trigger, then capture to show options.<LineBreak />
                         &#160;&#160;&#160;&#160;&#x2013; Press Right Trigger to show the last result.<LineBreak />
-                        9. Press A/X once at overlay to close, twice to recenter.</TextBlock>
+                        5. Grab to move the overlay.<LineBreak />
+                        6. Press A/X to close overlay, B/Y to recenter.</TextBlock>
                 </StackPanel>
             </Controls:Card>
         </StackPanel>

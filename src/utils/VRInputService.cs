@@ -12,6 +12,10 @@ namespace ScreenLookup.src.utils
         public uint LeftControllerIdx { get; private set; } = OpenVR.k_unTrackedDeviceIndexInvalid;
         public uint RightControllerIdx { get; private set; } = OpenVR.k_unTrackedDeviceIndexInvalid;
 
+        // High priority value to block scene application inputs
+        public const int HighPriorityBlock = OpenVR.k_nActionSetOverlayGlobalPriorityMin + 2;
+        public bool BlockGameInput { get; set; } = false;
+
         public TrackedDevicePose_t[] Poses => poses;
 
         public uint GripButtonId { get; set; } = (uint)EVRButtonId.k_EButton_Grip;
@@ -67,46 +71,66 @@ namespace ScreenLookup.src.utils
         }
 
         /// <summary>
-        /// Retrieves the pointer ray (origin and direction) for a controller using the SteamVR Dashboard pointer pose
-        /// action if available, or applying standard SteamVR pointer angle transform (-38° pitch) to the raw controller matrix.
+        /// Retrieves the pointer ray (origin and direction) for a controller using the SteamVR pointer pose action if
+        /// available, or falling back to applying standard SteamVR pointer pitch (-38°) to raw controller tracking
+        /// data.
         /// </summary>
-        public bool GetPointerRay(ulong pointerActionHandle, in HmdMatrix34_t rawPose, out HmdVector3_t source, out HmdVector3_t direction)
+        public bool GetPointerRay(ulong pointerActionHandle, in HmdMatrix34_t rawPose, out HmdVector3_t source, out HmdVector3_t direction, ulong restrictToDevice = OpenVR.k_ulInvalidInputValueHandle)
         {
+            const float cos45 = 0.7071068f; // cos(45°)
+            const float sin45 = 0.7071068f; // sin(45°)
+
             var input = OpenVR.Input;
             if (input != null && pointerActionHandle != 0)
             {
                 InputPoseActionData_t poseData = new();
-                EVRInputError err = input.GetPoseActionDataForNextFrame(
+
+                // Try querying pose data relative to current frame
+                EVRInputError err = input.GetPoseActionDataRelativeToNow(
                     pointerActionHandle,
                     ETrackingUniverseOrigin.TrackingUniverseStanding,
+                    0.0f,
                     ref poseData,
                     (uint)Marshal.SizeOf<InputPoseActionData_t>(),
-                    OpenVR.k_ulInvalidInputValueHandle);
+                    restrictToDevice);
+
+                // Fallback to next frame prediction if current frame query fails
+                if (err != EVRInputError.None || !poseData.bActive || !poseData.pose.bPoseIsValid)
+                {
+                    err = input.GetPoseActionDataForNextFrame(
+                        pointerActionHandle,
+                        ETrackingUniverseOrigin.TrackingUniverseStanding,
+                        ref poseData,
+                        (uint)Marshal.SizeOf<InputPoseActionData_t>(),
+                        restrictToDevice);
+                }
 
                 if (err == EVRInputError.None && poseData.bActive && poseData.pose.bPoseIsValid)
                 {
                     HmdMatrix34_t m = poseData.pose.mDeviceToAbsoluteTracking;
-                    source = new HmdVector3_t { v0 = m.m3, v1 = m.m7, v2 = m.m11 };
-                    direction = new HmdVector3_t { v0 = -m.m2, v1 = -m.m6, v2 = -m.m10 };
+                    Vector3 dir = Vector3.Normalize(new Vector3(-m.m2, -m.m6, -m.m10));
+                    Vector3 up = Vector3.Normalize(new Vector3(m.m1, m.m5, m.m9));
+                    dir = Vector3.Normalize(cos45 * dir - sin45 * up); // Pitch down by 45°
+
+                    Vector3 rawPos = new(m.m3, m.m7, m.m11);
+                    Vector3 tipPos = rawPos + dir * 0.06f + up * 0.015f;
+
+                    source = new HmdVector3_t { v0 = tipPos.X, v1 = tipPos.Y, v2 = tipPos.Z };
+                    direction = new HmdVector3_t { v0 = dir.X, v1 = dir.Y, v2 = dir.Z };
                     return true;
                 }
             }
 
-            // Fallback: Apply SteamVR Dashboard pointer pitch rotation (-38°) around local X-axis
-            const float cos38 = 0.7880108f;
-            const float sin38 = -0.6156615f;
+            // Fallback: Apply 45° pointer pitch rotation relative to controller handle
+            Vector3 rawFwd = Vector3.Normalize(new Vector3(-rawPose.m2, -rawPose.m6, -rawPose.m10));
+            Vector3 rawUp = Vector3.Normalize(new Vector3(rawPose.m1, rawPose.m5, rawPose.m9));
 
-            // Raw forward = (-m2, -m6, -m10), Raw up = (m1, m5, m9)
-            float fX = -rawPose.m2, fY = -rawPose.m6, fZ = -rawPose.m10;
-            float uX = rawPose.m1, uY = rawPose.m5, uZ = rawPose.m9;
+            Vector3 pitchedDir = Vector3.Normalize(cos45 * rawFwd - sin45 * rawUp);
+            Vector3 controllerPos = new(rawPose.m3, rawPose.m7, rawPose.m11);
+            Vector3 laserTipPos = controllerPos + pitchedDir * 0.06f + rawUp * 0.015f;
 
-            source = new HmdVector3_t { v0 = rawPose.m3, v1 = rawPose.m7, v2 = rawPose.m11 };
-            direction = new HmdVector3_t
-            {
-                v0 = cos38 * fX + sin38 * uX,
-                v1 = cos38 * fY + sin38 * uY,
-                v2 = cos38 * fZ + sin38 * uZ
-            };
+            source = new HmdVector3_t { v0 = laserTipPos.X, v1 = laserTipPos.Y, v2 = laserTipPos.Z };
+            direction = new HmdVector3_t { v0 = pitchedDir.X, v1 = pitchedDir.Y, v2 = pitchedDir.Z };
             return true;
         }
 
@@ -122,7 +146,12 @@ namespace ScreenLookup.src.utils
             var input = OpenVR.Input;
             if (input == null) return;
 
-            var set = new VRActiveActionSet_t { ulActionSet = ActionSetHandle };
+            var set = new VRActiveActionSet_t
+            {
+                ulActionSet = ActionSetHandle,
+                nPriority = BlockGameInput ? HighPriorityBlock : 100
+            };
+
             input.UpdateActionState([set], (uint)Marshal.SizeOf<VRActiveActionSet_t>());
 
             ulong[] handles = [GripLeftHandle, GripRightHandle, TriggerLeftHandle, TriggerRightHandle, CloseHandle, RecenterHandle];

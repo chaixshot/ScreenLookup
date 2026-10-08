@@ -243,6 +243,7 @@ namespace ScreenLookup.src.utils
                 return;
             }
 
+            // Refresh controller poses
             inputService.UpdatePosesAndIndices();
 
             // Update IVRInput action state for this tick (grip + trigger reads below depend on this)
