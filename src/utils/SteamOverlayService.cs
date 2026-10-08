@@ -14,6 +14,7 @@ using Vortice.DXGI;
 
 namespace ScreenLookup.src.utils
 {
+    #region Native Win32 Structures
     [StructLayout(LayoutKind.Sequential)]
     internal struct RECT
     {
@@ -23,8 +24,40 @@ namespace ScreenLookup.src.utils
         public int Bottom;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct POINT
+    {
+        public int x;
+        public int y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct CURSORINFO
+    {
+        public int cbSize;
+        public int flags;
+        public IntPtr hCursor;
+        public POINT ptScreenPos;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ICONINFO
+    {
+        public bool fIcon;
+        public int xHotspot;
+        public int yHotspot;
+        public IntPtr hbmMask;
+        public IntPtr hbmColor;
+    }
+    #endregion
+
+    /// <summary>
+    /// Service managing the floating 3D SteamVR overlay for ScreenLookup window rendering, laser pointers, and
+    /// controller ray-casting.
+    /// </summary>
     public class SteamOverlayService : IDisposable
     {
+        #region Native Win32 Imports
         [DllImport("user32.dll")]
         private static extern bool SetCursorPos(int X, int Y);
 
@@ -42,32 +75,6 @@ namespace ScreenLookup.src.utils
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT
-        {
-            public int x;
-            public int y;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct CURSORINFO
-        {
-            public int cbSize;
-            public int flags;
-            public IntPtr hCursor;
-            public POINT ptScreenPos;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct ICONINFO
-        {
-            public bool fIcon;
-            public int xHotspot;
-            public int yHotspot;
-            public IntPtr hbmMask;
-            public IntPtr hbmColor;
-        }
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool GetCursorInfo(out CURSORINFO pci);
@@ -135,6 +142,7 @@ namespace ScreenLookup.src.utils
         private const uint MOUSEEVENTF_WHEEL = 0x0800;
         #endregion
 
+        #region Private Fields
         private ulong overlayHandle = OpenVR.k_ulOverlayHandleInvalid;
         private ulong laserOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
         private bool isInitialized = false;
@@ -162,7 +170,7 @@ namespace ScreenLookup.src.utils
 
         private bool isOverlayDirty = true;
 
-        // Persistent reusable buffers to eliminate GC churn completely
+        // Persistent reusable buffers
         private Bitmap? sharedCaptureBmp;
         private Graphics? sharedCaptureGraphics;
 
@@ -170,14 +178,14 @@ namespace ScreenLookup.src.utils
         private Graphics? _cachedMainTempGraphics;
         private readonly Dictionary<IntPtr, (Bitmap Bmp, Graphics Gfx)> _cachedPopupResources = [];
 
-        // --- Persistent Position Anchoring Fields ---
+        // Position Anchoring
         private HmdMatrix34_t cachedAnchorTransform;
         private bool hasAnchorTransform = false;
         private float lastMetersPerPixel = 0f;
         private float cachedAnchorDistance = 0f;
         private float cachedAnchorHigh = 0f;
 
-        // --- Absolute Virtual Canvas Positioning Buffers ---
+        // Virtual Canvas Positioning
         private int _cachedMinLeft = 0;
         private int _cachedMinTop = 0;
         private int _cachedCompositeHeight = 0;
@@ -205,34 +213,37 @@ namespace ScreenLookup.src.utils
 
         public bool IsInitialized => isInitialized;
         public bool IsVisible => isVisible;
+        #endregion
 
+        #region Constructor & Initialization
         public SteamOverlayService()
         {
+            inputService = new VRInputService();
+
             if (Initialize())
             {
-                inputService = new VRInputService();
                 inputService.InitActionHandles();
 
                 SetWindow();
                 SetVisible(false);
                 StartThread();
 
-                targetWindow.LayoutUpdated += (s, e) =>
+                if (targetWindow != null)
                 {
-                    targetWindow.Dispatcher.BeginInvoke(new Action(async () =>
+                    targetWindow.LayoutUpdated += (s, e) =>
                     {
-                        await Task.Delay(100); // Wait for next UI frame
-                        isOverlayDirty = true;
-                    }));
-                };
+                        targetWindow.Dispatcher.BeginInvoke(new Action(async () =>
+                        {
+                            await Task.Delay(100);
+                            isOverlayDirty = true;
+                        }));
+                    };
 
-                targetWindow.IsVisibleChanged += (s, e) =>
-                {
-                    if (targetWindow.IsVisible)
-                        SetVisible(true);
-                    else
-                        SetVisible(false);
-                };
+                    targetWindow.IsVisibleChanged += (s, e) =>
+                    {
+                        SetVisible(targetWindow.IsVisible);
+                    };
+                }
             }
         }
 
@@ -250,7 +261,7 @@ namespace ScreenLookup.src.utils
                 }
             }
 
-            CVROverlay overlay = OpenVR.Overlay;
+            CVROverlay? overlay = OpenVR.Overlay;
             if (overlay == null) return false;
 
             D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, [FeatureLevel.Level_11_0], out d3dDevice, out d3dContext);
@@ -280,23 +291,22 @@ namespace ScreenLookup.src.utils
 
         private void SetVisible(bool visible)
         {
-            CVROverlay overlay = OpenVR.Overlay;
+            CVROverlay? overlay = OpenVR.Overlay;
             if (overlay == null) return;
 
             if (visible)
             {
                 isOverlayDirty = true;
-                hasAnchorTransform = false; // Forces it to recalculate its anchor relative to where the head is looking right now
+                hasAnchorTransform = false;
                 SetWindow();
 
-                inputService.BlockGameInput = true;  // Enable input blocking priority in SteamVR Input
+                inputService.BlockGameInput = true;
                 overlay.ShowOverlay(overlayHandle);
             }
             else
             {
                 inputService.BlockGameInput = false;
                 overlay.HideOverlay(overlayHandle);
-
                 HideLaserOverlay();
             }
 
@@ -306,8 +316,10 @@ namespace ScreenLookup.src.utils
         private void SetWindow()
         {
             targetWindow = App.captureWindow;
-            targetHwnd = new WindowInteropHelper(targetWindow).Handle;
+            if (targetWindow != null)
+                targetHwnd = new WindowInteropHelper(targetWindow).Handle;
         }
+        #endregion
 
         #region Polling Loop & Actions
         private void StartThread()
@@ -338,7 +350,6 @@ namespace ScreenLookup.src.utils
                 await Task.Delay(delay, ct);
             }
         }
-        #endregion
 
         private bool isRecentering = false;
         private CancellationTokenSource? doublePressCts;
@@ -366,7 +377,6 @@ namespace ScreenLookup.src.utils
                     AppUtilities.PlaySound("recenter.wav");
                     await Task.Delay(1000, doublePressCts.Token);
 
-                    // Reset anchor token flags so that the render system re-snaps perspective down onto head projection coordinates
                     isRecentering = false;
                     hasAnchorTransform = false;
                     isOverlayDirty = true;
@@ -383,10 +393,12 @@ namespace ScreenLookup.src.utils
             targetWindow?.Dispatcher.Invoke(() => targetWindow.CloseWindow());
             inputService.TriggerHapticPulse(ActiveControllerIdx, 3000);
         }
+        #endregion
 
+        #region Input & Raycast Processing
         private void ProcessInput()
         {
-            CVROverlay overlay = OpenVR.Overlay;
+            CVROverlay? overlay = OpenVR.Overlay;
 
             if (!isVisible) return;
             if (overlay == null) return;
@@ -398,7 +410,6 @@ namespace ScreenLookup.src.utils
                 inputService.UpdatePosesAndIndices();
                 inputService.UpdateActionState();
 
-                // Check for hand switch when target/secondary hand trigger is pressed (suppresses click)
                 ulong secondaryTrigger = (activeHand == ControllerHand.Right)
                     ? inputService.TriggerLeftHandle
                     : inputService.TriggerRightHandle;
@@ -478,10 +489,8 @@ namespace ScreenLookup.src.utils
                         Vector3 frameDelta = currentControllerPos - lastGrabControllerPos;
                         lastGrabControllerPos = currentControllerPos;
 
-                        // Responsive 1:1 motion tracking
                         currentOverlayPos += frameDelta * 4f;
 
-                        // Get HMD position for yaw-facing calculation
                         TrackedDevicePose_t[] hmdPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
                         OpenVR.System?.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, hmdPoses);
                         TrackedDevicePose_t hmdPose = hmdPoses[OpenVR.k_unTrackedDeviceIndex_Hmd];
@@ -639,7 +648,7 @@ namespace ScreenLookup.src.utils
 
         private void UpdateLaserOverlay(Vector3 source, Vector3 hitPoint)
         {
-            CVROverlay overlay = OpenVR.Overlay;
+            CVROverlay? overlay = OpenVR.Overlay;
             if (overlay == null || laserOverlayHandle == OpenVR.k_ulOverlayHandleInvalid || d3dDevice == null || d3dContext == null) return;
 
             Vector3 dir = hitPoint - source;
@@ -647,8 +656,6 @@ namespace ScreenLookup.src.utils
             if (totalDist < 0.1f) return;
 
             Vector3 normDir = Vector3.Normalize(dir);
-
-            // Offset the laser start point forward (~9cm) along the ray direction so it originates at the tip of the controller model
             float tipOffset = 0.2f;
             if (totalDist <= tipOffset) return;
 
@@ -685,14 +692,11 @@ namespace ScreenLookup.src.utils
             overlay.SetOverlayWidthInMeters(laserOverlayHandle, 0.0025f);
 
             int targetHeight = Math.Max(10, (int)(laserLength * 500f));
-
-            // Calculate distance change for hysteresis thresholding (matching LaserPointer.cs logic)
             float distDelta = MathF.Abs(laserLength - lastLaserLength);
-            float currentTime = (float)Environment.TickCount64 / 1000f; // Seconds timestamp
+            float currentTime = (float)Environment.TickCount64 / 1000f;
 
             lock (d3dLock)
             {
-                // Only recreate and upload texture if height changed AND distance changed > 2cm AND at least 100ms passed since last update
                 if (laserD3dTex == null ||
                    (lastLaserTexHeight != targetHeight && distDelta > 0.02f && (currentTime - lastUpdateLengthTime) >= 0.1f))
                 {
@@ -724,8 +728,8 @@ namespace ScreenLookup.src.utils
                     MappedSubresource map = d3dContext.Map(laserStagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
                     unsafe
                     {
-                        int fadeLen = Math.Min(100, targetHeight);
                         byte r = 218, g = 96, b = 255;
+                        int fadeLen = Math.Min(100, targetHeight);
 
                         for (int y = 0; y < targetHeight; y++)
                         {
@@ -768,11 +772,12 @@ namespace ScreenLookup.src.utils
         private void HideLaserOverlay()
         {
             CVROverlay? overlay = OpenVR.Overlay;
-
             if (overlay != null && laserOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
                 overlay.HideOverlay(laserOverlayHandle);
         }
+        #endregion
 
+        #region Direct3D Overlay Composition
         private void UpdateOverlayTransform(float pixelShiftX, float pixelShiftY, float metersPerPixel)
         {
             CVROverlay? overlay = OpenVR.Overlay;
@@ -879,7 +884,6 @@ namespace ScreenLookup.src.utils
 
             GetWindowRect(targetHwnd, out mainRect);
 
-            // Compute the composite virtual bounding box (Union of main window + all popups)
             int minLeft = mainRect.Left;
             int minTop = mainRect.Top;
             int maxRight = mainRect.Right;
@@ -898,7 +902,6 @@ namespace ScreenLookup.src.utils
 
             if (compositeWidth <= 0 || compositeHeight <= 0) return;
 
-            // Cache global layout positioning attributes cleanly across threads
             _cachedMinLeft = minLeft;
             _cachedMinTop = minTop;
             _cachedCompositeHeight = compositeHeight;
@@ -921,7 +924,6 @@ namespace ScreenLookup.src.utils
             HmdVector2_t mouseScale = new() { v0 = (float)compositeWidth, v1 = (float)compositeHeight };
             overlay.SetOverlayMouseScale(overlayHandle, ref mouseScale);
 
-            // Calculate anchor drifts via layout growth structures to prevent UI pops
             float leftGrowth = mainRect.Left - minLeft;
             float rightGrowth = maxRight - mainRect.Right;
             float topGrowth = mainRect.Top - minTop;
@@ -930,11 +932,8 @@ namespace ScreenLookup.src.utils
             float pixelShiftX = (rightGrowth - leftGrowth) / 2f;
             float pixelShiftY = (topGrowth - bottomGrowth) / 2f;
 
-            // Forces transform refresh continuously if dynamic layout structures alter context parameters
             if (isOverlayDirty || lastMetersPerPixel != metersPerPixel || !cachedAnchorDistance.Equals(App.setting.OverlayDistance) || !cachedAnchorHigh.Equals(App.setting.OverlayHigh))
             {
-                // Pass 0,0 for shifts during popup expansion to force SteamVR anchor to stay static,
-                // or let it adapt *only* when the parent window is moved by the user.
                 UpdateOverlayTransform(pixelShiftX, pixelShiftY, metersPerPixel);
                 lastMetersPerPixel = metersPerPixel;
             }
@@ -943,7 +942,6 @@ namespace ScreenLookup.src.utils
 
             try
             {
-                // Manage persistent buffers based on the dynamic composite canvas size
                 if (sharedCaptureBmp == null || sharedCaptureBmp.Width != compositeWidth || sharedCaptureBmp.Height != compositeHeight)
                 {
                     sharedCaptureGraphics?.Dispose();
@@ -953,27 +951,21 @@ namespace ScreenLookup.src.utils
                     sharedCaptureGraphics = Graphics.FromImage(sharedCaptureBmp);
                 }
 
-                // Clear canvas with complete transparency to prepare for shifted overlay compositions
                 sharedCaptureGraphics.Clear(Color.Transparent);
 
-                // Capture and compose inside the UI Thread Context
                 targetWindow.Dispatcher.Invoke(() =>
                 {
-                    // Draw main window relative to the composite virtual canvas origin (minLeft, minTop)
                     IntPtr hdc = sharedCaptureGraphics!.GetHdc();
                     PrintWindow(targetHwnd, hdc, 0x02);
                     sharedCaptureGraphics.ReleaseHdc(hdc);
 
-                    // If the canvas is expanded upwards or leftwards, adjust the placement position of the main window screenshot
                     int mainOffsetX = mainRect.Left - minLeft;
                     int mainOffsetY = mainRect.Top - minTop;
-
                     int mainW = mainRect.Right - mainRect.Left;
                     int mainH = mainRect.Bottom - mainRect.Top;
 
                     if (mainOffsetX != 0 || mainOffsetY != 0)
                     {
-                        // Reuse or recreate main window buffer only on size change
                         if (_cachedMainTemp == null || _cachedMainTemp.Width != mainW || _cachedMainTemp.Height != mainH)
                         {
                             _cachedMainTempGraphics?.Dispose();
@@ -990,13 +982,11 @@ namespace ScreenLookup.src.utils
                         sharedCaptureGraphics.DrawImage(_cachedMainTemp, mainOffsetX, mainOffsetY);
                     }
 
-                    // Draw popups relative to the virtual canvas origin
                     foreach (var popup in popupWindows)
                     {
                         int pW = Math.Max(1, popup.Rect.Right - popup.Rect.Left);
                         int pH = Math.Max(1, popup.Rect.Bottom - popup.Rect.Top);
 
-                        // Reuse popup resources based on window handle
                         if (!_cachedPopupResources.TryGetValue(popup.Handle, out var res) || res.Bmp.Width != pW || res.Bmp.Height != pH)
                         {
                             res.Gfx?.Dispose();
@@ -1014,7 +1004,6 @@ namespace ScreenLookup.src.utils
                         PrintWindow(popup.Handle, hdcP, 0x02);
                         gP.ReleaseHdc(hdcP);
 
-                        // Flyout corner processing block
                         BitmapData pData = popupBmp.LockBits(new Rectangle(0, 0, pW, pH), ImageLockMode.ReadWrite, popupBmp.PixelFormat);
                         unsafe
                         {
@@ -1055,8 +1044,6 @@ namespace ScreenLookup.src.utils
                             }
                         }
                         popupBmp.UnlockBits(pData);
-
-                        // Composite popups onto the master canvas based on the computed offset anchor
                         sharedCaptureGraphics.DrawImage(popupBmp, popup.Rect.Left - minLeft, popup.Rect.Top - minTop);
                     }
                 });
@@ -1073,27 +1060,9 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        private void BringWindowToFront()
-        {
-            if (targetHwnd != IntPtr.Zero)
-            {
-                targetWindow.Dispatcher.Invoke(() =>
-                {
-                    // Optional: If the window is minimized, restore it first
-                    if (targetWindow.WindowState == WindowState.Minimized)
-                        targetWindow.WindowState = WindowState.Normal;
-
-                    SetForegroundWindow(targetHwnd);
-                });
-            }
-        }
-
         private bool IsTargetWindowFronted()
         {
-            // Get the handle of the window currently in the foreground
             IntPtr foregroundHwnd = GetForegroundWindow();
-
-            // Return true if it matches our target handle
             return foregroundHwnd == targetHwnd;
         }
 
@@ -1444,7 +1413,7 @@ namespace ScreenLookup.src.utils
 
                 lock (d3dLock)
                 {
-                    CVROverlay overlay = OpenVR.Overlay;
+                    CVROverlay? overlay = OpenVR.Overlay;
 
                     if (overlay != null && overlayHandle != OpenVR.k_ulOverlayHandleInvalid)
                         overlay.DestroyOverlay(overlayHandle);
@@ -1469,17 +1438,6 @@ namespace ScreenLookup.src.utils
                 isInitialized = false;
             }
         }
-
-        private static GraphicsPath CreateRoundedRectanglePath(RectangleF rect, float r)
-        {
-            GraphicsPath path = new();
-            float d = r * 2f;
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
-        }
+        #endregion
     }
 }

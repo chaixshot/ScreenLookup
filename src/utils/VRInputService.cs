@@ -5,8 +5,12 @@ using Valve.VR;
 
 namespace ScreenLookup.src.utils
 {
+    /// <summary>
+    /// Service responsible for VR controller tracking, IVRInput action management, and spatial math transforms.
+    /// </summary>
     public class VRInputService
     {
+        #region Constants & Properties
         private readonly TrackedDevicePose_t[] poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
 
         public uint LeftControllerIdx { get; private set; } = OpenVR.k_unTrackedDeviceIndexInvalid;
@@ -22,8 +26,9 @@ namespace ScreenLookup.src.utils
         public uint TriggerButtonId { get; set; } = (uint)EVRButtonId.k_EButton_SteamVR_Trigger;
         public uint AButtonId { get; set; } = (uint)EVRButtonId.k_EButton_IndexController_A;
         public uint BButtonId { get; set; } = (uint)EVRButtonId.k_EButton_IndexController_B;
+        #endregion
 
-        // IVRInput action handles — populated by InitActionHandles() after SetActionManifestPath
+        #region Action Handles
         public ulong ActionSetHandle { get; private set; } = 0;
         public ulong GripLeftHandle { get; private set; } = 0;
         public ulong GripRightHandle { get; private set; } = 0;
@@ -37,23 +42,17 @@ namespace ScreenLookup.src.utils
         public ulong ThumbstickRightHandle { get; private set; } = 0;
         #endregion
 
+        #region Action Registration & Polling
         /// <summary>
-        /// Call once after OpenVR.Input.SetActionManifestPath() to cache all action handles. Safe to call from multiple
-        /// services — handle lookup is idempotent.
+        /// Call once after OpenVR.Input.SetActionManifestPath() to cache all action handles.
         /// </summary>
         public void InitActionHandles()
         {
-            // Register the IVRInput action manifest so SteamVR routes all buttons through the action system.
-            // The legacy GetControllerState API is blocked for VRApplication_Overlay — this is the only
-            // supported way to read arbitrary button inputs (grip, trigger, A/X, B/Y).
             string manifestPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", "vr", "actions.json");
             if (File.Exists(manifestPath))
                 OpenVR.Input?.SetActionManifestPath(manifestPath);
             else
-            {
                 System.Diagnostics.Debug.WriteLine($"[VRInput] actions.json not found at: {manifestPath}");
-            }
-
 
             var input = OpenVR.Input;
             if (input == null) return;
@@ -142,8 +141,7 @@ namespace ScreenLookup.src.utils
         private readonly Dictionary<ulong, (bool Current, bool Previous)> actionStates = [];
 
         /// <summary>
-        /// Updates the IVRInput action set state for this frame. Call once per ProcessThread tick before reading any
-        /// action states.
+        /// Updates the IVRInput action set state for this frame.
         /// </summary>
         public void UpdateActionState()
         {
@@ -174,18 +172,12 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        /// <summary>
-        /// Returns true while the action is held (level, not edge).
-        /// </summary>
         public bool IsActionHeld(ulong actionHandle)
         {
             if (actionHandle == 0) return false;
             return actionStates.TryGetValue(actionHandle, out var state) && state.Current;
         }
 
-        /// <summary>
-        /// Returns true only on the frame the action was pressed (rising edge).
-        /// </summary>
         public bool IsActionJustPressed(ulong actionHandle)
         {
             if (actionHandle == 0) return false;
@@ -223,6 +215,7 @@ namespace ScreenLookup.src.utils
 
             return (rightPos - leftPos).Length() <= activationRadiusCm / 100f;
         }
+        #endregion
 
         public void TriggerHapticPulse(uint controllerIdx, ushort durationMicroSec = 50000)
         {

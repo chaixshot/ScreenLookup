@@ -10,25 +10,31 @@ using Vortice.DXGI;
 
 namespace ScreenLookup.src.utils
 {
+    /// <summary>
+    /// Service managing 3D controller gesture framing, Direct3D11 texture rendering, and OpenVR mirror-eye screenshot
+    /// cropping.
+    /// </summary>
     public class FrameShotService : IDisposable
     {
+        #region Constants & Static Instance
         public static FrameShotService? Instance { get; private set; }
 
         private const int FRAME_TEX_W = 1024;
         private const int FRAME_TEX_H = 1024;
+        #endregion
 
-        // State
+        #region Service State & Events
         public bool IsConnected { get; private set; }
         public bool IsFraming { get; private set; }
         public string? LastError { get; private set; }
         public SteamOverlayService? SteamOverlay { get; set; }
 
-        // Events
         public event Action<object>? OnStateUpdate;
-        public event Action? OnVRQuit; // Retained if needed elsewhere in the app wrapper
+        public event Action? OnVRQuit;
         public event Action<Bitmap?, bool>? OnPhotoSaved;
+        #endregion
 
-        // Dependencies & Input pipeline
+        #region Private Fields & Pipeline
         private readonly VRInputService inputService;
         private CVRSystem? vrSystem;
         private ulong overlayHandle;
@@ -37,7 +43,7 @@ namespace ScreenLookup.src.utils
         private bool running;
         private readonly Action<string> log;
 
-        // Internal Input Processing Mirrors
+        // Input Gesture State
         private bool isButtonComboInRage;
         private bool isButtonComboPressed;
         private bool leftHeld;
@@ -45,14 +51,14 @@ namespace ScreenLookup.src.utils
         private bool leftHeldPrev;
         private bool rightHeldPrev;
 
-        // Geometry cache
+        // Geometry Cache
         private Vector3 lastLeftPos;
         private Vector3 lastRightPos;
         private float lastFrameWidth;
         private float lastFrameHeight;
         private Quaternion lastHmdRot;
 
-        // D3D11
+        // D3D11 Rendering Resources
         private ID3D11Device? d3dDevice;
         private ID3D11DeviceContext? d3dContext;
         private readonly object d3dLock = new();
@@ -65,17 +71,16 @@ namespace ScreenLookup.src.utils
         private EVREye currentMirrorEye = (EVREye)(-1);
         private IntPtr mirrorSrv = IntPtr.Zero;
 
-        // Rendering resources
-        private readonly byte[] rowBuffer = new byte[FRAME_TEX_W * 4];
         private Bitmap? frameBitmap;
         private int mirrorW;
         private int mirrorH;
         private Vector3 hmdRight, hmdUp, hmdFwd;
 
-
         public ID3D11Device? Device => d3dDevice;
         public ID3D11DeviceContext? Context => d3dContext;
+        #endregion
 
+        #region Constructor & Initialization
         public FrameShotService(Action<string> log)
         {
             this.log = log;
@@ -147,7 +152,7 @@ namespace ScreenLookup.src.utils
             if (!IsConnected)
                 return;
 
-            if (processTask != null && !processTask.IsCompleted && Task.CurrentId != processTask.Id) // Avoid deadlock if Disconnect is called from the polling thread (e.g. during a VR Quit event)
+            if (processTask != null && !processTask.IsCompleted && Task.CurrentId != processTask.Id)
                 processTask.Wait(TimeSpan.FromMilliseconds(500));
 
             StopThread();
@@ -178,13 +183,19 @@ namespace ScreenLookup.src.utils
             EmitState();
         }
 
+        public void Dispose()
+        {
+            Disconnect();
+            frameBitmap?.Dispose();
+        }
+        #endregion
+
+        #region Thread Loop & Gesture Tracking
         public void StartThread()
         {
             if (running)
                 return;
 
-            // Initialise action handles now that the manifest is registered (by SteamOverlayService).
-            // Both services share the same OpenVR session, so no second SetActionManifestPath needed.
             inputService.InitActionHandles();
 
             cts = new CancellationTokenSource();
@@ -201,7 +212,7 @@ namespace ScreenLookup.src.utils
         private async Task ThreadAsync(CancellationToken ct)
         {
             float refreshRate = VRInputService.GetHmdRefreshRate();
-            int delay = (int)(1000 / refreshRate);
+            int delay = (int)(1000 / (refreshRate > 0 ? refreshRate : 90f));
 
             while (!ct.IsCancellationRequested)
             {
@@ -212,11 +223,11 @@ namespace ScreenLookup.src.utils
 
         private void ProcessThread()
         {
-            CVRSystem system = OpenVR.System;
+            CVRSystem? system = OpenVR.System;
             if (system == null || !IsConnected)
                 return;
 
-            // Detect SteamVR quit events to handle external shutdown gracefully and prevent app-wide exit
+            // Poll OpenVR events
             VREvent_t vrEvent = new();
             while (system.PollNextEvent(ref vrEvent, (uint)Marshal.SizeOf<VREvent_t>()))
             {
@@ -243,10 +254,7 @@ namespace ScreenLookup.src.utils
                 return;
             }
 
-            // Refresh controller poses
             inputService.UpdatePosesAndIndices();
-
-            // Update IVRInput action state for this tick (grip + trigger reads below depend on this)
             inputService.UpdateActionState();
 
             leftHeldPrev = leftHeld;
@@ -254,7 +262,6 @@ namespace ScreenLookup.src.utils
             leftHeld = inputService.IsActionHeld(inputService.GripLeftHandle);
             rightHeld = inputService.IsActionHeld(inputService.GripRightHandle);
 
-            // Evaluate framing gestures and coordinate collection
             Vector3 leftCoords = Vector3.Zero;
             Vector3 rightCoords = Vector3.Zero;
             bool wasFraming = IsFraming;
@@ -273,10 +280,8 @@ namespace ScreenLookup.src.utils
                 isButtonComboInRage = false;
             }
 
-            // Update active state based on proximity range check
             IsFraming = isButtonComboInRage;
 
-            // Execute UI updates, audio cues, and rendering behaviors
             if (IsFraming)
             {
                 if (inputService.IsActionJustPressed(inputService.TriggerLeftHandle) || inputService.IsActionJustReleased(inputService.TriggerLeftHandle))
@@ -302,7 +307,6 @@ namespace ScreenLookup.src.utils
             {
                 OpenVR.Overlay.HideOverlay(overlayHandle);
 
-                // Screenshot condition: User released RIGHT grip while continuing to hold LEFT grip
                 if (rightHeldPrev && !rightHeld && leftHeld)
                 {
                     AppUtilities.PlaySound("screenshot.wav");
@@ -310,17 +314,16 @@ namespace ScreenLookup.src.utils
 
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {
-                        // Cache trigger button state immediately before thread delays alter input metrics
                         bool leftTriggerHeld = inputService.IsActionHeld(inputService.TriggerLeftHandle);
-
-                        await Task.Delay(100); // Allow OpenVR overlay a frame to hide completely
-
+                        await Task.Delay(100);
                         CaptureAndSave(leftTriggerHeld);
                     }));
                 }
             }
         }
+        #endregion
 
+        #region Frame Rendering & Overlay Drawing
         private void UpdateFrameAndRender(Vector3 L_Coords, Vector3 R_Coords)
         {
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
@@ -341,7 +344,6 @@ namespace ScreenLookup.src.utils
             Quaternion hmdRot = VRInputService.RotFromMatrix(hmdM);
             lastHmdRot = hmdRot;
 
-            // Calculate how much the HMD is tilted relative to world up
             Vector3 hmdUpLive = Vector3.Transform(Vector3.UnitY, hmdRot);
             float tiltAmount = 1.0f - MathF.Max(0, Vector3.Dot(hmdUpLive, Vector3.UnitY));
             bool shouldTilt = App.setting.UseHmdRotations && (tiltAmount > App.setting.HmdRotationThreshold);
@@ -359,16 +361,15 @@ namespace ScreenLookup.src.utils
             {
                 hmdFwd = hmdFwdLive;
                 Vector3 right = Vector3.Cross(hmdFwd, Vector3.UnitY);
-                hmdRight = (right.LengthSquared() < 1e-6f) ? hmdRightLive : Vector3.Normalize(right); // Fallback to live right if Fwd is too close to vertical
+                hmdRight = (right.LengthSquared() < 1e-6f) ? hmdRightLive : Vector3.Normalize(right);
                 hmdUp = Vector3.Normalize(Vector3.Cross(hmdRight, hmdFwd));
             }
 
-            L_Coords += (hmdRight * ((float)App.setting.FrameOffset / 100f)); // Adjust L_Coords and R_Coords positions to expand the frame slightly beyond controller center
-            R_Coords -= (hmdRight * ((float)App.setting.FrameOffset / 100f)); // Left controller moves LEFT (negative right vector), Right controller moves RIGHT (positive right vector)
+            L_Coords += (hmdRight * ((float)App.setting.FrameOffset / 100f));
+            R_Coords -= (hmdRight * ((float)App.setting.FrameOffset / 100f));
 
             Vector3 center = (L_Coords + R_Coords) * 0.5f;
 
-            // Calculate dimensions based on HMD-aligned axes to support portrait/landscape
             float widthM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R_Coords - L_Coords, hmdRight)));
             float heightM = MathF.Max(0.02f, MathF.Abs(Vector3.Dot(R_Coords - L_Coords, hmdUp)));
 
@@ -377,12 +378,11 @@ namespace ScreenLookup.src.utils
             lastFrameWidth = widthM;
             lastFrameHeight = heightM;
 
-            // Calculate draw dimensions based on the aspect ratio of the physical frame
             DrawFrameTexture(center, widthM, heightM, out float totalWidthM, out Vector3 overlayCenter);
 
             OpenVR.Overlay.SetOverlayWidthInMeters(overlayHandle, totalWidthM);
 
-            HmdMatrix34_t transform = new HmdMatrix34_t { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = overlayCenter.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = overlayCenter.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = overlayCenter.Z };
+            HmdMatrix34_t transform = new() { m0 = hmdRight.X, m1 = hmdUp.X, m2 = -hmdFwd.X, m3 = overlayCenter.X, m4 = hmdRight.Y, m5 = hmdUp.Y, m6 = -hmdFwd.Y, m7 = overlayCenter.Y, m8 = hmdRight.Z, m9 = hmdUp.Z, m10 = -hmdFwd.Z, m11 = overlayCenter.Z };
             OpenVR.Overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref transform);
             OpenVR.Overlay.ShowOverlay(overlayHandle);
         }
@@ -492,17 +492,15 @@ namespace ScreenLookup.src.utils
                 int srcStride = bData.Stride;
                 lock (d3dLock)
                 {
-                    MappedSubresource box =
-                        d3dContext.Map(stagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
+                    MappedSubresource box = d3dContext.Map(stagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
                     try
                     {
-                        unsafe // Use unsafe context for direct memory copy
+                        unsafe
                         {
                             byte* srcBase = (byte*)bData.Scan0;
                             byte* dstBase = (byte*)box.DataPointer;
                             for (int y = 0; y < FRAME_TEX_H; y++)
-                                Buffer.MemoryCopy(srcBase + (long)y * srcStride, dstBase + (long)y * box.RowPitch,
-                                    rowBytes, rowBytes);
+                                Buffer.MemoryCopy(srcBase + (long)y * srcStride, dstBase + (long)y * box.RowPitch, rowBytes, rowBytes);
                         }
                     }
                     finally { d3dContext.Unmap(stagingTex, 0); }
@@ -535,7 +533,9 @@ namespace ScreenLookup.src.utils
             path.CloseFigure();
             return path;
         }
+        #endregion
 
+        #region Mirror Eye Capture & Perspective Crop
         public void CaptureAndSave(bool leftTriggerHeld)
         {
             if (!EnsureMirrorPipeline())
@@ -543,8 +543,6 @@ namespace ScreenLookup.src.utils
 
             PointF[]? corners = ProjectFrameCorners(mirrorW, mirrorH);
             if (corners == null || corners.Length < 4) return;
-
-            // Guard against invalid source dimensions
             if (lastFrameWidth <= 0 || lastFrameHeight <= 0) return;
 
             Bitmap? mirrorBmp = null;
@@ -575,15 +573,15 @@ namespace ScreenLookup.src.utils
                             {
                                 if (needsSwap)
                                 {
-                                    dstPtr[0] = srcPtr[2]; // B
-                                    dstPtr[1] = srcPtr[1]; // G
-                                    dstPtr[2] = srcPtr[0]; // R
+                                    dstPtr[0] = srcPtr[2];
+                                    dstPtr[1] = srcPtr[1];
+                                    dstPtr[2] = srcPtr[0];
                                 }
                                 else
                                 {
                                     *(uint*)dstPtr = *(uint*)srcPtr;
                                 }
-                                dstPtr[3] = 255; // Alpha
+                                dstPtr[3] = 255;
                                 srcPtr += 4;
                                 dstPtr += 4;
                             }
@@ -598,26 +596,21 @@ namespace ScreenLookup.src.utils
                 }
             }
 
-            // Validate width and height calculations
             float dist = Vector2.Distance(new Vector2(corners[0].X, corners[0].Y), new Vector2(corners[1].X, corners[1].Y));
             int outW = (int)MathF.Min(MathF.Max(dist, 8f), 16384f);
             int outH = (int)MathF.Min(MathF.Max(MathF.Round(outW * (lastFrameHeight / lastFrameWidth)), 8f), 16384f);
 
-            // If the projected frame is too small (near edge-on view), the inverted
-            // transform would require GDI+ to scale mirrorBmp by an extreme factor,
-            // causing ExternalException (0x8000FFFF). Require a meaningful output size.
             if (dist < 8f)
             {
                 mirrorBmp.Dispose();
                 return;
             }
 
-            using (Bitmap outBmp = new Bitmap(outW, outH, PixelFormat.Format32bppArgb))
+            using (Bitmap outBmp = new(outW, outH, PixelFormat.Format32bppArgb))
             {
                 using (Graphics g = Graphics.FromImage(outBmp))
                 {
-                    using Matrix mtx = new Matrix(new RectangleF(0, 0, outW, outH), new[] { corners[0], corners[1], corners[3] });
-                    // Ensure matrix is invertible before applying to Graphics context
+                    using Matrix mtx = new(new RectangleF(0, 0, outW, outH), [corners[0], corners[1], corners[3]]);
                     if (!mtx.IsInvertible)
                     {
                         mirrorBmp.Dispose();
@@ -631,10 +624,8 @@ namespace ScreenLookup.src.utils
                     {
                         g.DrawImage(mirrorBmp, 0, 0);
                     }
-                    catch (System.Runtime.InteropServices.ExternalException)
+                    catch (ExternalException)
                     {
-                        // GDI+ can still fail with extreme transform scales even when the
-                        // matrix is technically invertible. Discard this frame silently.
                         mirrorBmp.Dispose();
                         return;
                     }
@@ -661,7 +652,7 @@ namespace ScreenLookup.src.utils
                     OpenVR.Compositor?.ReleaseMirrorTextureD3D11(mirrorSrv);
 
                 IntPtr srv = IntPtr.Zero;
-                if (OpenVR.Compositor.GetMirrorTextureD3D11(targetEye, d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None)
+                if (OpenVR.Compositor == null || OpenVR.Compositor.GetMirrorTextureD3D11(targetEye, d3dDevice!.NativePointer, ref srv) != EVRCompositorError.None)
                     return false;
 
                 mirrorSrv = srv;
@@ -689,7 +680,7 @@ namespace ScreenLookup.src.utils
 
         private PointF[]? ProjectFrameCorners(int mw, int mh)
         {
-            CVRSystem system = OpenVR.System;
+            CVRSystem? system = OpenVR.System;
             if (system == null) return null;
 
             uint hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
@@ -715,11 +706,6 @@ namespace ScreenLookup.src.utils
         }
 
         private void EmitState() => OnStateUpdate?.Invoke(new { connected = IsConnected, framing = IsFraming });
-
-        public void Dispose()
-        {
-            Disconnect();
-            frameBitmap?.Dispose();
-        }
+        #endregion
     }
 }
