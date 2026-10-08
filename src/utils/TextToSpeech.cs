@@ -1,4 +1,5 @@
 using NAudio.Wave;
+using ScreenLookup.src.utils.Database;
 using System.IO;
 using GLanguage = GTranslate.Language;
 

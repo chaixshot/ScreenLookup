@@ -1,15 +1,9 @@
 using Microsoft.Data.Sqlite;
-using System.IO;
 
-namespace ScreenLookup.src.utils
+namespace ScreenLookup.src.utils.Database
 {
-    internal class WordClassLogger
+    internal static class WordClassLogger
     {
-        public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
-
-        private static SqliteConnection? _sharedConnection;
-        private static readonly Lock _connectionLock = new();
-
         static WordClassLogger()
         {
             InitializeDatabase();
@@ -17,8 +11,6 @@ namespace ScreenLookup.src.utils
 
         private static void InitializeDatabase()
         {
-            GetConnection();
-
             using var command = new SqliteCommand(@"
                 CREATE TABLE IF NOT EXISTS word_class (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,46 +20,19 @@ namespace ScreenLookup.src.utils
                 );
                 CREATE INDEX IF NOT EXISTS idx_word_class_lookup
                 ON word_class (Original, TargetLanguage);
-            ", GetConnection());
+            ", Database.GetConnection());
             command.ExecuteNonQuery();
-        }
-
-        private static SqliteConnection GetConnection()
-        {
-            lock (_connectionLock)
-            {
-                if (_sharedConnection == null)
-                {
-                    _sharedConnection = new SqliteConnection(CONNECTION_STRING);
-                    _sharedConnection.Open();
-                }
-                else if (_sharedConnection.State != System.Data.ConnectionState.Open)
-                {
-                    try
-                    {
-                        _sharedConnection.Open();
-                    }
-                    catch
-                    {
-                        _sharedConnection?.Dispose();
-                        _sharedConnection = new SqliteConnection(CONNECTION_STRING);
-                        _sharedConnection.Open();
-                    }
-                }
-
-                return _sharedConnection;
-            }
         }
 
         public static async Task<string?> GetAsync(string original, int targetLang)
         {
-            string selectQuery = @"
+            string query = @"
                 SELECT Translated
                 FROM word_class
                 WHERE Original = @Original AND TargetLanguage = @TargetLanguage
                 LIMIT 1";
 
-            using var command = new SqliteCommand(selectQuery, GetConnection());
+            using var command = new SqliteCommand(query, Database.GetConnection());
             command.Parameters.AddWithValue("@Original", original.Trim());
             command.Parameters.AddWithValue("@TargetLanguage", targetLang);
 
@@ -92,7 +57,7 @@ namespace ScreenLookup.src.utils
                     SET Translated = @Translated
                     WHERE Original = @Original AND TargetLanguage = @TargetLanguage";
 
-                using var cmd = new SqliteCommand(updateQuery, GetConnection());
+                using var cmd = new SqliteCommand(updateQuery, Database.GetConnection());
                 cmd.Parameters.AddWithValue("@Original", original.Trim());
                 cmd.Parameters.AddWithValue("@Translated", translated.Trim());
                 cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
@@ -104,7 +69,7 @@ namespace ScreenLookup.src.utils
                     INSERT INTO word_class (Original, Translated, TargetLanguage)
                     VALUES (@Original, @Translated, @TargetLanguage)";
 
-                using var cmd = new SqliteCommand(insertQuery, GetConnection());
+                using var cmd = new SqliteCommand(insertQuery, Database.GetConnection());
                 cmd.Parameters.AddWithValue("@Original", original.Trim());
                 cmd.Parameters.AddWithValue("@Translated", translated.Trim());
                 cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);

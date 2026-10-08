@@ -1,5 +1,6 @@
 ﻿using Porter2Stemmer;
 using ScreenLookup.src.models;
+using ScreenLookup.src.utils.Database;
 using System.Net.Http;
 using System.Text.Json;
 
@@ -252,7 +253,7 @@ namespace ScreenLookup.src.utils
                 if (string.IsNullOrEmpty(phonetic))
                     phonetic = "-";
 
-                await DictionaryLogger.SaveExtraDetailssAsync(text, sourceLang, targetLang, currentProviderIndex, extraMeanings, phonetic);
+                await DictionaryLogger.SaveExtraDetailsAsync(text, sourceLang, targetLang, currentProviderIndex, extraMeanings, phonetic);
             }
 
             if (string.IsNullOrEmpty(phonetic) || phonetic == "-")
