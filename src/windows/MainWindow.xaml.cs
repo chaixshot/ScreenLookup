@@ -13,7 +13,7 @@ namespace ScreenLookup
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
-        private CancellationTokenSource? saveWindowStateCTS;
+        private CancellationTokenSource? _saveWindowStateCTS;
 
         public MainWindow()
         {
@@ -30,7 +30,7 @@ namespace ScreenLookup
                 else
                 {
                     this.RootNavigation.Navigate(typeof(SettingPage));
-                    AppUtilities.ChackForUpdate();
+                    AppUtilities.CheckForUpdate();
                 }
             };
         }
@@ -71,7 +71,7 @@ namespace ScreenLookup
             headerText.Text = navigationView.SelectedItem.TargetPageTag.ToString();
         }
 
-        #region button
+        #region Title Bar Buttons
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
             App.ToggleTopmost(!App.setting.Topmost);
@@ -93,12 +93,12 @@ namespace ScreenLookup
         {
             if (IsLoaded)
             {
-                saveWindowStateCTS?.Cancel();
-                saveWindowStateCTS = new CancellationTokenSource();
+                _saveWindowStateCTS?.Cancel();
+                _saveWindowStateCTS = new CancellationTokenSource();
 
                 try
                 {
-                    await Task.Delay(1000, saveWindowStateCTS.Token);
+                    await Task.Delay(1000, _saveWindowStateCTS.Token);
 
                     App.setting.Window["Bounds"] = this.RestoreBounds.ToString();
                     App.setting.Window["State"] = this.WindowState.ToString();
@@ -118,7 +118,6 @@ namespace ScreenLookup
                     this.Top = bounds.Top;
                     this.Left = bounds.Left;
 
-                    // Restore the size only for a manually sized
                     if (this.SizeToContent == SizeToContent.Manual)
                     {
                         this.Width = bounds.Width;

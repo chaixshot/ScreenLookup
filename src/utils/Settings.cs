@@ -16,6 +16,7 @@ namespace ScreenLookup.src.utils
         public static readonly FileInfo settingFile = new($"{App.appDataFolder}/setting.json");
         public readonly RegistryKey RegAutorun = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
 
+        #region Backing Fields
         private bool firstRun = true;
         private bool topmost = true;
         private bool startupWithWindows = true;
@@ -58,7 +59,9 @@ namespace ScreenLookup.src.utils
         private float hmdRotationThreshold = 0.003f;
         private bool useRightEye = true;
         private int frameOffset = 5;
+        #endregion
 
+        #region Readonly Collections
         public readonly string[] ProviderServices = [
             "Google",
             "Google New",
@@ -72,55 +75,62 @@ namespace ScreenLookup.src.utils
             "Normal",
             "Slow (Accurate)",
         ];
+        #endregion
 
+        #region Load & Save Methods
         public void Load()
         {
-            Settings settings;
-
             if (settingFile.Exists)
             {
-                using FileStream fileStream = File.Open(settingFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                settings = JsonSerializer.Deserialize<Settings>(fileStream, new JsonSerializerOptions() { WriteIndented = true }) ?? new();
-                fileStream.Close();
+                try
+                {
+                    using FileStream fileStream = File.Open(settingFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    Settings settings = JsonSerializer.Deserialize<Settings>(fileStream, new JsonSerializerOptions { WriteIndented = true }) ?? new();
+                    fileStream.Close();
 
-                Window = settings.Window;
-                LoadedTesseract = settings.loadedTesseract;
-                LoadedHunspell = settings.loadedHunspell;
+                    Window = settings.Window;
+                    LoadedTesseract = settings.loadedTesseract;
+                    LoadedHunspell = settings.loadedHunspell;
 
-                FirstRun = settings.FirstRun;
-                Topmost = settings.Topmost;
-                StartupWithWindows = settings.StartupWithWindows;
-                StartInBackground = settings.StartInBackground;
-                MinimizeToTray = settings.MinimizeToTray;
+                    FirstRun = settings.FirstRun;
+                    Topmost = settings.Topmost;
+                    StartupWithWindows = settings.StartupWithWindows;
+                    StartInBackground = settings.StartInBackground;
+                    MinimizeToTray = settings.MinimizeToTray;
 
-                SourceLanguageAccuracy = settings.SourceLanguageAccuracy;
-                SourceLanguage = settings.SourceLanguage;
-                HunSpell = settings.HunSpell;
-                TargetLanguage = settings.TargetLanguage;
-                TranslationProvider = settings.TranslationProvider;
-                TTSProvider = settings.TTSProvider;
+                    SourceLanguageAccuracy = settings.SourceLanguageAccuracy;
+                    SourceLanguage = settings.SourceLanguage;
+                    HunSpell = settings.HunSpell;
+                    TargetLanguage = settings.TargetLanguage;
+                    TranslationProvider = settings.TranslationProvider;
+                    TTSProvider = settings.TTSProvider;
 
-                ShortcutKey = settings.ShortcutKey;
-                LookupOnImage = settings.LookupOnImage;
-                ShowImage = settings.ShowImage;
-                ShowAuxiliary = settings.ShowAuxiliary;
-                ShowHighlight = settings.ShowHighlight;
-                CloseLostFocus = settings.CloseLostFocus;
-                FontFace = settings.FontFace;
-                FontSizeS = settings.FontSizeS;
+                    ShortcutKey = settings.ShortcutKey;
+                    LookupOnImage = settings.LookupOnImage;
+                    ShowImage = settings.ShowImage;
+                    ShowAuxiliary = settings.ShowAuxiliary;
+                    ShowHighlight = settings.ShowHighlight;
+                    CloseLostFocus = settings.CloseLostFocus;
+                    FontFace = settings.FontFace;
+                    FontSizeS = settings.FontSizeS;
 
-                AutoConnectStamVR = settings.autoConnectStamVR;
-                OverlayEnable = settings.overlayEnable;
-                OverlayHigh = settings.overlayHigh;
-                OverlayDistance = settings.overlayDistance;
-                OverlayScale = settings.overlayScale;
-                OverlayScrollSpeed = settings.overlayScrollSpeed;
-                OverlayCurve = settings.overlayCurve;
-                ActivationRadius = settings.activationRadius;
-                UseHmdRotations = settings.useHmdRotations;
-                HmdRotationThreshold = settings.hmdRotationThreshold;
-                UseRightEye = settings.useRightEye;
-                FrameOffset = settings.frameOffset;
+                    AutoConnectStamVR = settings.autoConnectStamVR;
+                    OverlayEnable = settings.overlayEnable;
+                    OverlayHigh = settings.overlayHigh;
+                    OverlayDistance = settings.overlayDistance;
+                    OverlayScale = settings.overlayScale;
+                    OverlayScrollSpeed = settings.overlayScrollSpeed;
+                    OverlayCurve = settings.overlayCurve;
+                    ActivationRadius = settings.activationRadius;
+                    UseHmdRotations = settings.useHmdRotations;
+                    HmdRotationThreshold = settings.hmdRotationThreshold;
+                    UseRightEye = settings.useRightEye;
+                    FrameOffset = settings.frameOffset;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Settings] Failed to load settings: {ex.Message}");
+                }
             }
         }
 
@@ -144,10 +154,12 @@ namespace ScreenLookup.src.utils
 
         public static void Reset()
         {
-            settingFile.Delete();
+            if (settingFile.Exists)
+                settingFile.Delete();
         }
+        #endregion
 
-        #region Global Variable
+        #region Properties
         public int SourceLanguageAccuracy
         {
             get => sourceLanguageAccuracy;
@@ -155,7 +167,7 @@ namespace ScreenLookup.src.utils
             {
                 sourceLanguageAccuracy = value;
 
-                if (App.mainWindow.IsLoaded)
+                if (App.mainWindow?.IsLoaded == true)
                 {
                     App.captureWindow.LoadInstalledLanguage();
                     App.captureWindow.CreateTesseractEngine();
@@ -177,7 +189,7 @@ namespace ScreenLookup.src.utils
                 if (!HunspellHelper.IsInstalled(sourceLanguage))
                     HunSpell = false;
 
-                if (App.mainWindow.IsLoaded)
+                if (App.mainWindow?.IsLoaded == true)
                 {
                     App.captureWindow.CreateTesseractEngine();
                     App.captureWindow.SelectConfigLanguage();
@@ -196,7 +208,7 @@ namespace ScreenLookup.src.utils
             {
                 hunSpell = value;
 
-                if (App.mainWindow.IsLoaded)
+                if (App.mainWindow?.IsLoaded == true)
                 {
                     if (value && HunspellHelper.IsInstalled(SourceLanguage))
                         HunspellHelper.CreateHunspellEngine(SourceLanguage);
@@ -214,7 +226,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 targetLanguage = value;
-
                 OnPropertyChanged();
             }
         }
@@ -226,7 +237,7 @@ namespace ScreenLookup.src.utils
             {
                 translationProvider = value;
 
-                if (App.mainWindow.IsLoaded)
+                if (App.mainWindow?.IsLoaded == true)
                     Translation.ChangeTranslationProvider(value);
 
                 OnPropertyChanged();
@@ -240,7 +251,7 @@ namespace ScreenLookup.src.utils
             {
                 ttsProvider = value;
 
-                if (App.mainWindow.IsLoaded)
+                if (App.mainWindow?.IsLoaded == true)
                     TextToSpeech.ChangeTextToSpeechProvider(value);
 
                 OnPropertyChanged();
@@ -269,7 +280,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 startInBackground = value;
-
                 OnPropertyChanged();
             }
         }
@@ -280,7 +290,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 minimizeToTray = value;
-
                 OnPropertyChanged();
             }
         }
@@ -291,7 +300,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 lookupOnImage = value;
-
                 OnPropertyChanged();
             }
         }
@@ -302,7 +310,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 showImage = value;
-
                 OnPropertyChanged();
             }
         }
@@ -313,7 +320,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 showAuxiliary = value;
-
                 OnPropertyChanged();
             }
         }
@@ -324,7 +330,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 showHighlight = value;
-
                 OnPropertyChanged();
             }
         }
@@ -335,7 +340,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 closeLostFocus = value;
-
                 OnPropertyChanged();
             }
         }
@@ -346,7 +350,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 firstRun = value;
-
                 OnPropertyChanged();
             }
         }
@@ -357,7 +360,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 topmost = value;
-
                 OnPropertyChanged();
             }
         }
@@ -368,7 +370,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 fontSizes = value;
-
                 OnPropertyChanged();
             }
         }
@@ -380,9 +381,8 @@ namespace ScreenLookup.src.utils
             {
                 autoConnectStamVR = value;
 
-                if (App.mainWindow.IsLoaded)
-                    if (autoConnectStamVR)
-                        FrameShotPage.AutoConnectSteamVR();
+                if (App.mainWindow?.IsLoaded == true && autoConnectStamVR)
+                    FrameShotPage.AutoConnectSteamVR();
 
                 OnPropertyChanged();
             }
@@ -394,7 +394,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayEnable = value;
-
                 OnPropertyChanged();
             }
         }
@@ -405,7 +404,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayHigh = value;
-
                 OnPropertyChanged();
             }
         }
@@ -416,7 +414,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayDistance = value;
-
                 OnPropertyChanged();
             }
         }
@@ -427,7 +424,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayScale = value;
-
                 OnPropertyChanged();
             }
         }
@@ -438,7 +434,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayScrollSpeed = value;
-
                 OnPropertyChanged();
             }
         }
@@ -449,7 +444,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 overlayCurve = value;
-
                 OnPropertyChanged();
             }
         }
@@ -460,7 +454,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 activationRadius = value;
-
                 OnPropertyChanged();
             }
         }
@@ -471,7 +464,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 useHmdRotations = value;
-
                 OnPropertyChanged();
             }
         }
@@ -482,7 +474,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 hmdRotationThreshold = value;
-
                 OnPropertyChanged();
             }
         }
@@ -493,7 +484,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 useRightEye = value;
-
                 OnPropertyChanged();
             }
         }
@@ -504,7 +494,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 frameOffset = value;
-
                 OnPropertyChanged();
             }
         }
@@ -515,7 +504,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 fontFace = value;
-
                 OnPropertyChanged();
             }
         }
@@ -526,9 +514,7 @@ namespace ScreenLookup.src.utils
             set
             {
                 shortcutKey = value;
-
                 App.SetupHoykey();
-
                 OnPropertyChanged();
             }
         }
@@ -539,7 +525,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 window = value;
-
                 OnPropertyChanged();
             }
         }
@@ -550,7 +535,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 loadedTesseract = value;
-
                 OnPropertyChanged();
             }
         }
@@ -561,19 +545,20 @@ namespace ScreenLookup.src.utils
             set
             {
                 loadedHunspell = value;
-
                 OnPropertyChanged();
             }
         }
         #endregion
 
+        #region INotifyPropertyChanged
         public void OnPropertyChanged([CallerMemberName] string? propName = null)
         {
-            if (App.mainWindow.IsLoaded)
+            if (App.mainWindow?.IsLoaded == true)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
                 Save();
             }
         }
+        #endregion
     }
 }

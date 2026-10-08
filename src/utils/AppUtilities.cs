@@ -11,7 +11,7 @@ namespace ScreenLookup.src.utils
 {
     internal partial class AppUtilities
     {
-
+        #region Constants & Regex
         public const string GitHubRepoUrl = "https://github.com/chaixshot/ScreenLookup";
         public const string GitHubReleasesUrl = "https://github.com/chaixshot/ScreenLookup/releases";
         public const string GitHubLatestReleaseApi = "https://api.github.com/repos/chaixshot/ScreenLookup/releases/latest";
@@ -24,12 +24,13 @@ namespace ScreenLookup.src.utils
 
         [GeneratedRegex(@"(?<=[.!?。！？，、;{}\[\]()])")]
         internal static partial Regex PunctuationBoundary();
+        #endregion
 
+        #region Application Info
         internal static bool IsPackaged()
         {
             try
             {
-                // If we have a package ID then we are running in a packaged context
                 PackageId dummy = Package.Current.Id;
                 return true;
             }
@@ -44,10 +45,10 @@ namespace ScreenLookup.src.utils
             if (IsPackaged())
             {
                 PackageVersion version = Package.Current.Id.Version;
-                return $"{version.Major}.{version.Minor}.{version.Build}" ?? "unknown error reading package version";
+                return $"{version.Major}.{version.Minor}.{version.Build}";
             }
 
-            return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown error reading assembly version";
+            return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown";
         }
 
         internal static async Task<string> GetLatestVersionAsync()
@@ -59,18 +60,21 @@ namespace ScreenLookup.src.utils
             client.DefaultRequestHeaders.UserAgent.ParseAdd("ScreenLookup");
             string response = await client.GetStringAsync(GitHubLatestReleaseApi);
             using var doc = JsonDocument.Parse(response);
-            string latestVersionRaw = doc.RootElement.GetProperty("tag_name").GetString();
+            string? latestVersionRaw = doc.RootElement.GetProperty("tag_name").GetString();
             string latestVersion = string.IsNullOrEmpty(latestVersionRaw)
-                ? String.Empty
+                ? string.Empty
                 : Regex.Replace(latestVersionRaw, @"[^0-9.]", string.Empty);
 
             return latestVersion;
         }
 
         // Open explorer and select file
+        #endregion
+
+        #region System Helpers
         internal static void OpenExplorer(string filePath)
         {
-            string args = string.Format("/e, /select, \"{0}\"", filePath);
+            string args = $"/e, /select, \"{filePath}\"";
             ProcessStartInfo info = new()
             {
                 FileName = "explorer",
@@ -87,7 +91,6 @@ namespace ScreenLookup.src.utils
                 soundPath = Path.Combine(Environment.CurrentDirectory, "src", "sounds", soundName);
             }
 
-            // Verify the file exists before attempting to play it
             if (File.Exists(soundPath))
             {
                 Task.Run(() =>
@@ -107,7 +110,7 @@ namespace ScreenLookup.src.utils
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[PlaySound] NAudio playback error: {ex.Message}");
+                        Debug.WriteLine($"[PlaySound] NAudio playback error: {ex.Message}");
                         try
                         {
                             using var player = new SoundPlayer(soundPath);
@@ -115,7 +118,7 @@ namespace ScreenLookup.src.utils
                         }
                         catch (Exception fallbackEx)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[PlaySound] Fallback SoundPlayer error: {fallbackEx.Message}");
+                            Debug.WriteLine($"[PlaySound] Fallback SoundPlayer error: {fallbackEx.Message}");
                         }
                     }
                 });
@@ -172,5 +175,6 @@ namespace ScreenLookup.src.utils
                    (c >= 0x3400 && c <= 0x4DBF) || // CJK Extension A
                    (c >= 0xAC00 && c <= 0xD7AF);   // Hangul Syllables
         }
+        #endregion
     }
 }

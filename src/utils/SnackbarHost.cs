@@ -1,18 +1,36 @@
-﻿using Wpf.Ui.Controls;
+﻿using System.Windows;
+using Wpf.Ui.Controls;
 
 namespace ScreenLookup.src.utils
 {
-    internal class SnackbarHost
+    public enum SnackbarType
     {
-        public static Snackbar? snackbarMain;
-        public static Snackbar? snackbarCapture;
-        public static MainWindow? mainWindow = App.mainWindow;
+        Warning,
+        Error,
+        Success,
+        Info
+    }
 
-        public static void Show(string title = "", string message = "", SnackbarType type = SnackbarType.Info, int timeout = 5, int width = 500, bool showMainWindow = false, bool closeButton = true)
+    /// <summary>
+    /// Utility class for displaying WPF-UI snackbars across windows.
+    /// </summary>
+    internal static class SnackbarHost
+    {
+        public static Snackbar? SnackbarMain;
+        public static Snackbar? SnackbarCapture;
+
+        public static void Show(
+            string title = "",
+            string message = "",
+            SnackbarType type = SnackbarType.Info,
+            int timeout = 5,
+            int width = 500,
+            bool showMainWindow = false,
+            bool closeButton = true)
         {
-            if (System.Windows.Application.Current != null && !System.Windows.Application.Current.Dispatcher.CheckAccess())
+            if (Application.Current != null && !Application.Current.Dispatcher.CheckAccess())
             {
-                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     Show(title, message, type, timeout, width, showMainWindow, closeButton);
                 }));
@@ -21,7 +39,6 @@ namespace ScreenLookup.src.utils
 
             ControlAppearance appearance;
             SymbolIcon icon;
-            Snackbar? snackbar;
 
             switch (type)
             {
@@ -43,43 +60,41 @@ namespace ScreenLookup.src.utils
                     break;
             }
 
-            // Create a new Snackbar for both windows
-            snackbarMain ??= new Snackbar(mainWindow?.snackbarHost);
-            snackbarCapture ??= new Snackbar((App.captureWindow.snackbarHost));
+            // Create a new Snackbar for both windows if needed
+            SnackbarMain ??= new Snackbar(App.mainWindow?.snackbarHost);
+            SnackbarCapture ??= new Snackbar(App.captureWindow?.snackbarHost);
 
-            if (showMainWindow)
+            if (showMainWindow && App.mainWindow != null)
             {
                 if (!App.mainWindow.IsVisible || !App.mainWindow.IsActive)
                     App.mainWindow.ShowFromTray();
             }
 
-            // Main Window
-            snackbarMain.SetCurrentValue(Snackbar.TitleProperty, title);
-            snackbarMain.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
-            snackbarMain.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
-            snackbarMain.SetCurrentValue(Snackbar.IconProperty, icon);
-            snackbarMain.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
-            snackbarMain.MinWidth = width;
-            snackbarMain.IsCloseButtonEnabled = closeButton;
-            snackbarMain.Show(true);
+            // Configure and show on Main Window
+            if (SnackbarMain != null)
+            {
+                SnackbarMain.SetCurrentValue(Snackbar.TitleProperty, title);
+                SnackbarMain.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
+                SnackbarMain.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
+                SnackbarMain.SetCurrentValue(Snackbar.IconProperty, icon);
+                SnackbarMain.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+                SnackbarMain.MinWidth = width;
+                SnackbarMain.IsCloseButtonEnabled = closeButton;
+                SnackbarMain.Show(true);
+            }
 
-            //Capture Window
-            snackbarCapture.SetCurrentValue(Snackbar.TitleProperty, title);
-            snackbarCapture.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
-            snackbarCapture.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
-            snackbarCapture.SetCurrentValue(Snackbar.IconProperty, icon);
-            snackbarCapture.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
-            snackbarCapture.MinWidth = width;
-            snackbarCapture.IsCloseButtonEnabled = closeButton;
-            snackbarCapture.Show(true);
+            // Configure and show on Capture Window
+            if (SnackbarCapture != null)
+            {
+                SnackbarCapture.SetCurrentValue(Snackbar.TitleProperty, title);
+                SnackbarCapture.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, message);
+                SnackbarCapture.SetCurrentValue(Snackbar.AppearanceProperty, appearance);
+                SnackbarCapture.SetCurrentValue(Snackbar.IconProperty, icon);
+                SnackbarCapture.SetCurrentValue(Snackbar.TimeoutProperty, TimeSpan.FromSeconds(timeout));
+                SnackbarCapture.MinWidth = width;
+                SnackbarCapture.IsCloseButtonEnabled = closeButton;
+                SnackbarCapture.Show(true);
+            }
         }
-    }
-
-    public enum SnackbarType
-    {
-        Warning,
-        Error,
-        Success,
-        Info
     }
 }

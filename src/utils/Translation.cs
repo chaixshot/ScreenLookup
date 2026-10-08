@@ -6,11 +6,12 @@ using System.Text.Json;
 
 namespace ScreenLookup.src.utils
 {
-    internal class Translation
+    internal static class Translation
     {
-        public static dynamic TranslationProvider;
-        private static readonly HttpClient extraMeaningsHttpClient = CreateHttpClient();
-        private static readonly Dictionary<string, string> translatedCache = [];
+        #region Fields & Initialization
+        public static dynamic? TranslationProvider;
+        private static readonly HttpClient ExtraMeaningsHttpClient = CreateHttpClient();
+        private static readonly Dictionary<string, string> TranslatedCache = [];
 
         private static HttpClient CreateHttpClient()
         {
@@ -27,43 +28,25 @@ namespace ScreenLookup.src.utils
         }
 
         /// <summary>
-        /// Changes the current translation provider to the provider specified by the given identifier.
+        /// Changes the current translation provider service to the provider specified by providerID.
         /// </summary>
-        /// <remarks>
-        /// If a translation provider is already in use, it is disposed before switching to the new provider. This
-        /// method should be called when the application needs to switch translation services at runtime.
-        /// </remarks>
-        /// <param name="providerID">
-        /// The unique identifier of the translation provider to use. Must correspond to a valid provider supported by
-        /// the application.
-        /// </param>
         public static void ChangeTranslationProvider(int providerID)
         {
             TranslationProvider?.Dispose();
             TranslationProvider = LanguageList.GetTranslatorService(providerID);
         }
+        #endregion
 
+        #region Translation Methods
         /// <summary>
-        /// Translates the specified text from the source language to the target language asynchronously. Checks local
-        /// SQLite dictionary cache first for single words / short phrases before hitting external APIs.
+        /// Translates the specified text asynchronously. Checks local SQLite dictionary cache first for single words.
         /// </summary>
-        /// <param name="text">The text to translate. Cannot be null.</param>
-        /// <param name="sourceLang">
-        /// The identifier of the source language. Must correspond to a supported language.
-        /// </param>
-        /// <param name="targetLang">
-        /// The identifier of the target language. Must correspond to a supported language.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains the translated text, or an empty
-        /// string if the translation fails.
-        /// </returns>
         public static async Task<string> GetTranslated(bool isWord, string text, int sourceLang, int targetLang)
         {
             int providerID = App.setting.TranslationProvider;
             string resultText = string.Empty;
 
-            // Check local dictionary
+            // Check local dictionary for single words
             if (isWord)
             {
                 var localEntry = await DictionaryLogger.GetAsync(text, sourceLang, targetLang, providerID);
@@ -71,12 +54,14 @@ namespace ScreenLookup.src.utils
                     resultText = localEntry.Translated;
             }
 
-            // Check cache
+            // Check in-memory cache
             if (string.IsNullOrEmpty(resultText))
-                if (translatedCache.TryGetValue(text, out string cachedData))
+            {
+                if (TranslatedCache.TryGetValue(text, out string? cachedData))
                     resultText = cachedData;
+            }
 
-            // Fallbacks via tag type loop
+            // Fallback translation queries using language tag getters
             if (string.IsNullOrEmpty(resultText))
             {
                 Func<int, string>[] tagGetters = [
@@ -91,20 +76,22 @@ namespace ScreenLookup.src.utils
                     {
                         string targetTag = tagGetters[i](targetLang);
                         string sourceTag = tagGetters[i](sourceLang);
-                        var translateResult = await TranslationProvider.TranslateAsync(text, targetTag, sourceTag);
 
-                        if (!string.IsNullOrEmpty(translateResult.Translation))
+                        if (TranslationProvider != null)
                         {
-                            resultText = translateResult.Translation;
-                            break;
+                            var translateResult = await TranslationProvider.TranslateAsync(text, targetTag, sourceTag);
+                            if (!string.IsNullOrEmpty(translateResult.Translation))
+                            {
+                                resultText = translateResult.Translation;
+                                break;
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        // Show snackbar and exit early only on the final fallback failure
                         if (i == tagGetters.Length - 1)
                         {
-                            SnackbarHost.Show("Translation Error", ex.StackTrace, SnackbarType.Error);
+                            SnackbarHost.Show("Translation Error", ex.Message, SnackbarType.Error);
                             return string.Empty;
                         }
                     }
@@ -113,15 +100,20 @@ namespace ScreenLookup.src.utils
 
             // Save translated result to local dictionary
             if (isWord && !string.IsNullOrEmpty(resultText))
+            {
                 await DictionaryLogger.SaveTranslatedAsync(text, resultText, sourceLang, targetLang, providerID);
+            }
 
-            translatedCache.TryAdd(text, resultText);
+            if (!string.IsNullOrEmpty(resultText))
+            {
+                TranslatedCache.TryAdd(text, resultText);
+            }
+
             return resultText;
         }
 
         /// <summary>
-        /// Fetches dictionary alternative meanings and phonetic pronunciation in a single workflow. Checks local SQLite
-        /// dictionary cache first before querying Google Translate APIs.
+        /// Fetches dictionary alternative meanings and phonetic pronunciation asynchronously.
         /// </summary>
         public static async Task<(List<ExtraMeaningEntity> ExtraMeanings, string Phonetic)> GetExtraDetailsAsync(string text, int sourceLang, int targetLang, CancellationTokenSource token)
         {
@@ -129,7 +121,6 @@ namespace ScreenLookup.src.utils
             string phonetic = string.Empty;
             bool isSuccess = false;
 
-            // Only fetch extra dictionary meanings / phonetics when translationProvider is "Google" or "Google New"
             int currentProviderIndex = App.setting.TranslationProvider;
             string providerName = (App.setting.ProviderServices != null && currentProviderIndex >= 0 && currentProviderIndex < App.setting.ProviderServices.Length)
                 ? App.setting.ProviderServices[currentProviderIndex]
@@ -138,30 +129,27 @@ namespace ScreenLookup.src.utils
             if (providerName != "Google" && providerName != "Google New")
                 return (extraMeanings, phonetic);
 
-            // Check local dictionary
+            // Check local dictionary cache
             try
             {
                 var localEntry = await DictionaryLogger.GetAsync(text, sourceLang, targetLang, currentProviderIndex);
-
                 if (localEntry != null)
                 {
                     if (localEntry.ExtraMeanings != null && localEntry.ExtraMeanings.Count > 0)
                         extraMeanings = localEntry.ExtraMeanings;
 
-                    if (localEntry.Phonetic != null)
+                    if (!string.IsNullOrEmpty(localEntry.Phonetic))
                         phonetic = localEntry.Phonetic;
                 }
             }
             catch { }
 
-            // API Execution loops
+            // API Execution if cache was missing
             if (extraMeanings.Count == 0 && string.IsNullOrEmpty(phonetic))
             {
-                // Setup text variants for phonetic lookup stem fallbacks
                 string cleanText = text.ToLower().Trim();
                 List<string> wordVariants = [cleanText];
 
-                // Handle suffix variations safely,  e.g. "walking" -> "walk",  "making" -> "make", "powered" -> "power", "stopped" -> "stopp" -> "stop"
                 if (LanguageList.GetLanguageISO6391FromID(sourceLang) == "en")
                 {
                     string stem = new EnglishPorter2Stemmer().Stem(cleanText).Value;
@@ -169,29 +157,20 @@ namespace ScreenLookup.src.utils
                         wordVariants.Add(stem);
                 }
 
-                // Language tag fallback options
                 List<(string srcTag, string tgtTag)> langPairs = [
                     (LanguageList.GetLanguageISO6391FromID(sourceLang), LanguageList.GetLanguageISO6391FromID(targetLang)),
                     (LanguageList.GetLanguageISO6393FromID(sourceLang), LanguageList.GetLanguageISO6393FromID(targetLang)),
                     (LanguageList.GetTesseractTagFromID(sourceLang), LanguageList.GetTesseractTagFromID(targetLang)),
                 ];
 
-                // Google translate endpoint and client parameter fallback templates requesting both dt=bd and dt=rm
                 string[] urlTemplates = [
                     "https://translate.googleapis.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
                     "https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
-                    //"https://clients5.google.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
-                    //"https://clients1.google.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
-                    //"https://clients2.google.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
-                    //"https://translate.google.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
-                    //"https://translate.google.com/translate_a/single?client=webapp&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
-                    //"https://translate.googleapis.com/translate_a/single?client=at&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm",
                     "https://translate.googleapis.com/translate_a/single?client=tw-ob&sl={0}&tl={1}&dt=t&q={2}&dt=bd&dt=rm"
                 ];
 
                 foreach (string candidateWord in wordVariants)
                 {
-                    // Stop outer loop if both extra meanings and phonetics have been resolved
                     if ((isSuccess && !string.IsNullOrEmpty(phonetic)) || token.IsCancellationRequested) break;
 
                     string encodedText = Uri.EscapeDataString(candidateWord);
@@ -209,7 +188,7 @@ namespace ScreenLookup.src.utils
                             try
                             {
                                 string requestUrl = string.Format(urlTemplate, srcCode, tgtTag, encodedText);
-                                using var response = await extraMeaningsHttpClient.GetAsync(requestUrl).ConfigureAwait(false);
+                                using var response = await ExtraMeaningsHttpClient.GetAsync(requestUrl).ConfigureAwait(false);
 
                                 if (response.IsSuccessStatusCode)
                                 {
@@ -217,7 +196,6 @@ namespace ScreenLookup.src.utils
 
                                     if (!string.IsNullOrEmpty(json))
                                     {
-                                        // Fetch extra meanings only if not found yet (uses base/original word candidate)
                                         if (extraMeanings.Count == 0 && candidateWord == cleanText)
                                         {
                                             var parsed = await ParseGoogleDictionaryJsonAsync(json, targetLang);
@@ -225,7 +203,6 @@ namespace ScreenLookup.src.utils
                                                 extraMeanings = parsed;
                                         }
 
-                                        // Fetch phonetics if not found yet
                                         if (string.IsNullOrEmpty(phonetic))
                                         {
                                             string parsedPhonetic = ParseGooglePhoneticJson(json);
@@ -239,7 +216,7 @@ namespace ScreenLookup.src.utils
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"[GetExtraMeaningsAndPhoneticAsync] Endpoint failed: {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"[GetExtraDetailsAsync] Endpoint failed: {ex.Message}");
                             }
 
                             await Task.Delay(150).ConfigureAwait(false);
@@ -263,7 +240,9 @@ namespace ScreenLookup.src.utils
 
             return (extraMeanings, phonetic);
         }
+        #endregion
 
+        #region Helper Parsing Methods
         private static async Task<List<ExtraMeaningEntity>> ParseGoogleDictionaryJsonAsync(string json, int targetLang)
         {
             var list = new List<ExtraMeaningEntity>();
@@ -281,7 +260,6 @@ namespace ScreenLookup.src.utils
                         {
                             if (posItem.ValueKind == JsonValueKind.Array && posItem.GetArrayLength() >= 2)
                             {
-                                // Normalize POS string to NFC and translate word class
                                 string wordClass = posItem[0].GetString() ?? string.Empty;
                                 string translatedWordClass = await WordClassLogger.GetOrTranslateAsync(wordClass, targetLang);
 
@@ -337,7 +315,6 @@ namespace ScreenLookup.src.utils
                             if (item.ValueKind == JsonValueKind.Array)
                             {
                                 int len = item.GetArrayLength();
-                                // Index 3 is specifically the source language phonetic / romanization
                                 if (len >= 4 && item[3].ValueKind == JsonValueKind.String)
                                 {
                                     string phonetic = item[3].GetString() ?? string.Empty;
@@ -355,5 +332,6 @@ namespace ScreenLookup.src.utils
             }
             return string.Empty;
         }
+        #endregion
     }
 }

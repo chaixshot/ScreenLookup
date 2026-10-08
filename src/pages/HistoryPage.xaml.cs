@@ -13,26 +13,40 @@ using Button = Wpf.Ui.Controls.Button;
 namespace ScreenLookup.src.pages
 {
     /// <summary>
-    /// Interaction logic for HistoryPage.xaml
+    /// Interaction logic for HistoryPage.xaml - Displays OCR lookup history, full sentence translations, and word cards.
     /// </summary>
     public partial class HistoryPage : Page, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        #region Fields & Properties
         private int currentPage = 1;
         private int searchPage = 1;
         private int maxPage = 1;
         private int maxRowPerPage = 10;
 
+        private bool isDataLoaded = false;
+
         public string SearchText { get; set; } = string.Empty;
-        public int SearchSourceLanguage = -1;
+        public int SearchSourceLanguage { get; set; } = -1;
 
         private readonly Dictionary<string, string> translatedCache = [];
-
-        public List<HistoryLoggerPageEntry> historyItems;
-
+        private List<HistoryLoggerPageEntry> _historyItems = [];
         private Grid? previousExpandedCell;
 
+        public List<HistoryLoggerPageEntry> HistoryItems
+        {
+            get => _historyItems;
+            set
+            {
+                _historyItems = value;
+                OnPropertyChanged();
+            }
+        }
+        #endregion
+
+
+        #region Constructor & Lifecycle
         public HistoryPage()
         {
             DataContext = this;
@@ -40,8 +54,9 @@ namespace ScreenLookup.src.pages
 
             Loaded += (s, e) =>
             {
-                if (dataGrid.ItemsSource == null)
+                if (!isDataLoaded)
                 {
+                    isDataLoaded = true;
                     LoadHistoryLogger();
                     LoadSourceLanguageItems();
                 }
@@ -56,15 +71,14 @@ namespace ScreenLookup.src.pages
 
             SizeChanged += (s, e) =>
             {
-                dataGrid.Height = App.mainWindow.ActualHeight - 212;
+                dataGrid.Height = Math.Max(100, App.mainWindow.ActualHeight - 212);
             };
 
             PreviewKeyDown += (s, e) =>
             {
-                if (e.Key == Key.Escape)
+                if (e.Key == Key.Escape && flayOut.IsOpen)
                 {
-                    if (flayOut.IsOpen)
-                        flayOut.IsOpen = false;
+                    flayOut.IsOpen = false;
                 }
             };
         }
@@ -73,31 +87,23 @@ namespace ScreenLookup.src.pages
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
+        #endregion
 
-        public List<HistoryLoggerPageEntry> HistoryItems
-        {
-            get { return historyItems; }
-            set
-            {
-                historyItems = value;
-                OnPropertyChanged();
-            }
-        }
-
+        #region Data Loading & UI Helpers
         private async void LoadHistoryLogger()
         {
             previousExpandedCell = null;
             double windowWidth = App.mainWindow.Width;
             var data = await Task.Run(() => HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, windowWidth));
 
-            if (data.Item2 > 0 && currentPage > data.Item2)
+            if (data.MaxPage > 0 && currentPage > data.MaxPage)
             {
-                currentPage = data.Item2;
+                currentPage = data.MaxPage;
                 data = await Task.Run(() => HistoryLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, windowWidth));
             }
 
-            maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-            HistoryItems = data.Item1;
+            maxPage = data.MaxPage > 0 ? data.MaxPage : 1;
+            HistoryItems = data.Entries;
             PageNumber.Text = $"{currentPage}/{maxPage}";
         }
 
@@ -105,8 +111,8 @@ namespace ScreenLookup.src.pages
         {
             if (VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
             {
-                var scrollViewer = border.Child as ScrollViewer;
-                scrollViewer.ScrollToTop();
+                if (border.Child is ScrollViewer scrollViewer)
+                    scrollViewer.ScrollToTop();
             }
         }
 
@@ -114,12 +120,14 @@ namespace ScreenLookup.src.pages
         {
             if (sourceLanguage.ItemsSource != null) return;
             int langAcc = App.setting.SourceLanguageAccuracy;
-            List<ComboBoxItem> items = [];
-            items.Add(new ComboBoxItem()
-            {
-                Content = string.Empty,
-                Tag = -1,
-            });
+            List<ComboBoxItem> items =
+            [
+                new ComboBoxItem
+                {
+                    Content = string.Empty,
+                    Tag = -1,
+                }
+            ];
 
             for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
@@ -127,36 +135,26 @@ namespace ScreenLookup.src.pages
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
 
-                items.Add(new ComboBoxItem()
+                items.Add(new ComboBoxItem
                 {
-                    Content = $"{text}",
+                    Content = text,
                     Tag = langID,
                     FontWeight = isInstalled ? FontWeights.ExtraBold : FontWeights.Normal,
                     Uid = (!isInstalled).ToString(),
                 });
-
             }
 
-            // sourceLanguage downloaded at top
             items = items.OrderBy(o => o.Uid).ToList();
             sourceLanguage.ItemsSource = items;
         }
+        #endregion
 
+        #region Control Event Handlers
         private void SourceLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = (sender as ComboBox);
-            ComboBoxItem? comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem comboBoxItem && comboBox.IsDropDownOpen)
             {
-                if (comboBoxItem != null)
-                {
-                    int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                    SearchSourceLanguage = searchSourceLanguage;
-                }
-                else
-                    SearchSourceLanguage = -1;
-
+                SearchSourceLanguage = int.Parse(comboBoxItem.Tag.ToString() ?? "-1");
                 LoadHistoryLogger();
             }
         }
@@ -186,22 +184,20 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        #region Control
         private void MaxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen && e.AddedItems.Count > 0)
             {
-                string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
-                maxRowPerPage = System.Convert.ToInt32(tag);
-
-                LoadHistoryLogger();
-                ScrollTop();
+                if (e.AddedItems[0] is ComboBoxItem item && item.Tag is string tag)
+                {
+                    maxRowPerPage = Convert.ToInt32(tag);
+                    LoadHistoryLogger();
+                    ScrollTop();
+                }
             }
         }
 
-        private async void PageDown_click(object sender, RoutedEventArgs e)
+        private void PageDown_click(object sender, RoutedEventArgs e)
         {
             if (currentPage - 1 >= 1)
             {
@@ -211,7 +207,7 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private async void PageUp_click(object sender, RoutedEventArgs e)
+        private void PageUp_click(object sender, RoutedEventArgs e)
         {
             if (currentPage < maxPage)
             {
@@ -223,7 +219,7 @@ namespace ScreenLookup.src.pages
 
         private async void Clear_click(object sender, RoutedEventArgs e)
         {
-            bool isYes = await DialogBox.Show("Do you want to delete all saved word?", "This operation cannot be undone!", "Yes", "No");
+            bool isYes = await DialogBox.Show("Do you want to delete all history entries?", "This operation cannot be undone!", "Yes", "No");
 
             if (isYes)
             {
@@ -244,9 +240,9 @@ namespace ScreenLookup.src.pages
         {
             Microsoft.Win32.SaveFileDialog saveFileDialog = new()
             {
-                Filter = "CSV (*.csv)|*.csv|All file (*.*)|*.*",
+                Filter = "CSV (*.csv)|*.csv|All files (*.*)|*.*",
                 DefaultExt = ".csv",
-                FileName = $"exported_history_{DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss")}.csv",
+                FileName = $"exported_history_{DateTime.Now:yyyy-MM-dd_HH.mm.ss}.csv",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
@@ -255,44 +251,40 @@ namespace ScreenLookup.src.pages
                 try
                 {
                     await HistoryLogger.ExportToCSV(saveFileDialog.FileName);
-
                     AppUtilities.OpenExplorer(saveFileDialog.FileName);
                     SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", SnackbarType.Success, width: 800);
-
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", SnackbarType.Error, width: 800);
+                    SnackbarHost.Show("Export", $"File save failed: {ex.Message}", SnackbarType.Error, width: 800);
                 }
             }
         }
 
         private void HistorySearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-            string searchText = (sender as AutoSuggestBox)?.Text ?? string.Empty;
+            string searchText = sender.Text ?? string.Empty;
 
-            // Clear search by Ctrl+A and Delete and Enter
             if (string.IsNullOrEmpty(searchText))
             {
                 SearchText = string.Empty;
                 currentPage = searchPage;
             }
-            else // Submit search
+            else
             {
                 if (string.IsNullOrEmpty(SearchText))
                 {
                     searchPage = currentPage;
                 }
-                SearchText = (sender as AutoSuggestBox)?.Text;
+                SearchText = searchText;
                 currentPage = 1;
             }
             LoadHistoryLogger();
             ScrollTop();
         }
 
-        private async void HistorySearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private void HistorySearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            // Press X to clear search box
             if (args.Reason == AutoSuggestionBoxTextChangeReason.ProgrammaticChange)
             {
                 if (!string.IsNullOrEmpty(SearchText))
@@ -306,29 +298,28 @@ namespace ScreenLookup.src.pages
         }
         #endregion
 
-
-        #region Buttons
-
+        #region Item Action Handlers
         private async void ReTranslate_Click(object sender, RoutedEventArgs e)
         {
-            Button? refreshButton = sender as Button;
-            StackPanel Parent = refreshButton.Parent as StackPanel;
-            ProgressRing Loading = Parent.FindName("Loading") as ProgressRing;
-            string Id = refreshButton.Tag.ToString();
+            if (sender is not Button refreshButton) return;
+            if (refreshButton.Parent is not StackPanel parent) return;
+            if (parent.FindName("Loading") is not ProgressRing loading) return;
 
-            Loading.Visibility = Visibility.Visible;
+            string id = refreshButton.Tag?.ToString() ?? string.Empty;
+
+            loading.Visibility = Visibility.Visible;
             refreshButton.Visibility = Visibility.Collapsed;
 
             foreach (var item in HistoryItems)
             {
-                if (item.Id == Id)
+                if (item.Id == id)
                 {
-                    string translatedText = await Translation.GetTranslated(isWord: false, item.Original, Int32.Parse(item.SourceLanguage), Int32.Parse(item.TargetLanguage));
+                    string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage));
 
                     if (string.IsNullOrEmpty(translatedText))
                         refreshButton.Visibility = Visibility.Visible;
                     else
-                        HistoryLogger.Update(Int32.Parse(item.Id), translatedText);
+                        HistoryLogger.Update(int.Parse(item.Id), translatedText);
 
                     break;
                 }
@@ -340,30 +331,30 @@ namespace ScreenLookup.src.pages
 
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            bool isYes = await DialogBox.Show($"Do you want to delete message?", "This operation cannot be undone!", "Yes", "No");
+            if (sender is not Button button) return;
+            bool isYes = await DialogBox.Show("Do you want to delete this message?", "This operation cannot be undone!", "Yes", "No");
 
             if (isYes)
             {
                 SnackbarHost.Show(
                     title: "Message",
-                    message: "Revmoed",
+                    message: "Removed",
                     type: SnackbarType.Success,
                     timeout: 2,
                     width: 130,
                     closeButton: false
                 );
-                HistoryLogger.Remove(button.Tag.ToString());
+                HistoryLogger.Remove(button.Tag?.ToString() ?? string.Empty);
                 LoadHistoryLogger();
             }
         }
 
-        private async void Button_Word(object sender, RoutedEventArgs e)
+        private void Button_Word(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            string word = button.ToolTip.ToString();
-            int sourceLang = Int32.Parse(button.Uid.ToString());
-            int targetLang = Int32.Parse(button.Tag.ToString());
+            if (sender is not Button button) return;
+            string word = button.ToolTip?.ToString() ?? string.Empty;
+            int sourceLang = int.Parse(button.Uid?.ToString() ?? "0");
+            int targetLang = int.Parse(button.Tag?.ToString() ?? "0");
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
@@ -373,15 +364,15 @@ namespace ScreenLookup.src.pages
 
         private void Button_MessageTTS(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            TextToSpeech.StartTTS(button.Uid.ToString(), Int32.Parse(button.Tag.ToString()));
+            if (sender is not Button button) return;
+            TextToSpeech.StartTTS(button.Uid?.ToString() ?? string.Empty, int.Parse(button.Tag?.ToString() ?? "0"));
         }
 
         private void Button_MessageCopy(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            if (sender is not Button button) return;
 
-            Clipboard.SetText(button.Tag.ToString());
+            Clipboard.SetText(button.Tag?.ToString() ?? string.Empty);
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
         #endregion

@@ -14,23 +14,28 @@ namespace ScreenLookup
 {
     public partial class App : Application
     {
+        #region Native Interop
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern uint RegisterWindowMessage(string lpString);
         private static uint taskbarCreatedMessage;
+        #endregion
 
+        #region Application Global State
         public static readonly string tempFolder = Path.Combine(Path.GetTempPath(), "ScreenLookup");
         public static readonly string appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenLookup");
 
-        public static Settings setting;
-        public static CaptureWindow captureWindow;
-        public static TrayIcon trayIcon;
-        public static MainWindow mainWindow;
+        public static Settings setting = null!;
+        public static CaptureWindow captureWindow = null!;
+        public static TrayIcon trayIcon = null!;
+        public static MainWindow mainWindow = null!;
 
         public static SettingPage? settingPage;
 
         private static readonly HotkeyManager hotkeyManager = HotkeyManager.GetHotkeyManager();
         private static Hotkey? hotkey;
+        #endregion
 
+        #region Application Lifecycle
         protected override void OnStartup(StartupEventArgs e)
         {
             Directory.CreateDirectory(tempFolder);
@@ -57,53 +62,64 @@ namespace ScreenLookup
 
             ToggleTopmost();
 
-            // Handle for explorer.exe restart
+            // Register message hook for Explorer taskbar restart
             {
-                taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated"); // Register the message and hook into the MainWindow's message pump
+                taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated");
 
-                // MainWindow handle to listen for the OS broadcast
                 var wih = new WindowInteropHelper(mainWindow);
-                wih.EnsureHandle(); // Ensures the HWND exists even if hidden
+                wih.EnsureHandle();
 
-                HwndSource source = HwndSource.FromHwnd(wih.Handle);
-                source.AddHook(HwndMessageHook);
+                HwndSource? source = HwndSource.FromHwnd(wih.Handle);
+                source?.AddHook(HwndMessageHook);
             }
 
             base.OnStartup(e);
         }
 
-        // The message loop handler
         private static IntPtr HwndMessageHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            // Check if the message matches the "TaskbarCreated" ID assigned by Windows
             if (msg == taskbarCreatedMessage)
             {
                 trayIcon?.Close();
                 trayIcon = new TrayIcon();
                 trayIcon.Show();
 
-                SetupHoykey(); // Refresh the shortcut string on the new tray item header
+                SetupHoykey();
             }
 
             return IntPtr.Zero;
         }
 
+        private void AppExit(object sender, ExitEventArgs e)
+        {
+            trayIcon?.Close();
+            mainWindow?.Close();
+            captureWindow?.Close();
+
+            if (hotkey != null)
+                hotkeyManager.TryRemoveHotkey(hotkey);
+        }
+        #endregion
+
+        #region Public Application Actions
         public static void ToggleTopmost(bool? enabled = null)
         {
             if (enabled != null)
-                App.setting.Topmost = (bool)enabled;
+                setting.Topmost = enabled.Value;
 
             // Main Window
-            Button mainButton = mainWindow.TopmostButton;
-            SymbolIcon mainIcon = (SymbolIcon)mainButton?.Icon;
-            mainIcon.Filled = App.setting.Topmost;
-            mainWindow.Topmost = App.setting.Topmost;
+            if (mainWindow?.TopmostButton?.Icon is SymbolIcon mainIcon)
+            {
+                mainIcon.Filled = setting.Topmost;
+                mainWindow.Topmost = setting.Topmost;
+            }
 
             // Capture Window
-            Button captureButton = captureWindow.TopmostButton;
-            SymbolIcon captureIcon = (SymbolIcon)captureButton?.Icon;
-            captureIcon.Filled = App.setting.Topmost;
-            captureWindow.Topmost = App.setting.Topmost;
+            if (captureWindow?.TopmostButton?.Icon is SymbolIcon captureIcon)
+            {
+                captureIcon.Filled = setting.Topmost;
+                captureWindow.Topmost = setting.Topmost;
+            }
         }
 
         public static void SetupHoykey()
@@ -135,15 +151,6 @@ namespace ScreenLookup
                 SnackbarHost.Show("Lookup Shortcut", "Another application is already using the Lookup Shortcut.", SnackbarType.Error, timeout: 99999, showMainWindow: true);
             }
         }
-
-        private void AppExit(object sender, ExitEventArgs e)
-        {
-            trayIcon?.Close();
-            mainWindow?.Close();
-            captureWindow?.Close();
-
-            if (hotkey != null)
-                hotkeyManager.TryRemoveHotkey(hotkey);
-        }
+        #endregion
     }
 }

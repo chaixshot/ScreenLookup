@@ -5,11 +5,17 @@ using System.Windows.Controls;
 
 namespace ScreenLookup.src.pages
 {
+    /// <summary>
+    /// Interaction logic for SettingPage.xaml - Application settings, language model management, and provider configuration.
+    /// </summary>
     public partial class SettingPage : Page
     {
+        #region Fields
         private bool isLoadingTesseract = false;
         private bool isLoadingHunspell = false;
+        #endregion
 
+        #region Constructor & Lifecycle
         public SettingPage()
         {
             DataContext = App.setting;
@@ -20,7 +26,7 @@ namespace ScreenLookup.src.pages
             LoadTargetLanguageContent();
             LoadProvidersContent();
 
-            ButtonDownloadTesseracChanged();
+            ButtonDownloadTesseractChanged();
             ButtonDownloadHunspellChanged();
 
             captureShortcut.KeySet = App.setting.ShortcutKey;
@@ -32,16 +38,16 @@ namespace ScreenLookup.src.pages
 
             App.settingPage = this;
         }
+        #endregion
 
+        #region Content Loading Methods
         private void LoadSourceAccuracyContent()
         {
             List<string> items = [];
-
             foreach (string accuracy in App.setting.SourceAccuracys)
             {
                 items.Add(accuracy);
             }
-
             sourceLanguageAccuracy.ItemsSource = items;
         }
 
@@ -52,7 +58,6 @@ namespace ScreenLookup.src.pages
             {
                 string tesseractTag = TesseractHelper.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
-
                 items.Add(text);
             }
             targetLanguage.ItemsSource = items;
@@ -71,14 +76,13 @@ namespace ScreenLookup.src.pages
 
                 items.Add(new ComboBoxItem
                 {
-                    Content = $"{text}",
+                    Content = text,
                     Tag = langID,
                     FontWeight = isInstalled ? FontWeights.ExtraBold : FontWeights.Normal,
                     Uid = (!isInstalled).ToString(),
                 });
             }
 
-            // sourceLanguage downloaded at top
             items = items.OrderBy(o => o.Uid).ToList();
             sourceLanguage.ItemsSource = items;
 
@@ -88,17 +92,16 @@ namespace ScreenLookup.src.pages
         private void LoadProvidersContent()
         {
             List<string> items = [];
-
             foreach (string provider in App.setting.ProviderServices)
             {
                 items.Add(provider);
             }
 
-            this.translationProvider.ItemsSource = items;
-            this.ttsProvider.ItemsSource = items;
+            translationProvider.ItemsSource = items;
+            ttsProvider.ItemsSource = items;
         }
 
-        private void ButtonDownloadTesseracChanged()
+        private void ButtonDownloadTesseractChanged()
         {
             downloadTesseract.IsEnabled = true;
             downloadTesseract.Visibility = Visibility.Visible;
@@ -141,15 +144,16 @@ namespace ScreenLookup.src.pages
         {
             foreach (ComboBoxItem item in sourceLanguage.Items)
             {
-                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
+                if (int.Parse(item.Tag.ToString() ?? "0") == App.setting.SourceLanguage)
                 {
                     sourceLanguage.SelectedItem = item;
                     break;
                 }
             }
         }
+        #endregion
 
-        #region Setting Buttons
+        #region Action Handlers
         private async void DownloadTesseractButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = App.setting.SourceLanguage;
@@ -161,7 +165,7 @@ namespace ScreenLookup.src.pages
             string pickedLanguageFile = $"{TesseractHelper.LangList[langID]}.traineddata";
 
             isLoadingTesseract = true;
-            ButtonDownloadTesseracChanged();
+            ButtonDownloadTesseractChanged();
             SnackbarHost.Show("Source Language", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
             string tesseractFilePath = TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy);
@@ -185,7 +189,7 @@ namespace ScreenLookup.src.pages
                 SnackbarHost.Show("Source Language", $"Unable to download \"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
             isLoadingTesseract = false;
-            ButtonDownloadTesseracChanged();
+            ButtonDownloadTesseractChanged();
             LoadSourceLanguageContent();
         }
 
@@ -196,7 +200,7 @@ namespace ScreenLookup.src.pages
 
             if (!HunspellHelper.LangList.TryGetValue(tessTag, out string? fileName))
             {
-                SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" dosen't support Hunspell", SnackbarType.Error);
+                SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" doesn't support Hunspell", SnackbarType.Error);
                 return;
             }
 
@@ -204,11 +208,9 @@ namespace ScreenLookup.src.pages
             ButtonDownloadHunspellChanged();
             SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
-            // Download files
-            foreach (string extension in new string[] { "aff", "dic" })
+            foreach (string extension in new[] { "aff", "dic" })
             {
                 string nameTag = fileName.Split('/')[1];
-                //string zipPath = $"{App.teampFolder}{nameTag}.{extension}.zip";
                 string zipPath = Path.Combine(App.tempFolder, $"{nameTag}.{extension}.zip");
                 bool isFileExist = File.Exists(Path.Combine(HunspellHelper.FilePath, $"{nameTag}.{extension}"));
                 bool isDownloaded = false;
@@ -230,12 +232,10 @@ namespace ScreenLookup.src.pages
                 else if (!isFileExist)
                 {
                     SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
-
                     isLoadingHunspell = false;
                     ButtonDownloadHunspellChanged();
                     return;
                 }
-
             }
 
             isLoadingHunspell = false;
@@ -252,48 +252,41 @@ namespace ScreenLookup.src.pages
 
         private async void Reset__Click(object sender, RoutedEventArgs e)
         {
-
-            bool isYes = await DialogBox.Show("Do you want to reset all setting?", "This resets all settings and also deletes downloaded language files!", "Yes", "No");
+            bool isYes = await DialogBox.Show("Do you want to reset all settings?", "This resets all settings and also deletes downloaded language files!", "Yes", "No");
             if (isYes)
             {
                 Settings.Reset();
                 DownloadHelper.DeleteDownloadedAppData();
 
-                await DialogBox.Show("You must to restart this program to apply these changes", string.Empty, string.Empty, "OK");
+                await DialogBox.Show("You must restart the program to apply these changes", string.Empty, string.Empty, "OK");
             }
         }
         #endregion
 
-        #region Setting ComboBox
+        #region ComboBox & Control Handlers
         private void SourceLanguageAccuracy_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
-                ButtonDownloadTesseracChanged();
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+                ButtonDownloadTesseractChanged();
         }
 
         private void SourceLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
             {
-                ComboBoxItem? selectedItem = comboBox.SelectedItem as ComboBoxItem;
+                if (comboBox.SelectedItem is ComboBoxItem selectedItem)
+                    App.setting.SourceLanguage = int.Parse(selectedItem.Tag.ToString() ?? "0");
 
-                if (selectedItem != null)
-                    App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
-
-                ButtonDownloadTesseracChanged();
+                ButtonDownloadTesseractChanged();
                 ButtonDownloadHunspellChanged();
             }
         }
-        #endregion
 
         private void ShortcutControl_KeySetChanged(object sender, EventArgs e)
         {
             if (IsLoaded)
                 App.setting.ShortcutKey = captureShortcut.KeySet;
         }
+        #endregion
     }
 }

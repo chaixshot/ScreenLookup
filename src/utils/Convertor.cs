@@ -4,11 +4,17 @@ using Bitmap = System.Drawing.Bitmap;
 using FontFamily = System.Windows.Media.FontFamily;
 using Graphics = System.Drawing.Graphics;
 
-
 namespace ScreenLookup.src.utils
 {
-    class Convertor
+    /// <summary>
+    /// Utility class for data conversions and bitmap image transformations (rescaling, rotating).
+    /// </summary>
+    internal static class Convertor
     {
+        #region Model Conversions
+        /// <summary>
+        /// Converts simplified capture word entries into rich UI-bindable <see cref="CaptureWordsEntry"/> cards with layout attributes.
+        /// </summary>
         public static List<CaptureWordsEntry> ConvertCaptureWordsEntry(List<CaptureWordsSimplifiedEntry> data, int sourceLanguage, int targetLanguage, double width = 0)
         {
             List<CaptureWordsEntry> itemsForCard = [];
@@ -20,11 +26,11 @@ namespace ScreenLookup.src.utils
             for (int i = 0; i < data.Count; i++)
             {
                 var item = data[i];
-                if (item.Stop == 0) // Normal
+                if (item.Stop == 0) // Normal word
                 {
                     if (pendingStop > 0 && !isFirstLine)
                     {
-                        itemsForCard.Add(new CaptureWordsEntry()
+                        itemsForCard.Add(new CaptureWordsEntry
                         {
                             Word = string.Empty,
                             Width = 0,
@@ -41,11 +47,11 @@ namespace ScreenLookup.src.utils
                     }
 
                     isFirstLine = false;
-                    itemsForCard.Add(new CaptureWordsEntry()
+                    itemsForCard.Add(new CaptureWordsEntry
                     {
                         Word = item.Word,
-                        Width = Double.NaN,
-                        Height = Double.NaN,
+                        Width = double.NaN,
+                        Height = double.NaN,
                         Padding = $"{padding}, 0, {padding}, 0",
                         Border = App.setting.ShowHighlight ? 1 : 0,
                         FontSizeS = App.setting.FontSizeS,
@@ -58,8 +64,6 @@ namespace ScreenLookup.src.utils
                 else
                 {
                     // It's a stop (1 = new line, 2 = paragraph, 3 = block)
-                    // If multiple stops occur consecutively (e.g. Stop 1, then 2, then 3),
-                    // collapse them into the highest stop (paragraph/block break)
                     if (!isFirstLine)
                     {
                         pendingStop = Math.Max(pendingStop, item.Stop);
@@ -69,26 +73,39 @@ namespace ScreenLookup.src.utils
 
             return itemsForCard;
         }
+        #endregion
 
+        #region Bitmap Image Transformations
+        /// <summary>
+        /// Rescales a bitmap image using high-quality bicubic interpolation.
+        /// </summary>
         public static Bitmap BitmapRescale(Bitmap source, double scale)
         {
+            int newWidth = Convert.ToInt32(source.Width * scale);
+            int newHeight = Convert.ToInt32(source.Height * scale);
 
-            Bitmap rescaled = new(Convert.ToInt32(source.Width * scale), Convert.ToInt32(source.Height * scale), source.PixelFormat);
-            Graphics g = Graphics.FromImage(rescaled);
+            if (newWidth < 1) newWidth = 1;
+            if (newHeight < 1) newHeight = 1;
+
+            Bitmap rescaled = new(newWidth, newHeight, source.PixelFormat);
+            using Graphics g = Graphics.FromImage(rescaled);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.DrawImage(source, 0, 0, Convert.ToInt32(source.Width * scale), Convert.ToInt32(source.Height * scale));
+            g.DrawImage(source, 0, 0, newWidth, newHeight);
 
             return rescaled;
         }
 
+        /// <summary>
+        /// Rotates a bitmap image by the specified angle in degrees around its center, automatically computing new bounds.
+        /// </summary>
         public static Bitmap BitmapRotate(Bitmap source, float angle)
         {
             angle %= 360;
             if (angle > 180)
                 angle -= 360;
 
-            float sin = (float)Math.Abs(Math.Sin(angle * Math.PI / 180.0)); // this function takes radians
-            float cos = (float)Math.Abs(Math.Cos(angle * Math.PI / 180.0)); // this one too
+            float sin = MathF.Abs(MathF.Sin(angle * MathF.PI / 180.0f));
+            float cos = MathF.Abs(MathF.Cos(angle * MathF.PI / 180.0f));
             float newImgWidth = sin * source.Height + cos * source.Width;
             float newImgHeight = sin * source.Width + cos * source.Height;
             float originX = 0f;
@@ -116,14 +133,14 @@ namespace ScreenLookup.src.utils
             }
 
             Bitmap rotated = new((int)newImgWidth, (int)newImgHeight, source.PixelFormat);
-            Graphics g = Graphics.FromImage(rotated);
+            using Graphics g = Graphics.FromImage(rotated);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.TranslateTransform(originX, originY); // offset the origin to our calculated values
-            g.RotateTransform(angle); // set up rotate
-            g.DrawImageUnscaled(source, 0, 0); // draw the image at 0, 0
-            g.Dispose();
+            g.TranslateTransform(originX, originY);
+            g.RotateTransform(angle);
+            g.DrawImageUnscaled(source, 0, 0);
 
             return rotated;
         }
+        #endregion
     }
 }
