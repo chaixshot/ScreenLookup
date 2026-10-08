@@ -23,26 +23,34 @@ namespace ScreenLookup.src.windows
 {
     public partial class CaptureWindow : FluentWindow
     {
+        #region Native Imports
+        [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool DeleteObject([In] IntPtr hObject);
+        #endregion
+
+        #region Fields & Properties
         private bool IsVR = false;
         private bool IsCapturing = false;
-        private Engine TesseractEngine;
-        private string TesseractPageText;
+        private Engine? TesseractEngine;
+        private string TesseractPageText = string.Empty;
 
         private DispatcherFrame? ConfigDispatcher;
-
         private int LastHistoryID;
 
-        private Bitmap CapturedImage;
-        private Bitmap CapturedImageEditable;
+        private Bitmap? CapturedImage;
+        private Bitmap? CapturedImageEditable;
 
-        private static CancellationTokenSource ProcessImageCancelToken;
-        private static CancellationTokenSource TranslatesCancelToken;
+        private static CancellationTokenSource ProcessImageCancelToken = new();
+        private static CancellationTokenSource TranslatesCancelToken = new();
 
         private int EditRotate = 0;
         private double EditZoom = 1.0;
 
         private readonly Dictionary<string, string> translatedCache = [];
+        #endregion
 
+        #region Constructor & Initialization
         public CaptureWindow()
         {
             DataContext = App.setting;
@@ -73,7 +81,12 @@ namespace ScreenLookup.src.windows
 
             imageTranslationExpander.Expanded += async (s, e) =>
             {
-                TranlsateImageExpander();
+                await TranlsateImageExpander();
+            };
+
+            imageTranslationExpander.Collapsed += async (s, e) =>
+            {
+                TextToSpeech.StopTTS();
             };
         }
 
@@ -108,12 +121,20 @@ namespace ScreenLookup.src.windows
         public void CreateTesseractEngine()
         {
             TesseractEngine?.Dispose();
+            TesseractEngine = null;
 
             if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
-                TesseractEngine = new(TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy), LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage), EngineMode.Default);
+            {
+                TesseractEngine = new Engine(
+                    TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy),
+                    LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage),
+                    EngineMode.Default);
+            }
         }
+        #endregion
 
-        public async void DesktopCaptureScreen()
+        #region Capture Operations
+        public void DesktopCaptureScreen()
         {
             try
             {
@@ -144,14 +165,17 @@ namespace ScreenLookup.src.windows
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DesktopCaptureScreen Error: {ex.Message}");
+            }
             finally
             {
                 IsCapturing = false;
             }
         }
 
-        public async void PrepairCaptureWindow(Bitmap? image, bool showOption, Point startPoint = new(), Point endPoint = new(), bool isVR = false)
+        public void PrepairCaptureWindow(Bitmap? image, bool showOption, Point startPoint = new(), Point endPoint = new(), bool isVR = false)
         {
             if (image == null)
                 return;
@@ -169,7 +193,7 @@ namespace ScreenLookup.src.windows
                 DispatcherFrame cache = ConfigDispatcher;
 
                 SetWindowSize();
-                SetWindowPosition(new()
+                SetWindowPosition(new Point
                 {
                     X = endPoint.X - (this.ActualWidth / 2),
                     Y = endPoint.Y - (this.ActualHeight * 2),
@@ -206,7 +230,9 @@ namespace ScreenLookup.src.windows
 
             ProcessImage(CapturedImageEditable);
         }
+        #endregion
 
+        #region Image & OCR Processing
         private void ProcessImage(Bitmap image)
         {
             UpdateOverlayScale();
@@ -221,14 +247,12 @@ namespace ScreenLookup.src.windows
                     var captureWords = TesseractCaptureWordsySimplify(tesseractPage);
                     var altoEntries = App.setting.LookupOnImage ? TesseractAltoTextProcess(tesseractPage) : null;
 
-                    // Offload History DB INSERT to background thread
                     int historyId = 0;
                     if (!string.IsNullOrWhiteSpace(pageText))
                     {
                         historyId = await HistoryLogger.Add(pageText, captureWords, string.Empty, App.setting.SourceLanguage, App.setting.TargetLanguage).ConfigureAwait(false);
                     }
 
-                    // Pre-convert UI ViewModels on background thread
                     double windowWidth = 800;
                     await Dispatcher.InvokeAsync(() => windowWidth = this.Width);
 
@@ -287,12 +311,10 @@ namespace ScreenLookup.src.windows
             int canvasWidth = 1080;
             int canvasHeight = 720;
 
-            // Calculate the scaling ratio to fit inside the box perfectly
             double ratioX = (double)canvasWidth / bmp.Width;
             double ratioY = (double)canvasHeight / bmp.Height;
             double ratio = Math.Min(ratioX, ratioY);
 
-            // Compute the size of the scaled image
             int newWidth = (int)(bmp.Width * ratio);
             int newHeight = (int)(bmp.Height * ratio);
 
@@ -307,8 +329,6 @@ namespace ScreenLookup.src.windows
             using (Graphics g = Graphics.FromImage(resizedBmp))
             {
                 g.Clear(Color.White);
-
-                // Render flags for professional, sharp downscaling quality
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
                 g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
@@ -329,193 +349,14 @@ namespace ScreenLookup.src.windows
             HistoryLogger.Update(LastHistoryID, translationImage.Translated);
         }
 
-        public void OpenWindow(bool IsConfig = false)
-        {
-            if (IsConfig)
-            {
-                configMenu.Visibility = Visibility.Visible;
-
-                ImageControlPanel.Visibility = Visibility.Collapsed;
-
-                captureCard.Visibility = Visibility.Collapsed;
-                originalCard.Visibility = Visibility.Collapsed;
-                translatedCard.Visibility = Visibility.Collapsed;
-
-                this.Width = 0;
-                this.Topmost = true;
-            }
-            else
-            {
-                ProcessImageCancelToken = new();
-                TranslatesCancelToken = new();
-
-                configMenu.Visibility = Visibility.Collapsed;
-                ImageControlPanel.Visibility = Visibility.Visible;
-
-                if (App.setting.LookupOnImage)
-                {
-                    captureCard.Visibility = Visibility.Visible;
-                    captureCardButton.Visibility = Visibility.Visible;
-                    imageTranslationExpander.Visibility = Visibility.Visible;
-                    originalCard.Visibility = Visibility.Collapsed;
-                    translatedCard.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    if (App.setting.ShowImage)
-                        captureCard.Visibility = Visibility.Visible;
-                    else
-                        captureCard.Visibility = Visibility.Collapsed;
-                    captureCardButton.Visibility = Visibility.Collapsed;
-                    imageTranslationExpander.Visibility = Visibility.Collapsed;
-                    originalCard.Visibility = Visibility.Visible;
-                    translatedCard.Visibility = Visibility.Visible;
-                }
-
-                this.Topmost = App.setting.Topmost || IsVR;
-            }
-
-            TopmostButton.Visibility = IsVR ? Visibility.Collapsed : Visibility.Visible;
-
-            this.Show();
-            this.Activate();
-        }
-
-        public void CloseWindow()
-        {
-            ConfigDispatcher?.Continue = false;
-            ConfigDispatcher = null;
-
-            flayOut.IsOpen = false;
-            TextToSpeech.StopTTS();
-
-            ProcessImageCancelToken?.Cancel();
-            TranslatesCancelToken?.Cancel();
-
-            this.Hide();
-        }
-
-
-        private void ResetDefaultState()
-        {
-            { // UI
-                double buttonWidth = App.setting.FontSizeS + 10;
-                double loadingWidth = App.setting.FontSizeS + 5;
-
-                originalTTS.Width = buttonWidth;
-                originalTTS.Height = buttonWidth;
-
-                translatedTSS.Width = buttonWidth;
-                translatedTSS.Height = buttonWidth;
-
-                originalWordsLoading.Width = loadingWidth;
-                originalWordsLoading.Height = loadingWidth;
-
-                ocrCard.Visibility = Visibility.Collapsed;
-                configMenu.Visibility = Visibility.Collapsed;
-                captureCard.Visibility = Visibility.Collapsed;
-                captureCardButton.Visibility = Visibility.Collapsed;
-                imageTranslationExpander.Visibility = Visibility.Collapsed;
-                originalCard.Visibility = Visibility.Collapsed;
-                translatedCard.Visibility = Visibility.Collapsed;
-
-                originalWordsLoading.Visibility = Visibility.Visible;
-                ProcessImageOverlay.Visibility = Visibility.Collapsed;
-                Contol_Undo.Visibility = Visibility.Collapsed;
-                Contol_Confirm.Visibility = Visibility.Collapsed;
-
-                AltoText.ItemsSource = null;
-                originalWords.ItemsSource = null;
-                ocrText.Text = string.Empty;
-
-                captureImage.Source = null;
-                captureImage.Width = 0;
-                captureImage.Height = 0;
-
-                originalScrollView.ScrollToTop();
-
-                Grid.SetRow(flayOut, App.setting.LookupOnImage ? 1 : 3);
-
-                CloseTranslatedExpanded();
-            }
-
-            { // Memory
-                flayOut.ClearCache();
-                translationImage.Clear();
-                translationMessage.Clear();
-                translatedCache.Clear();
-
-                EditRotate = 0;
-                EditZoom = 1.0;
-
-                this.Left = -10000;
-                this.UpdateLayout();
-            }
-        }
-
-        private void SetWindowSize()
-        {
-            double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
-            double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
-
-            if (!App.setting.LookupOnImage)
-            {
-                captureImage.Width = Math.Min(captureImage.Width, screenWidth);
-                captureImage.Height = Math.Min(captureImage.Height, screenHeight / 2);
-            }
-
-            UpdateOverlayScale();
-
-            this.MaxWidth = screenWidth - 50;
-            this.MaxHeight = screenHeight - 50;
-            this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
-        }
-
-        private void UpdateOverlayScale()
-        {
-            if (captureImage.Width > 0 && captureImage.Height > 0)
-            {
-                ProcessImageOverlayViewbox.MaxHeight = Math.Max(20, captureImage.Height * 0.35);
-                ProcessImageOverlayViewbox.MaxWidth = Math.Max(60, captureImage.Width * 0.85);
-            }
-        }
-
-        private void SetWindowPosition(Point gotoPoint = new())
-        {
-            double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
-            double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
-
-            // Use priority Render to move after the current layout pass without a fixed Task.Delay
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (gotoPoint != new Point())
-                {
-                    this.Left = gotoPoint.X;
-                    this.Top = gotoPoint.Y;
-                }
-                else
-                {
-                    this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
-                    this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
-                }
-
-                double maxLeft = screenWidth - this.ActualWidth;
-                double maxTop = screenHeight - this.ActualHeight;
-
-                this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
-                this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
-            }), DispatcherPriority.Render);
-        }
-
-        private async Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
+        private Task<TesseractOCR.Page> GetTesseractPageFromBitmap(Bitmap image)
         {
             using MemoryStream ms = new();
-            // BMP is significantly faster to encode than PNG for internal memory transfers
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
             byte[] fileBytes = ms.GetBuffer();
 
             TesseractOCR.Pix.Image img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
-            return TesseractEngine.Process(img);
+            return Task.FromResult(TesseractEngine!.Process(img));
         }
 
         private List<CaptureWordsSimplifiedEntry> TesseractCaptureWordsySimplify(TesseractOCR.Page page)
@@ -535,14 +376,14 @@ namespace ScreenLookup.src.windows
                                 if (App.setting.HunSpell)
                                     text = HunspellHelper.CorrectionWord(text);
 
-                                items.Add(new CaptureWordsSimplifiedEntry() { Word = text, Stop = 0 });
+                                items.Add(new CaptureWordsSimplifiedEntry { Word = text, Stop = 0 });
                             }
                         }
-                        items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 1 });
+                        items.Add(new CaptureWordsSimplifiedEntry { Word = string.Empty, Stop = 1 });
                     }
-                    items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 2 });
+                    items.Add(new CaptureWordsSimplifiedEntry { Word = string.Empty, Stop = 2 });
                 }
-                items.Add(new CaptureWordsSimplifiedEntry() { Word = string.Empty, Stop = 3 });
+                items.Add(new CaptureWordsSimplifiedEntry { Word = string.Empty, Stop = 3 });
             }
 
             return items;
@@ -569,7 +410,6 @@ namespace ScreenLookup.src.windows
                     return count;
                 }
 
-                // Build fullTextBlock for the entire TextBlock (Uid / translation context)
                 var allStrings = textBlock.GetElementsByTagName("String");
                 System.Text.StringBuilder fullTextBuilder = new();
                 string prevContent = string.Empty;
@@ -594,7 +434,6 @@ namespace ScreenLookup.src.windows
                 var textLines = textBlock.GetElementsByTagName("TextLine");
                 if (textLines.Count == 0)
                 {
-                    // Fallback if no TextLine tags exist in ALTO
                     foreach (XmlElement data in allStrings)
                     {
                         string word = data.GetAttribute("CONTENT");
@@ -646,15 +485,10 @@ namespace ScreenLookup.src.windows
 
                         if (!isVertical)
                         {
-                            // Horizontal text line:
-                            // Anchor Y and Height to the TextLine bounds so individual characters/punctuation
-                            // with unstable or exaggerated VPOS/HEIGHT don't overflow vertically into lines below.
                             y = Math.Max(0, lineY - 2);
                             height = Math.Max(8, lineHeight + 4);
-
                             x = Math.Max(0, strX);
 
-                            // Clamp width so adjacent items on the same line never overlap
                             int availableW = strW + 2;
                             if (i + 1 < lineStrings.Count)
                             {
@@ -668,11 +502,8 @@ namespace ScreenLookup.src.windows
                         }
                         else
                         {
-                            // Vertical text line:
-                            // Anchor X and Width to the column bounds, allowing Y and Height to flow vertically.
                             x = Math.Max(0, lineX - 2);
                             width = Math.Max(8, lineWidth + 4);
-
                             y = Math.Max(0, strY);
 
                             int availableH = strH + 2;
@@ -707,11 +538,6 @@ namespace ScreenLookup.src.windows
 
         private void ChangeCaptureImage(Bitmap bmp)
         {
-            // If you get 'dllimport unknown'-, then add 'using System.Runtime.InteropServices;'
-            [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            static extern bool DeleteObject([In] IntPtr hObject);
-
             nint handle = bmp.GetHbitmap();
             try
             {
@@ -721,6 +547,176 @@ namespace ScreenLookup.src.windows
                 UpdateOverlayScale();
             }
             finally { DeleteObject(handle); }
+        }
+        #endregion
+
+        #region Window Management & Layout
+        public void OpenWindow(bool isConfig = false)
+        {
+            if (isConfig)
+            {
+                configMenu.Visibility = Visibility.Visible;
+                ImageControlPanel.Visibility = Visibility.Collapsed;
+
+                captureCard.Visibility = Visibility.Collapsed;
+                originalCard.Visibility = Visibility.Collapsed;
+                translatedCard.Visibility = Visibility.Collapsed;
+
+                this.Width = 0;
+                this.Topmost = true;
+            }
+            else
+            {
+                ProcessImageCancelToken = new CancellationTokenSource();
+                TranslatesCancelToken = new CancellationTokenSource();
+
+                configMenu.Visibility = Visibility.Collapsed;
+                ImageControlPanel.Visibility = Visibility.Visible;
+
+                if (App.setting.LookupOnImage)
+                {
+                    captureCard.Visibility = Visibility.Visible;
+                    captureCardButton.Visibility = Visibility.Visible;
+                    imageTranslationExpander.Visibility = Visibility.Visible;
+                    originalCard.Visibility = Visibility.Collapsed;
+                    translatedCard.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    captureCard.Visibility = App.setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
+                    captureCardButton.Visibility = Visibility.Collapsed;
+                    imageTranslationExpander.Visibility = Visibility.Collapsed;
+                    originalCard.Visibility = Visibility.Visible;
+                    translatedCard.Visibility = Visibility.Visible;
+                }
+
+                this.Topmost = App.setting.Topmost || IsVR;
+            }
+
+            TopmostButton.Visibility = IsVR ? Visibility.Collapsed : Visibility.Visible;
+
+            this.Show();
+            this.Activate();
+        }
+
+        public void CloseWindow()
+        {
+            ConfigDispatcher?.Continue = false;
+            ConfigDispatcher = null;
+
+            flayOut.IsOpen = false;
+            TextToSpeech.StopTTS();
+
+            ProcessImageCancelToken?.Cancel();
+            TranslatesCancelToken?.Cancel();
+
+            this.Hide();
+        }
+
+        private void ResetDefaultState()
+        {
+            double buttonWidth = App.setting.FontSizeS + 10;
+            double loadingWidth = App.setting.FontSizeS + 5;
+
+            originalTTS.Width = buttonWidth;
+            originalTTS.Height = buttonWidth;
+
+            translatedTSS.Width = buttonWidth;
+            translatedTSS.Height = buttonWidth;
+
+            originalWordsLoading.Width = loadingWidth;
+            originalWordsLoading.Height = loadingWidth;
+
+            ocrCard.Visibility = Visibility.Collapsed;
+            configMenu.Visibility = Visibility.Collapsed;
+            captureCard.Visibility = Visibility.Collapsed;
+            captureCardButton.Visibility = Visibility.Collapsed;
+            imageTranslationExpander.Visibility = Visibility.Collapsed;
+            originalCard.Visibility = Visibility.Collapsed;
+            translatedCard.Visibility = Visibility.Collapsed;
+
+            originalWordsLoading.Visibility = Visibility.Visible;
+            ProcessImageOverlay.Visibility = Visibility.Collapsed;
+            Contol_Undo.Visibility = Visibility.Collapsed;
+            Contol_Confirm.Visibility = Visibility.Collapsed;
+
+            AltoText.ItemsSource = null;
+            originalWords.ItemsSource = null;
+            ocrText.Text = string.Empty;
+
+            captureImage.Source = null;
+            captureImage.Width = 0;
+            captureImage.Height = 0;
+
+            originalScrollView.ScrollToTop();
+
+            Grid.SetRow(flayOut, App.setting.LookupOnImage ? 1 : 3);
+
+            CloseTranslatedExpanded();
+
+            flayOut.ClearCache();
+            translationImage.Clear();
+            translationMessage.Clear();
+            translatedCache.Clear();
+
+            EditRotate = 0;
+            EditZoom = 1.0;
+
+            this.Left = -10000;
+            this.UpdateLayout();
+        }
+
+        private void SetWindowSize()
+        {
+            double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
+            double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
+
+            if (!App.setting.LookupOnImage)
+            {
+                captureImage.Width = Math.Min(captureImage.Width, screenWidth);
+                captureImage.Height = Math.Min(captureImage.Height, screenHeight / 2);
+            }
+
+            UpdateOverlayScale();
+
+            this.MaxWidth = screenWidth - 50;
+            this.MaxHeight = screenHeight - 50;
+            this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
+        }
+
+        private void UpdateOverlayScale()
+        {
+            if (captureImage.Width > 0 && captureImage.Height > 0)
+            {
+                ProcessImageOverlayViewbox.MaxHeight = Math.Max(20, captureImage.Height * 0.35);
+                ProcessImageOverlayViewbox.MaxWidth = Math.Max(60, captureImage.Width * 0.85);
+            }
+        }
+
+        private void SetWindowPosition(Point gotoPoint = new())
+        {
+            double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
+            double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (gotoPoint != new Point())
+                {
+                    this.Left = gotoPoint.X;
+                    this.Top = gotoPoint.Y;
+                }
+                else
+                {
+                    this.Left = (screenWidth / 2) - (this.ActualWidth / 2);
+                    this.Top = (screenHeight / 2) - (this.ActualHeight / 2);
+                }
+
+                double maxLeft = screenWidth - this.ActualWidth;
+                double maxTop = screenHeight - this.ActualHeight;
+
+                this.Left = Math.Max(Math.Min(this.Left, maxLeft), 0);
+                this.Top = Math.Max(Math.Min(this.Top, maxTop), 0);
+            }), DispatcherPriority.Render);
         }
 
         private void App_Deactivated(object sender, EventArgs e)
@@ -733,7 +729,7 @@ namespace ScreenLookup.src.windows
         {
             foreach (ComboBoxItem item in sourceLanguageConfig.Items)
             {
-                if (Int32.Parse(item.Tag.ToString()) == App.setting.SourceLanguage)
+                if (int.Parse(item.Tag.ToString() ?? "0") == App.setting.SourceLanguage)
                 {
                     sourceLanguageConfig.SelectedItem = item;
                     break;
@@ -748,20 +744,20 @@ namespace ScreenLookup.src.windows
             if (imageTranslationExpander.IsExpanded)
                 imageTranslationExpander.IsExpanded = false;
         }
+        #endregion
 
-        #region button
+        #region UI Event Handlers
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
             App.ToggleTopmost(!App.setting.Topmost);
-
             CloseTranslatedExpanded();
         }
 
-        private async void Button_Word(object sender, RoutedEventArgs e)
+        private void Button_Word(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            string word = button.ToolTip.ToString();
-            int sourceLang = Int32.Parse(button.Tag.ToString());
+            if (sender is not Button button) return;
+            string word = button.ToolTip?.ToString() ?? string.Empty;
+            int sourceLang = int.Parse(button.Tag?.ToString() ?? "0");
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
@@ -771,10 +767,10 @@ namespace ScreenLookup.src.windows
 
         private void Button_Message(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            string word = button.ToolTip.ToString();
-            string message = button.Uid.ToString();
-            int sourceLang = Int32.Parse(button.Tag.ToString());
+            if (sender is not Button button) return;
+            string word = button.ToolTip?.ToString() ?? string.Empty;
+            string message = button.Uid?.ToString() ?? string.Empty;
+            int sourceLang = int.Parse(button.Tag?.ToString() ?? "0");
 
             int occurrenceIndex = -1;
             if (button.DataContext is CaptureAltoEntry entry)
@@ -784,7 +780,6 @@ namespace ScreenLookup.src.windows
                 return;
 
             flayOut.Show(word, message, sourceLang, App.setting.TargetLanguage, occurrenceIndex);
-
             CloseTranslatedExpanded();
         }
 
@@ -800,9 +795,9 @@ namespace ScreenLookup.src.windows
 
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
+            if (sender is not Button button) return;
 
-            Clipboard.SetText(button.Tag.ToString());
+            Clipboard.SetText(button.Tag?.ToString() ?? string.Empty);
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
 
@@ -812,16 +807,16 @@ namespace ScreenLookup.src.windows
         }
         #endregion
 
-        #region Capture edit control panel
+        #region Image Editing Toolbar Handlers
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            AltoText.ItemsSource = null;
+            if (CapturedImage == null) return;
 
+            AltoText.ItemsSource = null;
             Contol_Undo.Visibility = Visibility.Hidden;
             Contol_Confirm.Visibility = Visibility.Visible;
 
             CapturedImageEditable = CapturedImage;
-
             EditRotate = 0;
             EditZoom = 1.0;
 
@@ -831,19 +826,20 @@ namespace ScreenLookup.src.windows
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
+            if (CapturedImageEditable == null) return;
+
             AltoText.ItemsSource = null;
 
             if (CapturedImageEditable == CapturedImage)
                 Contol_Undo.Visibility = Visibility.Collapsed;
-            Contol_Confirm.Visibility = Visibility.Collapsed;
 
+            Contol_Confirm.Visibility = Visibility.Collapsed;
             ProcessImage(CapturedImageEditable);
         }
 
         private void RotateLeft_Click(object sender, RoutedEventArgs e)
         {
             AltoText.ItemsSource = null;
-
             Contol_Undo.Visibility = Visibility.Visible;
             Contol_Confirm.Visibility = Visibility.Visible;
 
@@ -854,7 +850,6 @@ namespace ScreenLookup.src.windows
         private void RotateRight_Click(object sender, RoutedEventArgs e)
         {
             AltoText.ItemsSource = null;
-
             Contol_Undo.Visibility = Visibility.Visible;
             Contol_Confirm.Visibility = Visibility.Visible;
 
@@ -865,7 +860,6 @@ namespace ScreenLookup.src.windows
         private void Zoom_Click(object sender, RoutedEventArgs e)
         {
             AltoText.ItemsSource = null;
-
             Contol_Undo.Visibility = Visibility.Visible;
             Contol_Confirm.Visibility = Visibility.Visible;
 
@@ -875,6 +869,8 @@ namespace ScreenLookup.src.windows
 
         private void ApplyCaptureEdit()
         {
+            if (CapturedImage == null) return;
+
             CapturedImageEditable = CapturedImage;
             CapturedImageEditable = Convertor.BitmapRescale(CapturedImageEditable, EditZoom);
             CapturedImageEditable = Convertor.BitmapRotate(CapturedImageEditable, EditRotate);
@@ -885,39 +881,38 @@ namespace ScreenLookup.src.windows
         }
         #endregion
 
-        #region configSection
+        #region Quick Config Handlers
         private void SourceLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
             {
                 if (comboBox.SelectedItem is ComboBoxItem selectedItem)
-                    App.setting.SourceLanguage = Int32.Parse(selectedItem.Tag.ToString());
+                    App.setting.SourceLanguage = int.Parse(selectedItem.Tag.ToString() ?? "0");
             }
         }
 
         private void TargetLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
             {
                 if (comboBox.SelectedItem is ComboBoxItem selectedItem)
-                    App.setting.TargetLanguage = Int32.Parse(selectedItem.Tag.ToString());
+                    App.setting.TargetLanguage = int.Parse(selectedItem.Tag.ToString() ?? "0");
             }
         }
+
         private void ConfigSubmit_Click(object sender, RoutedEventArgs e)
         {
-            ConfigDispatcher.Continue = false;
+            if (ConfigDispatcher != null)
+                ConfigDispatcher.Continue = false;
         }
 
         private void ConfigSwitch_Toggle(object sender, RoutedEventArgs e)
         {
-            ToggleSwitch switchs = (ToggleSwitch)sender;
-            if (switchs.Name == "hunSpell")
+            if (sender is ToggleSwitch switchs && switchs.Name == "hunSpell")
+            {
                 if (!HunspellHelper.IsInstalled(App.setting.SourceLanguage))
                     SnackbarHost.Show("Hunspell", $"You have to download Hunspell \"{LanguageList.GetDisplayNameFromID(App.setting.SourceLanguage, true)}\"", SnackbarType.Error);
+            }
         }
         #endregion
     }

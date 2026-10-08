@@ -13,23 +13,38 @@ using Button = Wpf.Ui.Controls.Button;
 namespace ScreenLookup.src.pages
 {
     /// <summary>
-    /// Interaction logic for SavedPage.xaml
+    /// Interaction logic for SavedPage.xaml - Displays bookmarked vocabulary, priority scores, and export options.
     /// </summary>
     public partial class SavedPage : Page, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        #region Fields & Properties
         private int currentPage = 1;
         private int searchPage = 1;
         private int maxPage = 1;
         private int maxRowPerPage = 30;
 
+        private bool isDataLoaded = false;
+
         public string SearchText { get; set; } = string.Empty;
-        public int SearchSourceLanguage = -1;
-        public string OrderBy = "Score";
+        public int SearchSourceLanguage { get; set; } = -1;
+        public string OrderBy { get; set; } = "Score";
 
-        public List<SavedWordEntry> savedItems;
+        private List<SavedWordEntry> _savedItems = [];
+        public List<SavedWordEntry> SavedItems
+        {
+            get => _savedItems;
+            set
+            {
+                _savedItems = value;
+                OnPropertyChanged();
+            }
+        }
+        #endregion
 
+
+        #region Constructor & Lifecycle
         public SavedPage()
         {
             DataContext = this;
@@ -37,8 +52,9 @@ namespace ScreenLookup.src.pages
 
             Loaded += (s, e) =>
             {
-                if (dataGrid.ItemsSource == null)
+                if (!isDataLoaded)
                 {
+                    isDataLoaded = true;
                     LoadSavedWord();
                     LoadSourceLanguageItems();
                 }
@@ -51,15 +67,14 @@ namespace ScreenLookup.src.pages
 
             SizeChanged += (s, e) =>
             {
-                dataGrid.Height = App.mainWindow.ActualHeight - 212;
+                dataGrid.Height = Math.Max(100, App.mainWindow.ActualHeight - 212);
             };
 
             PreviewKeyDown += (s, e) =>
             {
-                if (e.Key == Key.Escape)
+                if (e.Key == Key.Escape && flayOut.IsOpen)
                 {
-                    if (flayOut.IsOpen)
-                        flayOut.IsOpen = false;
+                    flayOut.IsOpen = false;
                 }
             };
         }
@@ -68,41 +83,33 @@ namespace ScreenLookup.src.pages
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
+        #endregion
 
-        public List<SavedWordEntry> SavedItems
-        {
-            get { return savedItems; }
-            set
-            {
-                savedItems = value;
-                OnPropertyChanged();
-            }
-        }
-
+        #region Data Loading & UI Helpers
         private async void LoadSavedWord()
         {
             var data = await Task.Run(() => SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, OrderBy));
 
-            if (data.Item2 > 0 && currentPage > data.Item2)
+            if (data.MaxPage > 0 && currentPage > data.MaxPage)
             {
-                currentPage = data.Item2;
+                currentPage = data.MaxPage;
                 data = await Task.Run(() => SavedWordLogger.LoadAsync(currentPage, maxRowPerPage, SearchText, SearchSourceLanguage, OrderBy));
             }
 
-            maxPage = (data.Item2 > 0) ? data.Item2 : 1;
-            SavedItems = data.Item1;
+            maxPage = data.MaxPage > 0 ? data.MaxPage : 1;
+            SavedItems = data.Entries;
             PageNumber.Text = $"{currentPage}/{maxPage}";
         }
 
         private void ScrollTop()
         {
-            if (flayOut != null && flayOut.IsOpen)
+            if (flayOut?.IsOpen == true)
                 flayOut.IsOpen = false;
 
             if (dataGrid != null && VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
             {
-                var scrollViewer = border.Child as ScrollViewer;
-                scrollViewer.ScrollToTop();
+                if (border.Child is ScrollViewer scrollViewer)
+                    scrollViewer.ScrollToTop();
             }
         }
 
@@ -110,12 +117,14 @@ namespace ScreenLookup.src.pages
         {
             if (sourceLanguage.ItemsSource != null) return;
             int langAcc = App.setting.SourceLanguageAccuracy;
-            List<ComboBoxItem> items = [];
-            items.Add(new ComboBoxItem()
-            {
-                Content = string.Empty,
-                Tag = -1,
-            });
+            List<ComboBoxItem> items =
+            [
+                new ComboBoxItem
+                {
+                    Content = string.Empty,
+                    Tag = -1,
+                }
+            ];
 
             for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
             {
@@ -123,68 +132,57 @@ namespace ScreenLookup.src.pages
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
 
-                items.Add(new ComboBoxItem()
+                items.Add(new ComboBoxItem
                 {
-                    Content = $"{text}",
+                    Content = text,
                     Tag = langID,
                     FontWeight = isInstalled ? FontWeights.ExtraBold : FontWeights.Normal,
                     Uid = (!isInstalled).ToString(),
                 });
             }
 
-            // sourceLanguage downloaded at top
             items = items.OrderBy(o => o.Uid).ToList();
             sourceLanguage.ItemsSource = items;
         }
+        #endregion
 
+        #region Control Event Handlers
         private void SourceLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = (sender as ComboBox);
-            ComboBoxItem? comboBoxItem = (comboBox.SelectedItem as ComboBoxItem);
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem comboBoxItem && comboBox.IsDropDownOpen)
             {
-                if (comboBoxItem != null)
-                {
-                    int searchSourceLanguage = Int32.Parse(comboBoxItem.Tag.ToString());
-                    SearchSourceLanguage = searchSourceLanguage;
-                }
-                else
-                    SearchSourceLanguage = -1;
-
+                SearchSourceLanguage = int.Parse(comboBoxItem.Tag.ToString() ?? "-1");
                 LoadSavedWord();
             }
         }
 
-        #region Control
         private void MaxRow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen && e.AddedItems.Count > 0)
             {
-                string tag = (e.AddedItems[0] as ComboBoxItem).Tag as string;
-                maxRowPerPage = Convert.ToInt32(tag);
-
-                LoadSavedWord();
-                ScrollTop();
+                if (e.AddedItems[0] is ComboBoxItem item && item.Tag is string tag)
+                {
+                    maxRowPerPage = Convert.ToInt32(tag);
+                    LoadSavedWord();
+                    ScrollTop();
+                }
             }
         }
 
         private void OrderBy_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox? comboBox = sender as ComboBox;
-
-            if (comboBox.IsDropDownOpen)
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen && e.AddedItems.Count > 0)
             {
-                OrderBy = (e.AddedItems[0] as ComboBoxItem).Tag as string;
-
-                LoadSavedWord();
-                ScrollTop();
+                if (e.AddedItems[0] is ComboBoxItem item && item.Tag is string tag)
+                {
+                    OrderBy = tag;
+                    LoadSavedWord();
+                    ScrollTop();
+                }
             }
         }
 
-        private async void PageDown_click(object sender, RoutedEventArgs e)
+        private void PageDown_click(object sender, RoutedEventArgs e)
         {
             if (currentPage - 1 >= 1)
             {
@@ -194,7 +192,7 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        private async void PageUp_click(object sender, RoutedEventArgs e)
+        private void PageUp_click(object sender, RoutedEventArgs e)
         {
             if (currentPage < maxPage)
             {
@@ -206,7 +204,7 @@ namespace ScreenLookup.src.pages
 
         private async void Clear_click(object sender, RoutedEventArgs e)
         {
-            bool isYes = await DialogBox.Show("Do you want to delete all saved word?", "This operation cannot be undone!", "Yes", "No");
+            bool isYes = await DialogBox.Show("Do you want to delete all saved words?", "This operation cannot be undone!", "Yes", "No");
 
             if (isYes)
             {
@@ -227,9 +225,9 @@ namespace ScreenLookup.src.pages
         {
             Microsoft.Win32.SaveFileDialog saveFileDialog = new()
             {
-                Filter = "CSV (*.csv)|*.csv|All file (*.*)|*.*",
+                Filter = "CSV (*.csv)|*.csv|All files (*.*)|*.*",
                 DefaultExt = ".csv",
-                FileName = $"exported_saved_{DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss")}.csv",
+                FileName = $"exported_saved_{DateTime.Now:yyyy-MM-dd_HH.mm.ss}.csv",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
@@ -238,43 +236,40 @@ namespace ScreenLookup.src.pages
                 try
                 {
                     await SavedWordLogger.ExportToCSV(saveFileDialog.FileName);
-
                     AppUtilities.OpenExplorer(saveFileDialog.FileName);
                     SnackbarHost.Show("Export", $"File saved to: \"{saveFileDialog.FileName}\"", SnackbarType.Success, width: 800);
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Export", $"File saved faild:{ex.Message}", SnackbarType.Error, width: 800);
+                    SnackbarHost.Show("Export", $"File save failed: {ex.Message}", SnackbarType.Error, width: 800);
                 }
             }
         }
 
         private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-            string searchText = (sender as AutoSuggestBox)?.Text ?? string.Empty;
+            string searchText = sender.Text ?? string.Empty;
 
-            // Clear search by Ctrl+A and Delete and Enter
             if (string.IsNullOrEmpty(searchText))
             {
                 SearchText = string.Empty;
                 currentPage = searchPage;
             }
-            else // Submit search
+            else
             {
                 if (string.IsNullOrEmpty(SearchText))
                 {
                     searchPage = currentPage;
                 }
-                SearchText = (sender as AutoSuggestBox)?.Text;
+                SearchText = searchText;
                 currentPage = 1;
             }
             LoadSavedWord();
             ScrollTop();
         }
 
-        private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            // Press X to clear search box
             if (args.Reason == AutoSuggestionBoxTextChangeReason.ProgrammaticChange)
             {
                 if (!string.IsNullOrEmpty(SearchText))
@@ -288,15 +283,14 @@ namespace ScreenLookup.src.pages
         }
         #endregion
 
-        #region Buttons
+        #region Item Action Handlers
         private void Button_Word(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            if (button == null) return;
+            if (sender is not Button button) return;
 
             string word = button.ToolTip?.ToString() ?? string.Empty;
-            int sourceLang = Int32.Parse(button.Uid?.ToString() ?? "0");
-            int targetLang = Int32.Parse(button.Tag?.ToString() ?? "0");
+            int sourceLang = int.Parse(button.Uid?.ToString() ?? "0");
+            int targetLang = int.Parse(button.Tag?.ToString() ?? "0");
 
             if (string.IsNullOrWhiteSpace(word))
                 return;
@@ -306,29 +300,29 @@ namespace ScreenLookup.src.pages
 
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
-            Button button = sender as Button;
-            string word = button.Content.ToString();
+            if (sender is not Button button) return;
+            string word = button.Content?.ToString() ?? string.Empty;
             bool isYes = await DialogBox.Show($"Do you want to delete word \"{word}\"?", "This operation cannot be undone!", "Yes", "No");
 
             if (isYes)
             {
                 SnackbarHost.Show(
                     title: word,
-                    message: "Revmoed",
+                    message: "Removed",
                     type: SnackbarType.Success,
                     timeout: 2,
                     width: 130,
                     closeButton: false
                 );
-                SavedWordLogger.Remove(button.Tag.ToString());
+                SavedWordLogger.Remove(button.Tag?.ToString() ?? string.Empty);
                 LoadSavedWord();
             }
         }
 
-        private async void SubtractScore_Click(object sender, RoutedEventArgs e)
+        private void SubtractScore_Click(object sender, RoutedEventArgs e)
         {
-            Button button = sender as Button;
-            string word = button.Tag.ToString();
+            if (sender is not Button button) return;
+            string word = button.Tag?.ToString() ?? string.Empty;
 
             button.Visibility = Visibility.Collapsed;
 
@@ -344,16 +338,16 @@ namespace ScreenLookup.src.pages
 
         private void Button_TTSWord(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            if (sender is not Button button) return;
 
-            TextToSpeech.StartTTS(button.Uid.ToString(), Int32.Parse(button.Tag.ToString()));
+            TextToSpeech.StartTTS(button.Uid?.ToString() ?? string.Empty, int.Parse(button.Tag?.ToString() ?? "0"));
         }
 
         private void Button_WordCopy(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            if (sender is not Button button) return;
 
-            Clipboard.SetText(button.Tag.ToString());
+            Clipboard.SetText(button.Tag?.ToString() ?? string.Empty);
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
         #endregion

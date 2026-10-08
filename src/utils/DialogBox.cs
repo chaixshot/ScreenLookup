@@ -3,14 +3,19 @@ using Wpf.Ui.Controls;
 
 namespace ScreenLookup.src.utils
 {
-    class DialogBox
+    /// <summary>
+    /// Utility class for displaying modern Fluent UI content dialogs in the application.
+    /// </summary>
+    internal static class DialogBox
     {
         public static async Task<bool> Show(string title, string content, string leftButtonText, string rightButtonText)
         {
             var dialogHostContainer = App.mainWindow?.DialogHostContainer;
+            if (dialogHostContainer == null) return false;
+
             var dialog = new ContentDialog
             {
-                Title = new Wpf.Ui.Controls.TextBlock
+                Title = new TextBlock
                 {
                     Text = title,
                     FontSize = 18,

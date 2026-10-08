@@ -5,45 +5,84 @@ using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.utils
 {
-    class TextToSpeech
+    /// <summary>
+    /// Utility class for Text-To-Speech audio playback and provider management.
+    /// </summary>
+    internal static class TextToSpeech
     {
-        private static CancellationTokenSource PlayTTSCancelToken;
-        private static readonly Dictionary<string, Stream> audioStreamCache = [];
-        private static readonly Dictionary<string, CancellationTokenSource> audioStreamCTS = [];
-        public static dynamic TextToSpeechProvider;
+        #region Fields & Initialization
+        private static CancellationTokenSource? _playTTSCancelToken;
+        private static readonly Dictionary<string, Stream> AudioStreamCache = [];
+        private static readonly Dictionary<string, CancellationTokenSource> AudioStreamCTS = [];
+        public static dynamic? TextToSpeechProvider;
 
         static TextToSpeech()
         {
             ChangeTextToSpeechProvider(App.setting.TTSProvider);
         }
 
-        private static async Task<string> PlayTTS(string Text, int langID, CancellationTokenSource token)
+        public static void ChangeTextToSpeechProvider(int providerID)
+        {
+            TextToSpeechProvider?.Dispose();
+            TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
+        }
+        #endregion
+
+        #region Public TTS Controls
+        public static async void StartTTS(string text, int langID)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            StopTTS();
+            _playTTSCancelToken = new CancellationTokenSource();
+
+            GLanguage languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
+            string? errorMsg = await Task.Run(() => PlayTTS(text, langID, _playTTSCancelToken.Token));
+
+            if (!string.IsNullOrEmpty(errorMsg))
+            {
+                if (errorMsg.Contains("Language not supported"))
+                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" does not support Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: SnackbarType.Error);
+                else
+                    SnackbarHost.Show("Error", errorMsg, type: SnackbarType.Error);
+            }
+        }
+
+        public static void StopTTS()
+        {
+            _playTTSCancelToken?.Cancel();
+        }
+        #endregion
+
+        #region Private Audio Stream Playback
+        private static async Task<string?> PlayTTS(string text, int langID, CancellationToken token)
         {
             try
             {
                 int ttsProviderID = App.setting.TTSProvider;
 
-                // Get sound stream
-                if (!audioStreamCache.TryGetValue(Text, out Stream audioStream))
+                // Get or fetch sound stream
+                if (!AudioStreamCache.TryGetValue(text, out Stream? audioStream))
                 {
                     // Check local SQLite BLOB audio cache
-                    byte[]? cachedAudio = await TTSCacheLogger.GetTtsAudioAsync(Text, langID, ttsProviderID);
+                    byte[]? cachedAudio = await TTSCacheLogger.GetTtsAudioAsync(text, langID, ttsProviderID);
                     if (cachedAudio != null && cachedAudio.Length > 0)
                     {
                         audioStream = new MemoryStream(cachedAudio);
-                        audioStreamCache.TryAdd(Text, audioStream);
+                        AudioStreamCache.TryAdd(text, audioStream);
                     }
                     else
                     {
-                        // Fetch audio stream from TTS provider over internet
+                        // Fetch audio stream from TTS provider
                         Stream stream;
                         try
                         {
-                            stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6393FromID(langID));
+                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6393FromID(langID));
                         }
                         catch
                         {
-                            stream = await TextToSpeechProvider.TextToSpeechAsync(Text, LanguageList.GetLanguageISO6391FromID(langID));
+                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6391FromID(langID));
                         }
 
                         var memStream = new MemoryStream();
@@ -55,49 +94,47 @@ namespace ScreenLookup.src.utils
                         }
 
                         audioStream = memStream;
-                        audioStreamCache.TryAdd(Text, audioStream);
+                        AudioStreamCache.TryAdd(text, audioStream);
 
                         // Save audio bytes to SQLite database BLOB
                         byte[] audioBytes = memStream.ToArray();
-                        _ = TTSCacheLogger.SaveTtsAudioAsync(Text, langID, ttsProviderID, audioBytes);
+                        _ = TTSCacheLogger.SaveTtsAudioAsync(text, langID, ttsProviderID, audioBytes);
                     }
                 }
 
-                // Release sound stream
-                if (audioStreamCTS.TryGetValue(Text, out CancellationTokenSource cancelToken))
+                // Manage stream cache expiration
+                if (AudioStreamCTS.TryGetValue(text, out CancellationTokenSource? cancelToken))
                 {
                     cancelToken.Cancel();
                     cancelToken.Dispose();
-                    audioStreamCTS.Remove(Text);
+                    AudioStreamCTS.Remove(text);
                 }
                 cancelToken = new CancellationTokenSource();
 
-                audioStreamCTS.TryAdd(Text, cancelToken);
-                _ = Task.Delay(30 * 1000).ContinueWith((task) =>
+                AudioStreamCTS.TryAdd(text, cancelToken);
+                _ = Task.Delay(30 * 1000).ContinueWith(_ =>
                 {
-                    audioStreamCache[Text].Close();
-                    audioStreamCache.Remove(Text);
-                    audioStreamCTS.Remove(Text);
+                    if (AudioStreamCache.TryGetValue(text, out var stream))
+                    {
+                        stream.Close();
+                        AudioStreamCache.Remove(text);
+                    }
+                    AudioStreamCTS.Remove(text);
                 }, cancelToken.Token);
 
-                // Play sound stream.
+                // Play sound stream
                 long resumePosition = 0;
                 bool keepPlaying = true;
 
                 while (keepPlaying && !token.IsCancellationRequested)
                 {
                     audioStream.Position = 0;
-                    using WaveStream blockAlignedStream =
-                        new BlockAlignReductionStream(
-                            WaveFormatConversionStream.CreatePcmStream(
-                                new Mp3FileReader(audioStream)));
+                    using WaveStream blockAlignedStream = new BlockAlignReductionStream(
+                        WaveFormatConversionStream.CreatePcmStream(new Mp3FileReader(audioStream)));
 
-                    // Seek to resume position after a device swap
                     if (resumePosition > 0 && blockAlignedStream.CanSeek)
                         blockAlignedStream.Position = Math.Min(resumePosition, blockAlignedStream.Length);
 
-                    // WaveOutEvent drives its own thread — safe on background Task threads
-                    // and always targets device -1 (current Windows default output).
                     using WaveOutEvent waveOut = new() { DeviceNumber = -1 };
                     try
                     {
@@ -106,9 +143,9 @@ namespace ScreenLookup.src.utils
 
                         while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
                         {
-                            await Task.Delay(100);
+                            await Task.Delay(100, token);
                         }
-                        keepPlaying = false; // Finished or cancelled normally
+                        keepPlaying = false;
                     }
                     catch (NAudio.MmException ex) when (
                         ex.Result == NAudio.MmResult.InvalidHandle ||
@@ -116,13 +153,15 @@ namespace ScreenLookup.src.utils
                         ex.Result == NAudio.MmResult.NoDriver ||
                         ex.Result == NAudio.MmResult.MemoryAllocationError)
                     {
-                        // Device changed mid-playback — save position and retry on new device
                         resumePosition = blockAlignedStream.Position;
-                        await Task.Delay(300); // Wait for the new device to settle
+                        await Task.Delay(300, token);
                     }
                 }
 
-
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
                 return null;
             }
             catch (Exception ex)
@@ -130,36 +169,6 @@ namespace ScreenLookup.src.utils
                 return ex.Message;
             }
         }
-
-        public static void ChangeTextToSpeechProvider(int providerID)
-        {
-            TextToSpeechProvider?.Dispose();
-            TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
-        }
-
-        public static async void StartTTS(string Text, int langID)
-        {
-            if (string.IsNullOrEmpty(Text))
-                return;
-
-            StopTTS();
-            PlayTTSCancelToken = new();
-
-            GLanguage languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
-            string errorMsg = await Task.Run(() => PlayTTS(Text, langID, PlayTTSCancelToken));
-
-            if (!string.IsNullOrEmpty(errorMsg))
-            {
-                if (errorMsg.Contains("Language not supported"))
-                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" not supported Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: SnackbarType.Error);
-                else
-                    SnackbarHost.Show("Error", errorMsg, type: SnackbarType.Error);
-            }
-        }
-
-        public static void StopTTS()
-        {
-            PlayTTSCancelToken?.Cancel();
-        }
+        #endregion
     }
 }

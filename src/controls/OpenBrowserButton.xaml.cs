@@ -12,36 +12,20 @@ namespace ScreenLookup.src.controls
     {
         public int SourceLanguage
         {
-            get { return (int)GetValue(SourceLanguageProperty); }
-            set { SetValue(SourceLanguageProperty, value); }
+            get => (int)GetValue(SourceLanguageProperty);
+            set => SetValue(SourceLanguageProperty, value);
         }
+
         public int TargetLanguage
         {
-            get { return (int)GetValue(TargetLanguageProperty); }
-            set { SetValue(TargetLanguageProperty, value); }
+            get => (int)GetValue(TargetLanguageProperty);
+            set => SetValue(TargetLanguageProperty, value);
         }
+
         public string OriginalWord
         {
-            get { return (string)GetValue(OriginalWordProperty); }
-            set { SetValue(OriginalWordProperty, value); }
-        }
-        public double Width
-        {
-            get { return (double)GetValue(WidthProperty); }
-            set
-            {
-                SetValue(WidthProperty, value);
-                openBrowser.Width = value;
-            }
-        }
-        public double Height
-        {
-            get { return (double)GetValue(HeightProperty); }
-            set
-            {
-                SetValue(HeightProperty, value);
-                openBrowser.Height = value;
-            }
+            get => (string)GetValue(OriginalWordProperty);
+            set => SetValue(OriginalWordProperty, value);
         }
 
         public static readonly DependencyProperty SourceLanguageProperty =
@@ -60,16 +44,13 @@ namespace ScreenLookup.src.controls
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
         {
-            switch (App.setting.TranslationProvider)
+            string url = App.setting.TranslationProvider switch
             {
-                case 4:
-                    Process.Start(new ProcessStartInfo($"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}") { UseShellExecute = true });
+                4 => $"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}",
+                _ => $"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}&op=translate"
+            };
 
-                    break;
-                default:
-                    Process.Start(new ProcessStartInfo($"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}&op=translate") { UseShellExecute = true });
-                    break;
-            }
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
     }
 }
