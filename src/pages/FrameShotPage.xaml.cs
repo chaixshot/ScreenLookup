@@ -8,8 +8,7 @@ namespace ScreenLookup.src.pages
 {
     public partial class FrameShotPage : Page
     {
-        private static FrameShotService? FrameShot;
-        private static SteamOverlayService? SteamOverlay;
+        public static FrameShotService? FrameShot;
         public static FrameShotPage? Instance;
 
         public FrameShotPage()
@@ -72,9 +71,9 @@ namespace ScreenLookup.src.pages
             }
         }
 
-        public static void AutoConnectSteamVR()
+        public static async void AutoConnectSteamVR()
         {
-            _ = Task.Run(async () =>
+            await App.captureWindow.Dispatcher.InvokeAsync(async () =>
             {
                 while (App.setting.AutoConnectStamVR)
                 {
@@ -116,7 +115,7 @@ namespace ScreenLookup.src.pages
                 StatusButton.Content = "Connect to SteamVR";
 
                 FrameShot?.Dispose();
-                SteamOverlay?.Dispose();
+                FrameShot = null;
             }
 
             StatusButton.IsEnabled = true;
@@ -142,33 +141,25 @@ namespace ScreenLookup.src.pages
 
         private static async Task TryConnect()
         {
-            await await App.captureWindow.Dispatcher.InvokeAsync(async () =>
+            InitializeFrameShot();
+
+            await Task.Delay(100);
+
+            if (FrameShot!.Connect())
             {
-                InitializeFrameShot();
-
-                await Task.Delay(100);
-
-                if (FrameShot!.Connect())
-                {
-                    if (App.setting.OverlayEnable)
-                        SteamOverlay = new SteamOverlayService();
-                }
-                else
-                    SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
-            });
+                if (App.setting.OverlayEnable)
+                    FrameShot.SteamOverlay = new SteamOverlayService();
+            }
+            else
+                SnackbarHost.Show("FrameShot Error", $"SteamVR Connection Failed:\n{FrameShot.LastError}", type: SnackbarType.Error);
         }
 
         private static async Task TryDisconnect()
         {
-            await await App.captureWindow.Dispatcher.InvokeAsync(async () =>
-            {
-                await Task.Delay(100);
+            await Task.Delay(100);
 
-                if (FrameShot?.IsConnected == true)
-                {
-                    FrameShot.Disconnect();
-                }
-            });
+            if (FrameShot?.IsConnected == true)
+                FrameShot.Disconnect();
         }
 
         private void AutoConnectStamVR_Changed(object sender, RoutedEventArgs e)

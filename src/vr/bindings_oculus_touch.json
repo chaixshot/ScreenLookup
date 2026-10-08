@@ -1,0 +1,213 @@
+{
+    "action_manifest_version": 0,
+    "alias_info": {},
+    "bindings": {
+        "/actions/screenlookup": {
+            "chords": [],
+            "haptics": [],
+            "poses": [
+                {
+                    "output": "/actions/screenlookup/in/pointer_left",
+                    "path": "/user/hand/left/pose/pointer"
+                },
+                {
+                    "output": "/actions/screenlookup/in/pointer_right",
+                    "path": "/user/hand/right/pose/pointer"
+                }
+            ],
+            "skeleton": [],
+            "sources": [
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/stick_click_left"
+                        },
+                        "position": {
+                            "output": "/actions/screenlookup/in/thumbstick_left"
+                        }
+                    },
+                    "mode": "joystick",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/joystick"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/stick_click_right"
+                        },
+                        "position": {
+                            "output": "/actions/screenlookup/in/thumbstick_right"
+                        }
+                    },
+                    "mode": "joystick",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/joystick"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/recenter"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/y"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/recenter"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/b"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/close"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/x"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/close"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/a"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/grip_left"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7",
+                        "haptic_amplitude": "0"
+                    },
+                    "path": "/user/hand/left/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/grip_right"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7",
+                        "haptic_amplitude": "0"
+                    },
+                    "path": "/user/hand/right/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/trigger_left"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7"
+                    },
+                    "path": "/user/hand/left/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/trigger_right"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7"
+                    },
+                    "path": "/user/hand/right/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "center": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "dpad",
+                    "parameters": {
+                        "sub_mode": "touch"
+                    },
+                    "path": "/user/hand/right/input/joystick"
+                },
+                {
+                    "inputs": {
+                        "center": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "dpad",
+                    "parameters": {
+                        "sub_mode": "touch"
+                    },
+                    "path": "/user/hand/left/input/joystick"
+                }
+            ]
+        }
+    },
+    "category": "steamvr_input",
+    "controller_type": "oculus_touch",
+    "description": "Default Bindings for Meta Touch Controllers.",
+    "name": "ScreenLookup Default Bindings for Meta Touch",
+    "options": {},
+    "simulated_actions": []
+}

@@ -1,0 +1,183 @@
+{
+    "action_manifest_version": 0,
+    "alias_info": {},
+    "bindings": {
+        "/actions/screenlookup": {
+            "chords": [],
+            "haptics": [],
+            "poses": [
+                {
+                    "output": "/actions/screenlookup/in/pointer_left",
+                    "path": "/user/hand/left/pose/pointer"
+                },
+                {
+                    "output": "/actions/screenlookup/in/pointer_right",
+                    "path": "/user/hand/right/pose/pointer"
+                }
+            ],
+            "skeleton": [],
+            "sources": [
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/grip_left"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7",
+                        "haptic_amplitude": "0"
+                    },
+                    "path": "/user/hand/left/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/grip_right"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7",
+                        "haptic_amplitude": "0"
+                    },
+                    "path": "/user/hand/right/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/trigger_left"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7"
+                    },
+                    "path": "/user/hand/left/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/trigger_right"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {
+                        "click_activate_threshold": "0.9",
+                        "click_deactivate_threshold": "0.7"
+                    },
+                    "path": "/user/hand/right/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/grip"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "trigger",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/trigger"
+                },
+                {
+                    "inputs": {
+                        "position": {
+                            "output": "/actions/screenlookup/in/thumbstick_left"
+                        }
+                    },
+                    "mode": "trackpad",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/trackpad"
+                },
+                {
+                    "inputs": {
+                        "position": {
+                            "output": "/actions/screenlookup/in/thumbstick_right"
+                        }
+                    },
+                    "mode": "trackpad",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/trackpad"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/close"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {},
+                    "path": "/user/hand/right/input/application_menu"
+                },
+                {
+                    "inputs": {
+                        "click": {
+                            "output": "/actions/screenlookup/in/recenter"
+                        }
+                    },
+                    "mode": "button",
+                    "parameters": {},
+                    "path": "/user/hand/left/input/application_menu"
+                },
+                {
+                    "inputs": {},
+                    "mode": "dpad",
+                    "parameters": {
+                        "sub_mode": "click"
+                    },
+                    "path": "/user/hand/left/input/trackpad"
+                },
+                {
+                    "inputs": {
+                        "center": {
+                            "output": "/actions/screenlookup/in/block_input"
+                        }
+                    },
+                    "mode": "dpad",
+                    "parameters": {
+                        "sub_mode": "click"
+                    },
+                    "path": "/user/hand/right/input/trackpad"
+                }
+            ]
+        }
+    },
+    "category": "steamvr_input",
+    "controller_type": "vive_controller",
+    "description": "Default Bindings for HTC Vive Controllers.",
+    "name": "ScreenLookup Default Bindings for HTC Vive",
+    "options": {},
+    "simulated_actions": []
+}
