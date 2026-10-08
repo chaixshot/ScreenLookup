@@ -9,15 +9,10 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
 
-namespace ScreenLookup.src.utils
+namespace ScreenLookup.src.utils.Database
 {
-    internal class HistoryLogger
+    internal static class HistoryLogger
     {
-        public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
-
-        private static SqliteConnection _sharedConnection;
-        private static readonly Lock _connectionLock = new();
-
         static HistoryLogger()
         {
             InitializeDatabase();
@@ -25,8 +20,6 @@ namespace ScreenLookup.src.utils
 
         private static void InitializeDatabase()
         {
-            GetConnection();
-
             using var command = new SqliteCommand(@"
                 CREATE TABLE IF NOT EXISTS history (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,40 +28,13 @@ namespace ScreenLookup.src.utils
                     Translated TEXT,
                     SourceLanguage INTEGER,
                     TargetLanguage INTEGER
-                );", GetConnection());
+                );", Database.GetConnection());
             command.ExecuteNonQuery();
         }
 
-        private static SqliteConnection GetConnection()
+        public static async Task<int> Add(string original, List<CaptureWordsSimplifiedEntry> originalWords, string translated, int sourceLanguage, int targetLanguage)
         {
-            lock (_connectionLock)
-            {
-                if (_sharedConnection == null)
-                {
-                    _sharedConnection = new SqliteConnection(CONNECTION_STRING);
-                    _sharedConnection.Open();
-                }
-                else if (_sharedConnection.State != System.Data.ConnectionState.Open)
-                {
-                    try
-                    {
-                        _sharedConnection.Open();
-                    }
-                    catch
-                    {
-                        _sharedConnection.Dispose();
-                        _sharedConnection = new SqliteConnection(CONNECTION_STRING);
-                        _sharedConnection.Open();
-                    }
-                }
-
-                return _sharedConnection;
-            }
-        }
-
-        public static async Task<int> Add(string Original, List<CaptureWordsSimplifiedEntry> OriginalWords, string Translated, int SourceLanguage, int TargetLanguage)
-        {
-            string originalWordsJson = JsonSerializer.Serialize(OriginalWords, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            string originalWordsJson = JsonSerializer.Serialize(originalWords, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
             string insertQuery = @"
                 INSERT INTO history (Original, OriginalWords, Translated, SourceLanguage, TargetLanguage)
@@ -80,70 +46,64 @@ namespace ScreenLookup.src.utils
 
                 SELECT last_insert_rowid();";
 
-            using var command = new SqliteCommand(insertQuery, GetConnection());
+            using var command = new SqliteCommand(insertQuery, Database.GetConnection());
 
-            command.Parameters.AddWithValue("@Original", Original);
+            command.Parameters.AddWithValue("@Original", original);
             command.Parameters.AddWithValue("@OriginalWords", originalWordsJson);
-            command.Parameters.AddWithValue("@Translated", Translated);
-            command.Parameters.AddWithValue("@SourceLanguage", SourceLanguage);
-            command.Parameters.AddWithValue("@TargetLanguage", TargetLanguage);
+            command.Parameters.AddWithValue("@Translated", translated);
+            command.Parameters.AddWithValue("@SourceLanguage", sourceLanguage);
+            command.Parameters.AddWithValue("@TargetLanguage", targetLanguage);
 
-            var ID = await command.ExecuteScalarAsync();
-            return Int32.Parse(ID.ToString());
+            var id = await command.ExecuteScalarAsync();
+            return int.Parse(id?.ToString() ?? "0");
         }
 
-        public static void Remove(string Id)
+        public static void Remove(string id)
         {
-            string insertQuery = @"
-                 DELETE FROM history WHERE Id = @Id";
+            string query = "DELETE FROM history WHERE Id = @Id";
 
-            using var command = new SqliteCommand(insertQuery, GetConnection());
-
-            command.Parameters.AddWithValue("@Id", Id);
-
+            using var command = new SqliteCommand(query, Database.GetConnection());
+            command.Parameters.AddWithValue("@Id", id);
             command.ExecuteNonQuery();
         }
 
-        public static void Update(int Id, string Translated)
+        public static void Update(int id, string translated)
         {
-            string insertQuery = @"
-                  UPDATE history SET Translated = @Translated WHERE Id = @Id";
+            string query = "UPDATE history SET Translated = @Translated WHERE Id = @Id";
 
-            using var command = new SqliteCommand(insertQuery, GetConnection());
-
-            command.Parameters.AddWithValue("@Id", Id);
-            command.Parameters.AddWithValue("@Translated", Translated);
-
+            using var command = new SqliteCommand(query, Database.GetConnection());
+            command.Parameters.AddWithValue("@Id", id);
+            command.Parameters.AddWithValue("@Translated", translated);
             command.ExecuteNonQuery();
         }
 
         public static void Clear()
         {
-            string selectQuery = "DELETE FROM history; DELETE FROM sqlite_sequence WHERE NAME='history'";
-            using var command = new SqliteCommand(selectQuery, GetConnection());
+            string query = "DELETE FROM history; DELETE FROM sqlite_sequence WHERE NAME='history'";
+            using var command = new SqliteCommand(query, Database.GetConnection());
             command.ExecuteNonQuery();
         }
 
         public static async Task<bool> IsExist(string originalWord)
         {
-            string selectQuery = @"
-                 SELECT 1 FROM history WHERE Original = @Original LIMIT 1";
+            string query = "SELECT 1 FROM history WHERE Original = @Original LIMIT 1";
 
-            using var command = new SqliteCommand(selectQuery, GetConnection());
+            using var command = new SqliteCommand(query, Database.GetConnection());
             command.Parameters.AddWithValue("@Original", originalWord);
             using var reader = await command.ExecuteReaderAsync();
             return await reader.ReadAsync();
         }
 
-        public static async Task<(List<HistoryLoggerPageEntry>, int)> LoadAsync(
+        public static async Task<(List<HistoryLoggerPageEntry> Entries, int MaxPage)> LoadAsync(
             int page, int maxRow, string searchText, int searchSourceLanguage, double windowWidth = 800)
         {
             var history = new List<HistoryLoggerPageEntry>();
             int totalCount = 0;
+
             using (var command = new SqliteCommand(@"
                 SELECT COUNT(*) 
                 FROM history
-                WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')", GetConnection()))
+                WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')", Database.GetConnection()))
             {
                 command.Parameters.AddWithValue("@searchText", $"%{searchText}%");
                 command.Parameters.AddWithValue("@searchSourceLanguage", $"{searchSourceLanguage}");
@@ -158,7 +118,7 @@ namespace ScreenLookup.src.utils
                 FROM history
                 WHERE (Original LIKE @searchText OR Translated LIKE @searchText) AND (SourceLanguage = @searchSourceLanguage or @searchSourceLanguage='-1')
                 ORDER BY Id DESC
-                LIMIT @maxRow OFFSET @offset", GetConnection()))
+                LIMIT @maxRow OFFSET @offset", Database.GetConnection()))
             {
                 command.Parameters.AddWithValue("@searchText", $"%{searchText}%");
                 command.Parameters.AddWithValue("@searchSourceLanguage", $"{searchSourceLanguage}");
@@ -170,23 +130,23 @@ namespace ScreenLookup.src.utils
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    string OriginalWords = reader.GetString(reader.GetOrdinal("OriginalWords"));
-                    string SourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
-                    string TargetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
-                    string Translated = reader.GetString(reader.GetOrdinal("Translated"));
+                    string originalWordsJson = reader.GetString(reader.GetOrdinal("OriginalWords"));
+                    string sourceLanguage = reader.GetString(reader.GetOrdinal("SourceLanguage"));
+                    string targetLanguage = reader.GetString(reader.GetOrdinal("TargetLanguage"));
+                    string translated = reader.GetString(reader.GetOrdinal("Translated"));
 
-                    List<CaptureWordsSimplifiedEntry> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsSimplifiedEntry>>(OriginalWords);
-                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, Int32.Parse(SourceLanguage), Int32.Parse(TargetLanguage), windowWidth);
+                    List<CaptureWordsSimplifiedEntry> captureWordsSmall = JsonSerializer.Deserialize<List<CaptureWordsSimplifiedEntry>>(originalWordsJson) ?? [];
+                    List<CaptureWordsEntry> captureWords = Convertor.ConvertCaptureWordsEntry(captureWordsSmall, int.Parse(sourceLanguage), int.Parse(targetLanguage), windowWidth);
 
                     history.Add(new HistoryLoggerPageEntry
                     {
                         Id = reader.GetString(reader.GetOrdinal("Id")),
                         Original = reader.GetString(reader.GetOrdinal("Original")),
                         OriginalWords = captureWords,
-                        ReTranslate = string.IsNullOrEmpty(Translated) ? Visibility.Visible : Visibility.Collapsed,
-                        Translated = Translated,
-                        SourceLanguage = SourceLanguage,
-                        TargetLanguage = TargetLanguage,
+                        ReTranslate = string.IsNullOrEmpty(translated) ? Visibility.Visible : Visibility.Collapsed,
+                        Translated = translated,
+                        SourceLanguage = sourceLanguage,
+                        TargetLanguage = targetLanguage,
                         FontSizeS = fontSizeS,
                         FontFace = fontFace,
                     });
@@ -199,18 +159,18 @@ namespace ScreenLookup.src.utils
         {
             var history = new List<HistoryLoggerExportEntry>();
 
-            string selectQuery = @"
+            string query = @"
                 SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
                 FROM history
                 ORDER BY Id DESC";
 
-            using (var command = new SqliteCommand(selectQuery, GetConnection()))
+            using (var command = new SqliteCommand(query, Database.GetConnection()))
             using (var reader = await command.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
-                    int sourceLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
-                    int targetLanguage = Int32.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
+                    int sourceLanguage = int.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
+                    int targetLanguage = int.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
 
                     history.Add(new HistoryLoggerExportEntry
                     {

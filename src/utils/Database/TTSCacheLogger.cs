@@ -1,15 +1,9 @@
 using Microsoft.Data.Sqlite;
-using System.IO;
 
-namespace ScreenLookup.src.utils
+namespace ScreenLookup.src.utils.Database
 {
-    internal class TTSCacheLogger
+    internal static class TTSCacheLogger
     {
-        public static readonly string CONNECTION_STRING = $"Data Source={Path.Combine(App.appDataFolder, "database.db")}";
-
-        private static SqliteConnection _sharedConnection;
-        private static readonly object _connectionLock = new();
-
         static TTSCacheLogger()
         {
             InitializeDatabase();
@@ -17,8 +11,6 @@ namespace ScreenLookup.src.utils
 
         private static void InitializeDatabase()
         {
-            GetConnection();
-
             using SqliteCommand command = new(@"
                 CREATE TABLE IF NOT EXISTS tts_cache (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,48 +21,21 @@ namespace ScreenLookup.src.utils
                 );
                 CREATE INDEX IF NOT EXISTS idx_tts_lookup
                 ON tts_cache (Text, Language, ProviderServices);
-            ", GetConnection());
+            ", Database.GetConnection());
             command.ExecuteNonQuery();
-        }
-
-        private static SqliteConnection GetConnection()
-        {
-            lock (_connectionLock)
-            {
-                if (_sharedConnection == null)
-                {
-                    _sharedConnection = new SqliteConnection(CONNECTION_STRING);
-                    _sharedConnection.Open();
-                }
-                else if (_sharedConnection.State != System.Data.ConnectionState.Open)
-                {
-                    try
-                    {
-                        _sharedConnection.Open();
-                    }
-                    catch
-                    {
-                        _sharedConnection.Dispose();
-                        _sharedConnection = new SqliteConnection(CONNECTION_STRING);
-                        _sharedConnection.Open();
-                    }
-                }
-
-                return _sharedConnection;
-            }
         }
 
         public static async Task<byte[]?> GetTtsAudioAsync(string text, int langID, int providerID)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
 
-            string selectQuery = @"
+            string query = @"
                 SELECT AudioStream
                 FROM tts_cache
                 WHERE Text = @Text AND Language = @Language AND ProviderServices = @ProviderServices
                 LIMIT 1";
 
-            using SqliteCommand command = new(selectQuery, GetConnection());
+            using SqliteCommand command = new(query, Database.GetConnection());
             command.Parameters.AddWithValue("@Text", text.Trim());
             command.Parameters.AddWithValue("@Language", langID);
             command.Parameters.AddWithValue("@ProviderServices", providerID);
@@ -92,7 +57,7 @@ namespace ScreenLookup.src.utils
             if (string.IsNullOrWhiteSpace(text) || audioData == null || audioData.Length == 0) return;
 
             string checkQuery = "SELECT Id FROM tts_cache WHERE Text = @Text AND Language = @Language AND ProviderServices = @ProviderServices LIMIT 1";
-            using SqliteCommand checkCmd = new(checkQuery, GetConnection());
+            using SqliteCommand checkCmd = new(checkQuery, Database.GetConnection());
             checkCmd.Parameters.AddWithValue("@Text", text.Trim());
             checkCmd.Parameters.AddWithValue("@Language", langID);
             checkCmd.Parameters.AddWithValue("@ProviderServices", providerID);
@@ -101,7 +66,7 @@ namespace ScreenLookup.src.utils
             if (id != null)
             {
                 string updateQuery = "UPDATE tts_cache SET AudioStream = @AudioStream WHERE Id = @Id";
-                using SqliteCommand updateCmd = new(updateQuery, GetConnection());
+                using SqliteCommand updateCmd = new(updateQuery, Database.GetConnection());
                 updateCmd.Parameters.AddWithValue("@AudioStream", audioData);
                 updateCmd.Parameters.AddWithValue("@Id", id);
                 await updateCmd.ExecuteNonQueryAsync();
@@ -109,7 +74,7 @@ namespace ScreenLookup.src.utils
             else
             {
                 string insertQuery = "INSERT INTO tts_cache (Text, Language, ProviderServices, AudioStream) VALUES (@Text, @Language, @ProviderServices, @AudioStream)";
-                using SqliteCommand insertCmd = new(insertQuery, GetConnection());
+                using SqliteCommand insertCmd = new(insertQuery, Database.GetConnection());
                 insertCmd.Parameters.AddWithValue("@Text", text.Trim());
                 insertCmd.Parameters.AddWithValue("@Language", langID);
                 insertCmd.Parameters.AddWithValue("@ProviderServices", providerID);
@@ -120,8 +85,8 @@ namespace ScreenLookup.src.utils
 
         public static void Clear()
         {
-            string selectQuery = "DELETE FROM tts_cache; DELETE FROM sqlite_sequence WHERE NAME='tts_cache'";
-            using SqliteCommand command = new(selectQuery, GetConnection());
+            string query = "DELETE FROM tts_cache; DELETE FROM sqlite_sequence WHERE NAME='tts_cache'";
+            using SqliteCommand command = new(query, Database.GetConnection());
             command.ExecuteNonQuery();
         }
     }
