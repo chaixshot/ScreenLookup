@@ -41,8 +41,14 @@ namespace ScreenLookup.src.pages
                 OnPropertyChanged();
             }
         }
-        #endregion
 
+        public static double ButtonWidth => App.setting.FontSizeS + 10;
+
+        public void OnPropertyChanged([CallerMemberName] string? propName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
+        #endregion
 
         #region Constructor & Lifecycle
         public SavedPage()
@@ -77,11 +83,6 @@ namespace ScreenLookup.src.pages
                     flayOut.IsOpen = false;
                 }
             };
-        }
-
-        public void OnPropertyChanged([CallerMemberName] string? propName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
         #endregion
 

@@ -283,7 +283,7 @@ namespace ScreenLookup.src.windows
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
                                 originalCard.Visibility = Visibility.Visible;
                                 translatedCard.Visibility = Visibility.Visible;
-                                translationMessage.Set(TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage);
+                                translationMessage.SetParagraph(TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage);
                             }
 
                             if (!App.setting.LookupOnImage)
@@ -615,18 +615,6 @@ namespace ScreenLookup.src.windows
 
         private void ResetDefaultState()
         {
-            double buttonWidth = App.setting.FontSizeS + 10;
-            double loadingWidth = App.setting.FontSizeS + 5;
-
-            originalTTS.Width = buttonWidth;
-            originalTTS.Height = buttonWidth;
-
-            translatedTSS.Width = buttonWidth;
-            translatedTSS.Height = buttonWidth;
-
-            originalWordsLoading.Width = loadingWidth;
-            originalWordsLoading.Height = loadingWidth;
-
             ocrCard.Visibility = Visibility.Collapsed;
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
@@ -786,11 +774,6 @@ namespace ScreenLookup.src.windows
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
             TextToSpeech.StartTTS(ocrText.Text, App.setting.SourceLanguage);
-        }
-
-        private void Button_TranslatedTTS(object sender, RoutedEventArgs e)
-        {
-            TextToSpeech.StartTTS(translationMessage.Translated, App.setting.TargetLanguage);
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)

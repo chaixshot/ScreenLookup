@@ -24,7 +24,6 @@ namespace ScreenLookup.src.controls
         public int targetLanguage = 1;
         public string originalWord = string.Empty;
         public string originalMessage = string.Empty;
-        public string phoneticText = string.Empty;
         public int wordOccurrenceIndex = -1;
         public double width = double.NaN;
         public double height = double.NaN;
@@ -88,17 +87,6 @@ namespace ScreenLookup.src.controls
             }
         }
 
-        public string PhoneticText
-        {
-            get { return phoneticText; }
-            set
-            {
-                phoneticText = value;
-                OnPropertyChanged();
-                phoneticTextBlock?.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
-            }
-        }
-
         public double WidthX
         {
             get { return width; }
@@ -147,6 +135,15 @@ namespace ScreenLookup.src.controls
             }
         }
 
+        public double ButtonWidth
+        {
+            get { return App.setting.ButtonWidth; }
+            set
+            {
+                OnPropertyChanged();
+            }
+        }
+
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -157,8 +154,11 @@ namespace ScreenLookup.src.controls
         {
             IsOpen = false;
             wordOccurrenceIndex = occurrenceIndex;
-            FontSizeS = FontSizeS;
-            FontFace = FontFace;
+
+            // Directly notify the UI that these properties have updated
+            OnPropertyChanged(nameof(FontSizeS));
+            OnPropertyChanged(nameof(FontFace));
+            OnPropertyChanged(nameof(ButtonWidth));
 
             FollowMouse();
 
@@ -201,43 +201,37 @@ namespace ScreenLookup.src.controls
                     TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
                     SavedWordButtonStateChange(OriginalWord);
 
-                    PhoneticText = string.Empty;
+                    translationOriginalWord.ResetDefaultState();
                     translationWord.ResetDefaultState();
                     translationMessage.ResetDefaultState();
 
                     TranslatesCancelToken?.Cancel();
                     TranslatesCancelToken = new();
 
-                    // Word
+                    // Original Word
+                    _ = Task.Run(async () =>
+                    {
+                        await Dispatcher.InvokeAsync(() => translationOriginalWord.SetOriginal(OriginalWord, SourceLanguage, TargetLanguage));
+                    });
+
+                    // Translation Word
                     _ = Task.Run(async () =>
                     {
                         await Dispatcher.InvokeAsync(() => translationWord.Translate(isWord: true, OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken));
-                    });
-
-                    // Message
-                    _ = Task.Run(async () =>
-                    {
-                        await Dispatcher.InvokeAsync(() => translationMessage.Translate(isWord: false, OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken));
                     });
 
                     // Word extra details
                     _ = Task.Run(async () =>
                     {
                         var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+                        await Dispatcher.InvokeAsync(() => translationWord.UpdateExtraMeanings(extraMeanings));
+                        await Dispatcher.InvokeAsync(() => translationOriginalWord.UpdatePhonetic(phonetic));
+                    });
 
-                        if (!TranslatesCancelToken.IsCancellationRequested)
-                        {
-                            await Dispatcher.InvokeAsync(() =>
-                            {
-                                PhoneticText = phonetic;
-
-                                if (extraMeanings != null && extraMeanings.Count > 0)
-                                {
-                                    ExtraMeaningsList.ItemsSource = extraMeanings;
-                                    ExtraMeaningsList.Visibility = Visibility.Visible;
-                                }
-                            });
-                        }
+                    // Message
+                    _ = Task.Run(async () =>
+                    {
+                        await Dispatcher.InvokeAsync(() => translationMessage.Translate(isWord: false, OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken));
                     });
                 }));
             });
@@ -259,29 +253,15 @@ namespace ScreenLookup.src.controls
 
         private void ResetDefaultState()
         {
-            double buttonWidth = FontSizeS + 10;
-            double loadingWidth = FontSizeS + 5;
-
-            flayoutOriginalTSS.Width = buttonWidth;
-            flayoutOriginalTSS.Height = buttonWidth;
-
-            openBrowser.Width = buttonWidth;
-            openBrowser.Height = buttonWidth;
-
-            wordSave.Width = buttonWidth;
-            wordSave.Height = buttonWidth;
-
             if (string.IsNullOrEmpty(OriginalMessage))
                 messageSection.Visibility = Visibility.Collapsed;
             else
                 messageSection.Visibility = Visibility.Visible;
-
-            ExtraMeaningsList.ItemsSource = null;
-            ExtraMeaningsList.Visibility = Visibility.Collapsed;
         }
 
         public void ClearCache()
         {
+            translationOriginalWord.Clear();
             translationWord.Clear();
             translationMessage.Clear();
         }
@@ -359,24 +339,11 @@ namespace ScreenLookup.src.controls
         }
 
         #region Button Click
-        private async void Button_WordOriginalTTS(object sender, RoutedEventArgs e)
-        {
-            TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
-        }
 
-        private async void Button_WordTranslatedTTS(object sender, RoutedEventArgs e)
-        {
-            TextToSpeech.StartTTS(translationWord.Translated, TargetLanguage);
-        }
 
         private async void Button_OriginalMessageTTS(object sender, RoutedEventArgs e)
         {
             TextToSpeech.StartTTS(OriginalMessage, SourceLanguage);
-        }
-
-        private async void Button_TranslatedMessageTTS(object sender, RoutedEventArgs e)
-        {
-            TextToSpeech.StartTTS(translationMessage.Translated, TargetLanguage);
         }
 
         private async void Button_WordSave(object sender, RoutedEventArgs e)

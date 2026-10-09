@@ -189,8 +189,8 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <xControls:OpenBrowserButton
-                                            Width="20"
-                                            Height="20"
+                                            Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:SavedPage}}"
+                                            Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:SavedPage}}"
                                             OriginalWord="{Binding Original}"
                                             SourceLanguage="{Binding SourceLanguage}"
                                             TargetLanguage="{Binding TargetLanguage}" />
@@ -294,8 +294,8 @@
                                         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                                             <Controls:Button
                                                 Uid="{Binding Translated}"
-                                                Width="20"
-                                                Height="20"
+                                                Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:SavedPage}}"
+                                                Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:SavedPage}}"
                                                 Padding="0"
                                                 VerticalAlignment="Top"
                                                 HorizontalContentAlignment="Center"

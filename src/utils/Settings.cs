@@ -371,6 +371,7 @@ namespace ScreenLookup.src.utils
             {
                 fontSizes = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ButtonWidth));
             }
         }
 
@@ -548,14 +549,17 @@ namespace ScreenLookup.src.utils
                 OnPropertyChanged();
             }
         }
+
+        public double ButtonWidth => fontSizes + 10;
+
         #endregion
 
         #region INotifyPropertyChanged
         public void OnPropertyChanged([CallerMemberName] string? propName = null)
         {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
             if (App.mainWindow?.IsLoaded == true)
             {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
                 Save();
             }
         }

@@ -169,8 +169,8 @@
                         Orientation="Horizontal">
 
                         <Controls:Button
-                            Width="{Binding Width, ElementName=originalTTS}"
-                            Height="{Binding Height, ElementName=originalTTS}"
+                            Width="{Binding ButtonWidth}"
+                            Height="{Binding ButtonWidth}"
                             Padding="0"
                             VerticalAlignment="Top"
                             HorizontalContentAlignment="Center"
@@ -181,8 +181,8 @@
                             ToolTip="Speak" />
 
                         <Controls:Button
-                            Width="{Binding Width, ElementName=originalTTS}"
-                            Height="{Binding Height, ElementName=originalTTS}"
+                            Width="{Binding ButtonWidth}"
+                            Height="{Binding ButtonWidth}"
                             Margin="2,0,0,0"
                             Padding="0"
                             VerticalAlignment="Top"
@@ -310,47 +310,10 @@
                             Padding="14,16,14,16"
                             Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                             CornerRadius="0,0,8,0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <Controls:Button
-                                    Width="{Binding Width, ElementName=translatedTSS}"
-                                    Height="{Binding Height, ElementName=translatedTSS}"
-                                    Padding="0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Top"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Click="Button_TranslatedTTS"
-                                    Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                            Filled=False}"
-                                    ToolTip="Speak" />
-
-                                <Controls:Button
-                                    Grid.Column="1"
-                                    Width="{Binding Width, ElementName=translatedTSS}"
-                                    Height="{Binding Height, ElementName=translatedTSS}"
-                                    Margin="2,0,0,0"
-                                    Padding="0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Top"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Click="Button_Copy"
-                                    Icon="{wpfui:SymbolIcon Symbol=Copy24,
-                                                            Filled=False}"
-                                    Tag="{Binding Tag, ElementName=imageTranslatedText}"
-                                    ToolTip="Copy" />
-
-                                <local:TranslationBox
-                                    x:Name="translationImage"
-                                    Grid.Column="2"
-                                    Margin="5,0,0,0" />
-                            </Grid>
+                            <local:TranslationBox
+                                x:Name="translationImage"
+                                Margin="5,0,0,0"
+                                ButtonWidth="{Binding ButtonWidth}" />
                         </Border>
                     </wpfui:CardExpander>
                 </Grid>
@@ -380,8 +343,8 @@
 
                     <Controls:Button
                         x:Name="originalTTS"
-                        Width="20"
-                        Height="20"
+                        Width="{Binding ButtonWidth}"
+                        Height="{Binding ButtonWidth}"
                         Padding="0"
                         VerticalAlignment="Top"
                         HorizontalContentAlignment="Center"
@@ -393,8 +356,8 @@
 
                     <Controls:Button
                         Grid.Column="1"
-                        Width="{Binding Width, ElementName=originalTTS}"
-                        Height="{Binding Height, ElementName=originalTTS}"
+                        Width="{Binding ButtonWidth}"
+                        Height="{Binding ButtonWidth}"
                         Margin="2,0,0,0"
                         Padding="0"
                         VerticalAlignment="Top"
@@ -419,8 +382,8 @@
 
                             <wpfui:ProgressRing
                                 x:Name="originalWordsLoading"
-                                Width="12"
-                                Height="12"
+                                Width="{Binding ButtonWidth}"
+                                Height="{Binding ButtonWidth}"
                                 Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
                                 IsIndeterminate="True" />
 
@@ -467,48 +430,7 @@
                 x:Name="translatedCard"
                 Grid.Row="5"
                 Margin="0,3,0,0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Controls:Button
-                        x:Name="translatedTSS"
-                        Width="20"
-                        Height="20"
-                        Padding="0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        Click="Button_TranslatedTTS"
-                        Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                Filled=False}"
-                        ToolTip="Speak" />
-
-                    <Controls:Button
-                        Grid.Column="1"
-                        Width="{Binding Width, ElementName=translatedTSS}"
-                        Height="{Binding Height, ElementName=translatedTSS}"
-                        Margin="2,0,0,0"
-                        Padding="0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        Click="Button_Copy"
-                        Icon="{wpfui:SymbolIcon Symbol=Copy24,
-                                                Filled=False}"
-                        Tag="{Binding Tag, ElementName=translatedText}"
-                        ToolTip="Copy" />
-
-                    <local:TranslationBox
-                        x:Name="translationMessage"
-                        Grid.Column="2"
-                        Margin="5,0,0,0" />
-                </Grid>
+                <local:TranslationBox x:Name="translationMessage" ButtonWidth="{Binding ButtonWidth}" />
             </Controls:Card>
         </Grid>
 
