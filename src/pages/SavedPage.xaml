@@ -11,6 +11,28 @@
     Title="Saved"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <Style x:Key="DataGrid_Top" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Top" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Setter Property="Foreground" Value="{wpfui:ThemeResource TextFillColorPrimaryBrush}" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{x:Null}" />
+                    <Setter Property="BorderBrush" Value="{x:Null}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="20,12,20,0">
         <StackPanel Grid.Column="0" Orientation="Vertical">
             <Grid Margin="15">
@@ -157,6 +179,7 @@
                         Margin="0,5,20,0"
                         AutoGenerateColumns="False"
                         BorderThickness="0,0,0,0"
+                        CellStyle="{StaticResource DataGrid_Top}"
                         GridLinesVisibility="Horizontal"
                         IsReadOnly="True"
                         ItemsSource="{Binding SavedItems, Mode=OneWay}"
@@ -189,8 +212,8 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <xControls:OpenBrowserButton
-                                            Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:SavedPage}}"
-                                            Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:SavedPage}}"
+                                            Width="20"
+                                            Height="20"
                                             OriginalWord="{Binding Original}"
                                             SourceLanguage="{Binding SourceLanguage}"
                                             TargetLanguage="{Binding TargetLanguage}" />
@@ -201,49 +224,7 @@
                             <DataGridTemplateColumn Width="*" Header="Original">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Controls:Button
-                                                Uid="{Binding Original}"
-                                                Width="20"
-                                                Height="20"
-                                                Padding="0"
-                                                VerticalAlignment="Top"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                Click="Button_TTSWord"
-                                                Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                                        Filled=False}"
-                                                Tag="{Binding SourceLanguage}"
-                                                ToolTip="Speak" />
-
-                                            <Controls:Button
-                                                Grid.Column="0"
-                                                Width="20"
-                                                Height="20"
-                                                Margin="5,0,0,0"
-                                                Padding="0"
-                                                VerticalAlignment="Top"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                Click="Button_WordCopy"
-                                                Icon="{wpfui:SymbolIcon Symbol=Copy24,
-                                                                        Filled=False}"
-                                                Tag="{Binding Original}"
-                                                ToolTip="Copy" />
-
-                                            <Controls:Button
-                                                Uid="{Binding SourceLanguage}"
-                                                Margin="15,0,0,0"
-                                                Padding="4,2,4,2"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center"
-                                                Background="{wpfui:ThemeResource CardBackgroundFillColorDefault}"
-                                                Click="Button_Word"
-                                                Content="{Binding Original}"
-                                                FontFamily="{Binding FontFace}"
-                                                Tag="{Binding TargetLanguage}"
-                                                ToolTip="{Binding Original}" />
-                                        </StackPanel>
+                                        <xControls:TranslationBox ButtonWidth="20" Loaded="TranslationBox_Original_Loaded" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -251,39 +232,7 @@
                             <DataGridTemplateColumn Width="*" Header="Translated">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Controls:Button
-                                                Uid="{Binding Translated}"
-                                                Width="20"
-                                                Height="20"
-                                                Padding="0"
-                                                VerticalAlignment="Top"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                Click="Button_TTSWord"
-                                                Icon="{wpfui:SymbolIcon Symbol=Speaker216,
-                                                                        Filled=False}"
-                                                Tag="{Binding TargetLanguage}"
-                                                ToolTip="Speak" />
-                                            <Controls:Button
-                                                Grid.Column="0"
-                                                Width="20"
-                                                Height="20"
-                                                Margin="5,0,0,0"
-                                                Padding="0"
-                                                VerticalAlignment="Top"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                Click="Button_WordCopy"
-                                                Icon="{wpfui:SymbolIcon Symbol=Copy24,
-                                                                        Filled=False}"
-                                                Tag="{Binding Translated}"
-                                                ToolTip="Copy" />
-                                            <Controls:TextBlock
-                                                Margin="15,0,0,0"
-                                                FontFamily="{Binding FontFace}"
-                                                Text="{Binding Translated}" />
-                                        </StackPanel>
+                                        <xControls:TranslationBox ButtonWidth="20" Loaded="TranslationBox_Translated_Loaded" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
