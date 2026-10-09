@@ -1,4 +1,5 @@
-﻿using ScreenLookup.src.models;
+﻿using ScreenLookup.src.controls;
+using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using ScreenLookup.src.utils.Database;
 using System.ComponentModel;
@@ -41,8 +42,6 @@ namespace ScreenLookup.src.pages
                 OnPropertyChanged();
             }
         }
-
-        public static double ButtonWidth => App.setting.FontSizeS + 10;
 
         public void OnPropertyChanged([CallerMemberName] string? propName = null)
         {
@@ -285,18 +284,34 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region Item Action Handlers
-        private void Button_Word(object sender, RoutedEventArgs e)
+        private void TranslationBox_Original_Loaded(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button button) return;
+            if (sender is TranslationBox box && box.DataContext is SavedWordEntry entry)
+            {
+                int sourceLang = int.TryParse(entry.SourceLanguage, out int srcLang) ? srcLang : 0;
+                box.SetOriginal(entry.Original, sourceLang, sourceLang);
 
-            string word = button.ToolTip?.ToString() ?? string.Empty;
-            int sourceLang = int.Parse(button.Uid?.ToString() ?? "0");
-            int targetLang = int.Parse(button.Tag?.ToString() ?? "0");
+                _ = Task.Run(async () =>
+                {
+                    var (_, phonetic) = await entry.GetExtraDetailsAsync();
+                    await Dispatcher.InvokeAsync(() => box.UpdatePhonetic(phonetic));
+                });
+            }
+        }
 
-            if (string.IsNullOrWhiteSpace(word))
-                return;
+        private void TranslationBox_Translated_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is TranslationBox box && box.DataContext is SavedWordEntry entry)
+            {
+                int targetLang = int.TryParse(entry.TargetLanguage, out int tgtLang) ? tgtLang : 0;
+                box.SetOriginal(entry.Translated, targetLang, targetLang);
 
-            flayOut.Show(word, string.Empty, sourceLang, targetLang);
+                _ = Task.Run(async () =>
+                {
+                    var (extraMeanings, _) = await entry.GetExtraDetailsAsync();
+                    await Dispatcher.InvokeAsync(() => box.UpdateExtraMeanings(extraMeanings));
+                });
+            }
         }
 
         private async void Delete_click(object sender, RoutedEventArgs e)
@@ -335,21 +350,6 @@ namespace ScreenLookup.src.pages
                 width: 130,
                 closeButton: false
             );
-        }
-
-        private void Button_TTSWord(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button button) return;
-
-            TextToSpeech.StartTTS(button.Uid?.ToString() ?? string.Empty, int.Parse(button.Tag?.ToString() ?? "0"));
-        }
-
-        private void Button_WordCopy(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button button) return;
-
-            Clipboard.SetText(button.Tag?.ToString() ?? string.Empty);
-            SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
         #endregion
     }
