@@ -7,11 +7,20 @@
     xmlns:local="clr-namespace:ScreenLookup.src.controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    x:Name="root"
+    HorizontalAlignment="Left"
+    VerticalAlignment="Top"
     mc:Ignorable="d">
 
     <Controls:Button
         x:Name="openBrowser"
+        Width="{Binding Width, ElementName=root}"
+        Height="{Binding Height, ElementName=root}"
         Padding="0"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        HorizontalContentAlignment="Center"
+        VerticalContentAlignment="Center"
         Click="Button_OpenBrowser"
         Icon="{wpfui:SymbolIcon Symbol=Globe24,
                                 Filled=False}"

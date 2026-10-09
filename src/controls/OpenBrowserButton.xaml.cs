@@ -53,12 +53,6 @@ namespace ScreenLookup.src.controls
         public static readonly DependencyProperty OriginalWordProperty =
             DependencyProperty.Register("OriginalWord", typeof(string), typeof(OpenBrowserButton), new PropertyMetadata(""));
 
-        public static readonly DependencyProperty WidthProperty =
-            DependencyProperty.Register("Width", typeof(double), typeof(OpenBrowserButton), new PropertyMetadata(10.0));
-
-        public static readonly DependencyProperty HeightProperty =
-            DependencyProperty.Register("Height", typeof(double), typeof(OpenBrowserButton), new PropertyMetadata(10.0));
-
         public OpenBrowserButton()
         {
             InitializeComponent();

@@ -85,7 +85,7 @@ public partial class ShortcutControl : UserControl
     }
 
     public static readonly DependencyProperty ShowRecordProperty =
-            DependencyProperty.Register("ShowRecord", typeof(bool), typeof(OpenBrowserButton), new PropertyMetadata(true));
+            DependencyProperty.Register("ShowRecord", typeof(bool), typeof(ShortcutControl), new PropertyMetadata(true));
     #endregion
 
     public void GoIntoErrorMode(string errorMessage = "")
