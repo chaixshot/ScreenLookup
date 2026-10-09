@@ -1,4 +1,5 @@
-﻿using ScreenLookup.src.utils;
+using ScreenLookup.src.models;
+using ScreenLookup.src.utils;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -18,6 +19,20 @@ namespace ScreenLookup.src.controls
 
         private static CancellationTokenSource TranslatesCancelToken;
 
+        public double ButtonWidth
+        {
+            get => (double)GetValue(ButtonWidthProperty);
+            set => SetValue(ButtonWidthProperty, value);
+        }
+
+        public static readonly DependencyProperty ButtonWidthProperty =
+            DependencyProperty.Register(
+                nameof(ButtonWidth),
+                typeof(double),
+                typeof(TranslationBox),
+                new PropertyMetadata(App.setting.ButtonWidth)
+            );
+
         public TranslationBox()
         {
             InitializeComponent();
@@ -29,14 +44,29 @@ namespace ScreenLookup.src.controls
             ResetDefaultState();
         }
 
-        public void Set(string text, int sourceLang, int targetLang)
+        public void SetParagraph(string paragraph, int sourceLang, int targetLang)
         {
-            Original = text;
+            Original = paragraph;
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
             Loading.Visibility = Visibility.Collapsed;
             Refresh.Visibility = Visibility.Visible;
+        }
+
+        public void SetOriginal(string word, int sourceLang, int targetLang)
+        {
+            Original = word;
+            SourceLanguage = sourceLang;
+            TargetLanguage = targetLang;
+            IsWord = true;
+
+            Loading.Visibility = Visibility.Collapsed;
+            Refresh.Visibility = Visibility.Collapsed;
+            TranslatedText.Text = word;
+            TranslatedText.Visibility = Visibility.Visible;
+            Translated = word;
+            this.Tag = word;
         }
 
         public async Task Translate(bool isWord, string text, int sourceLang, int targetLang, CancellationTokenSource token)
@@ -73,24 +103,53 @@ namespace ScreenLookup.src.controls
             this.Tag = mainText;
         }
 
+        public async Task UpdateExtraMeanings(List<ExtraMeaningEntity> extraMeanings)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (extraMeanings != null && extraMeanings.Count > 0)
+                {
+                    ExtraMeaningsList.ItemsSource = extraMeanings;
+                    ExtraMeaningsList.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    ExtraMeaningsList.ItemsSource = null;
+                    ExtraMeaningsList.Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+
+        public void UpdatePhonetic(string phonetic)
+        {
+            if (!string.IsNullOrEmpty(phonetic))
+            {
+                PhoneticTextElement.Text = phonetic;
+                PhoneticTextElement.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PhoneticTextElement.Text = string.Empty;
+                PhoneticTextElement.Visibility = Visibility.Collapsed;
+            }
+        }
+
         public void ResetDefaultState()
         {
-            double buttonWidth = App.setting.FontSizeS + 10;
-            double loadingWidth = App.setting.FontSizeS + 5;
-
-            Loading.Width = loadingWidth;
-            Loading.Height = loadingWidth;
-
-            Refresh.Width = buttonWidth;
-            Refresh.Height = buttonWidth;
-
             TranslatedText.Text = string.Empty;
             TranslatedText.Visibility = Visibility.Collapsed;
             Loading.Visibility = Visibility.Visible;
             Refresh.Visibility = Visibility.Collapsed;
 
+            PhoneticTextElement.Text = string.Empty;
+            PhoneticTextElement.Visibility = Visibility.Collapsed;
+
+            ExtraMeaningsList.ItemsSource = null;
+            ExtraMeaningsList.Visibility = Visibility.Collapsed;
+
             Original = string.Empty;
             Translated = string.Empty;
+            UpdatePhonetic(string.Empty);
 
             translatedScrollViewer.ScrollToTop();
         }
@@ -101,6 +160,24 @@ namespace ScreenLookup.src.controls
             TranslatesCancelToken = new();
 
             await Translate(IsWord, Original, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+        }
+
+        private void SpeakButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Translated))
+            {
+                int lang = TargetLanguage != -1 ? TargetLanguage : SourceLanguage;
+                TextToSpeech.StartTTS(Translated, lang);
+            }
+        }
+
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Translated))
+            {
+                Clipboard.SetText(Translated);
+                SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
+            }
         }
     }
 }
