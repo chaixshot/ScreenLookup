@@ -321,38 +321,45 @@
                                                     ToolTip="Copy" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Grid Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Top">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,5,0">
+                                                    <wpfui:ProgressRing
+                                                        x:Name="Loading"
+                                                        Width="30"
+                                                        Height="30"
+                                                        VerticalAlignment="Top"
+                                                        Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                                        IsIndeterminate="True"
+                                                        Visibility="Collapsed" />
+
+                                                    <Controls:Button
+                                                        Width="30"
+                                                        Height="30"
+                                                        Margin="5,0,0,0"
+                                                        Padding="0"
+                                                        VerticalAlignment="Top"
+                                                        HorizontalContentAlignment="Center"
+                                                        VerticalContentAlignment="Center"
+                                                        Click="ReTranslate_Click"
+                                                        Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
+                                                                                Filled=False}"
+                                                        Tag="{Binding Id}"
+                                                        ToolTip="Translate"
+                                                        Visibility="{Binding ReTranslate}" />
+                                                </StackPanel>
+
                                                 <Controls:TextBlock
-                                                    Margin="15,0,0,0"
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Top"
                                                     FontFamily="{Binding FontFace}"
                                                     Text="{Binding Translated}"
                                                     TextWrapping="Wrap" />
-
-                                                <wpfui:ProgressRing
-                                                    x:Name="Loading"
-                                                    Width="30"
-                                                    Height="30"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalAlignment="Top"
-                                                    Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                                                    IsIndeterminate="True"
-                                                    Visibility="Collapsed" />
-
-                                                <Controls:Button
-                                                    Width="30"
-                                                    Height="30"
-                                                    Margin="5,0,0,0"
-                                                    Padding="0"
-                                                    VerticalAlignment="Top"
-                                                    HorizontalContentAlignment="Center"
-                                                    VerticalContentAlignment="Center"
-                                                    Click="ReTranslate_Click"
-                                                    Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
-                                                                            Filled=False}"
-                                                    Tag="{Binding Id}"
-                                                    ToolTip="Translate"
-                                                    Visibility="{Binding ReTranslate}" />
-                                            </StackPanel>
+                                            </Grid>
                                         </Grid>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

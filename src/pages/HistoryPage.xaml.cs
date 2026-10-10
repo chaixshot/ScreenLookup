@@ -310,23 +310,33 @@ namespace ScreenLookup.src.pages
             loading.Visibility = Visibility.Visible;
             refreshButton.Visibility = Visibility.Collapsed;
 
-            foreach (var item in HistoryItems)
+            try
             {
-                if (item.Id == id)
+                foreach (var item in HistoryItems)
                 {
-                    string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage));
+                    if (item.Id == id)
+                    {
+                        string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage));
 
-                    if (string.IsNullOrEmpty(translatedText))
-                        refreshButton.Visibility = Visibility.Visible;
-                    else
-                        HistoryLogger.Update(int.Parse(item.Id), translatedText);
+                        if (!string.IsNullOrEmpty(translatedText))
+                        {
+                            HistoryLogger.Update(int.Parse(item.Id), translatedText);
+                            item.Translated = translatedText;
+                            item.ReTranslate = Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            item.ReTranslate = Visibility.Visible;
+                        }
 
-                    break;
+                        break;
+                    }
                 }
             }
-
-            if (this.IsLoaded)
-                LoadHistoryLogger();
+            finally
+            {
+                loading.Visibility = Visibility.Collapsed;
+            }
         }
 
         private async void Delete_click(object sender, RoutedEventArgs e)
