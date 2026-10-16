@@ -43,14 +43,6 @@ namespace ScreenLookup.src.utils
         private bool running;
         private readonly Action<string> log;
 
-        // Input Gesture State
-        private bool isButtonComboInRage;
-        private bool isButtonComboPressed;
-        private bool leftHeld;
-        private bool rightHeld;
-        private bool leftHeldPrev;
-        private bool rightHeldPrev;
-
         // Geometry Cache
         private Vector3 lastLeftPos;
         private Vector3 lastRightPos;
@@ -61,7 +53,7 @@ namespace ScreenLookup.src.utils
         // D3D11 Rendering Resources
         private ID3D11Device? d3dDevice;
         private ID3D11DeviceContext? d3dContext;
-        private readonly object d3dLock = new();
+        private readonly Lock d3dLock = new();
 
         private ID3D11Texture2D? overlayTex;
         private ID3D11Texture2D? stagingTex;
@@ -247,40 +239,56 @@ namespace ScreenLookup.src.utils
                     OpenVR.Overlay.HideOverlay(overlayHandle);
                     IsFraming = false;
                 }
-                isButtonComboPressed = false;
-                isButtonComboInRage = false;
-                leftHeld = false;
-                rightHeld = false;
                 return;
             }
 
             inputService.UpdatePosesAndIndices();
             inputService.UpdateActionState();
 
-            leftHeldPrev = leftHeld;
-            rightHeldPrev = rightHeld;
-            leftHeld = inputService.IsActionHeld(inputService.GripLeftHandle);
-            rightHeld = inputService.IsActionHeld(inputService.GripRightHandle);
-
+            bool leftHeld = inputService.IsActionHeld(inputService.GripLeftHandle);
+            bool rightHeld = inputService.IsActionHeld(inputService.GripRightHandle);
+            bool wasFraming = IsFraming;
             Vector3 leftCoords = Vector3.Zero;
             Vector3 rightCoords = Vector3.Zero;
-            bool wasFraming = IsFraming;
 
             if (leftHeld && rightHeld)
             {
-                if (!isButtonComboPressed)
+                if (!IsFraming)
                 {
-                    isButtonComboInRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
-                    isButtonComboPressed = true;
+                    if (inputService.IsActionJustPressed(inputService.GripLeftHandle) || inputService.IsActionJustPressed(inputService.GripRightHandle))
+                    {
+                        bool inRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
+                        if (inRage)
+                        {
+                            inputService.TriggerHapticPulseBoth(50000);
+                            Task.Run(() =>
+                            {
+                                long startTime = DateTime.UtcNow.Ticks;
+                                while (true)
+                                {
+                                    inRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
+                                    if (leftHeld && rightHeld && inRage)
+                                    {
+                                        if ((DateTime.UtcNow.Ticks - startTime) / TimeSpan.TicksPerMillisecond >= 500)
+                                        {
+                                            AppUtilities.PlaySound("ready.wav");
+                                            inputService.TriggerHapticPulseBoth(50000);
+                                            EnsureMirrorPipeline();
+                                            IsFraming = true;
+
+                                            break;
+                                        }
+                                    }
+                                    else
+                                        break;
+                                }
+                            });
+                        }
+                    }
                 }
             }
             else
-            {
-                isButtonComboPressed = false;
-                isButtonComboInRage = false;
-            }
-
-            IsFraming = isButtonComboInRage;
+                IsFraming = false;
 
             if (IsFraming)
             {
@@ -294,12 +302,6 @@ namespace ScreenLookup.src.utils
                         App.captureWindow.OpenWindow();
                     }));
                 }
-                else if (!wasFraming)
-                {
-                    AppUtilities.PlaySound("ready.wav");
-                    inputService.TriggerHapticPulseBoth(50000);
-                    EnsureMirrorPipeline();
-                }
 
                 UpdateFrameAndRender(leftCoords, rightCoords);
             }
@@ -307,7 +309,7 @@ namespace ScreenLookup.src.utils
             {
                 OpenVR.Overlay.HideOverlay(overlayHandle);
 
-                if (rightHeldPrev && !rightHeld && leftHeld)
+                if (leftHeld && inputService.IsActionJustReleased(inputService.GripRightHandle))
                 {
                     AppUtilities.PlaySound("screenshot.wav");
                     inputService.TriggerHapticPulseBoth(50000);
