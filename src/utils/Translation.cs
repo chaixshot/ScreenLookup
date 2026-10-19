@@ -188,7 +188,7 @@ namespace ScreenLookup.src.utils
                             try
                             {
                                 string requestUrl = string.Format(urlTemplate, srcCode, tgtTag, encodedText);
-                                using var response = await ExtraMeaningsHttpClient.GetAsync(requestUrl).ConfigureAwait(false);
+                                using var response = await ExtraMeaningsHttpClient.GetAsync(requestUrl, token.Token).ConfigureAwait(false);
 
                                 if (response.IsSuccessStatusCode)
                                 {
@@ -225,7 +225,7 @@ namespace ScreenLookup.src.utils
                 }
             }
 
-            if (isSuccess && !token.IsCancellationRequested)
+            if (isSuccess)
             {
                 if (string.IsNullOrEmpty(phonetic))
                     phonetic = "-";

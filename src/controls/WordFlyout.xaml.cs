@@ -212,13 +212,13 @@ namespace ScreenLookup.src.controls
                     _ = Task.Run(async () =>
                     {
                         await Dispatcher.InvokeAsync(() => translationOriginalWord.SetOriginal(OriginalWord, SourceLanguage, TargetLanguage));
-                    });
+                    }, TranslatesCancelToken.Token);
 
                     // Translation Word
                     _ = Task.Run(async () =>
                     {
                         await Dispatcher.InvokeAsync(() => translationWord.Translate(isWord: true, OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken));
-                    });
+                    }, TranslatesCancelToken.Token);
 
                     // Word extra details
                     _ = Task.Run(async () =>
@@ -226,13 +226,13 @@ namespace ScreenLookup.src.controls
                         var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
                         await Dispatcher.InvokeAsync(() => translationWord.UpdateExtraMeanings(extraMeanings));
                         await Dispatcher.InvokeAsync(() => translationOriginalWord.UpdatePhonetic(phonetic));
-                    });
+                    }, TranslatesCancelToken.Token);
 
                     // Message
                     _ = Task.Run(async () =>
                     {
                         await Dispatcher.InvokeAsync(() => translationMessage.Translate(isWord: false, OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken));
-                    });
+                    }, TranslatesCancelToken.Token);
                 }));
             });
         }
