@@ -14,67 +14,73 @@ namespace ScreenLookup.src.utils.Database
 
         private static void InitializeDatabase()
         {
-            using var command = new SqliteCommand(@"
-                CREATE TABLE IF NOT EXISTS dictionary (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Original TEXT,
-                    Translated TEXT,
-                    SourceLanguage INTEGER,
-                    TargetLanguage INTEGER,
-                    ProviderServices INTEGER,
-                    ExtraMeanings TEXT,
-                    Phonetic TEXT
-                );
-                CREATE INDEX IF NOT EXISTS idx_dict_lookup
-                ON dictionary (Original, SourceLanguage, TargetLanguage, ProviderServices);
-            ", Database.GetConnection());
-            command.ExecuteNonQuery();
+            Database.Execute(conn =>
+            {
+                using var command = new SqliteCommand(@"
+                    CREATE TABLE IF NOT EXISTS dictionary (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Original TEXT,
+                        Translated TEXT,
+                        SourceLanguage INTEGER,
+                        TargetLanguage INTEGER,
+                        ProviderServices INTEGER,
+                        ExtraMeanings TEXT,
+                        Phonetic TEXT
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_dict_lookup
+                    ON dictionary (Original, SourceLanguage, TargetLanguage, ProviderServices);
+                ", conn);
+                command.ExecuteNonQuery();
+            });
         }
 
         public static async Task<DictionaryEntry?> GetAsync(string original, int sourceLang, int targetLang, int providerID)
         {
-            string query = @"
-                SELECT Original, Translated, SourceLanguage, TargetLanguage, ProviderServices, ExtraMeanings, Phonetic
-                FROM dictionary
-                WHERE Original = @Original AND SourceLanguage = @SourceLanguage AND TargetLanguage = @TargetLanguage AND ProviderServices = @ProviderServices
-                LIMIT 1";
-
-            using var command = new SqliteCommand(query, Database.GetConnection());
-            command.Parameters.AddWithValue("@Original", original.Trim());
-            command.Parameters.AddWithValue("@SourceLanguage", sourceLang);
-            command.Parameters.AddWithValue("@TargetLanguage", targetLang);
-            command.Parameters.AddWithValue("@ProviderServices", providerID);
-
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            return await Database.ExecuteAsync(async conn =>
             {
-                string translated = reader.IsDBNull(reader.GetOrdinal("Translated")) ? string.Empty : reader.GetString(reader.GetOrdinal("Translated"));
-                string extraMeaningsJson = reader.IsDBNull(reader.GetOrdinal("ExtraMeanings")) ? string.Empty : reader.GetString(reader.GetOrdinal("ExtraMeanings"));
-                string phonetic = reader.IsDBNull(reader.GetOrdinal("Phonetic")) ? string.Empty : reader.GetString(reader.GetOrdinal("Phonetic"));
+                string query = @"
+                    SELECT Original, Translated, SourceLanguage, TargetLanguage, ProviderServices, ExtraMeanings, Phonetic
+                    FROM dictionary
+                    WHERE Original = @Original AND SourceLanguage = @SourceLanguage AND TargetLanguage = @TargetLanguage AND ProviderServices = @ProviderServices
+                    LIMIT 1";
 
-                List<ExtraMeaningEntity>? extraMeanings = null;
-                if (!string.IsNullOrWhiteSpace(extraMeaningsJson))
+                using var command = new SqliteCommand(query, conn);
+                command.Parameters.AddWithValue("@Original", original.Trim());
+                command.Parameters.AddWithValue("@SourceLanguage", sourceLang);
+                command.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                command.Parameters.AddWithValue("@ProviderServices", providerID);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
                 {
-                    try
+                    string translated = reader.IsDBNull(reader.GetOrdinal("Translated")) ? string.Empty : reader.GetString(reader.GetOrdinal("Translated"));
+                    string extraMeaningsJson = reader.IsDBNull(reader.GetOrdinal("ExtraMeanings")) ? string.Empty : reader.GetString(reader.GetOrdinal("ExtraMeanings"));
+                    string phonetic = reader.IsDBNull(reader.GetOrdinal("Phonetic")) ? string.Empty : reader.GetString(reader.GetOrdinal("Phonetic"));
+
+                    List<ExtraMeaningEntity>? extraMeanings = null;
+                    if (!string.IsNullOrWhiteSpace(extraMeaningsJson))
                     {
-                        extraMeanings = JsonSerializer.Deserialize<List<ExtraMeaningEntity>>(extraMeaningsJson);
+                        try
+                        {
+                            extraMeanings = JsonSerializer.Deserialize<List<ExtraMeaningEntity>>(extraMeaningsJson);
+                        }
+                        catch { }
                     }
-                    catch { }
+
+                    return new DictionaryEntry
+                    {
+                        Original = reader.GetString(reader.GetOrdinal("Original")),
+                        Translated = translated,
+                        SourceLanguage = reader.GetInt32(reader.GetOrdinal("SourceLanguage")),
+                        TargetLanguage = reader.GetInt32(reader.GetOrdinal("TargetLanguage")),
+                        ProviderServices = reader.GetInt32(reader.GetOrdinal("ProviderServices")),
+                        ExtraMeanings = extraMeanings,
+                        Phonetic = phonetic
+                    };
                 }
 
-                return new DictionaryEntry
-                {
-                    Original = reader.GetString(reader.GetOrdinal("Original")),
-                    Translated = translated,
-                    SourceLanguage = reader.GetInt32(reader.GetOrdinal("SourceLanguage")),
-                    TargetLanguage = reader.GetInt32(reader.GetOrdinal("TargetLanguage")),
-                    ProviderServices = reader.GetInt32(reader.GetOrdinal("ProviderServices")),
-                    ExtraMeanings = extraMeanings,
-                    Phonetic = phonetic
-                };
-            }
-
-            return null;
+                return null;
+            });
         }
 
         public static async Task SaveTranslatedAsync(string original, string translated, int sourceLang, int targetLang, int providerID)
@@ -89,13 +95,16 @@ namespace ScreenLookup.src.utils.Database
                     SET Translated = @Translated
                     WHERE Original = @Original AND SourceLanguage = @SourceLanguage AND TargetLanguage = @TargetLanguage AND ProviderServices = @ProviderServices";
 
-                using var cmd = new SqliteCommand(updateQuery, Database.GetConnection());
-                cmd.Parameters.AddWithValue("@Original", original.Trim());
-                cmd.Parameters.AddWithValue("@Translated", translated.Trim());
-                cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
-                cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                cmd.Parameters.AddWithValue("@ProviderServices", providerID);
-                await cmd.ExecuteNonQueryAsync();
+                await Database.ExecuteAsync(async conn =>
+                {
+                    using var cmd = new SqliteCommand(updateQuery, conn);
+                    cmd.Parameters.AddWithValue("@Original", original.Trim());
+                    cmd.Parameters.AddWithValue("@Translated", translated.Trim());
+                    cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
+                    cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    await cmd.ExecuteNonQueryAsync();
+                });
             }
             else
             {
@@ -103,13 +112,16 @@ namespace ScreenLookup.src.utils.Database
                     INSERT INTO dictionary (Original, Translated, SourceLanguage, TargetLanguage, ProviderServices, ExtraMeanings, Phonetic)
                     VALUES (@Original, @Translated, @SourceLanguage, @TargetLanguage, @ProviderServices, '', '')";
 
-                using var cmd = new SqliteCommand(insertQuery, Database.GetConnection());
-                cmd.Parameters.AddWithValue("@Original", original.Trim());
-                cmd.Parameters.AddWithValue("@Translated", translated.Trim());
-                cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
-                cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                cmd.Parameters.AddWithValue("@ProviderServices", providerID);
-                await cmd.ExecuteNonQueryAsync();
+                await Database.ExecuteAsync(async conn =>
+                {
+                    using var cmd = new SqliteCommand(insertQuery, conn);
+                    cmd.Parameters.AddWithValue("@Original", original.Trim());
+                    cmd.Parameters.AddWithValue("@Translated", translated.Trim());
+                    cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
+                    cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    await cmd.ExecuteNonQueryAsync();
+                });
             }
         }
 
@@ -128,15 +140,18 @@ namespace ScreenLookup.src.utils.Database
                     SET ExtraMeanings = @ExtraMeanings, Phonetic = @Phonetic
                     WHERE Original = @Original AND SourceLanguage = @SourceLanguage AND TargetLanguage = @TargetLanguage AND ProviderServices = @ProviderServices";
 
-                using var cmd = new SqliteCommand(updateQuery, Database.GetConnection());
-                cmd.Parameters.AddWithValue("@Original", original);
-                cmd.Parameters.AddWithValue("@ExtraMeanings", json);
-                cmd.Parameters.AddWithValue("@Phonetic", phonetic);
-                cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
-                cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                await Database.ExecuteAsync(async conn =>
+                {
+                    using var cmd = new SqliteCommand(updateQuery, conn);
+                    cmd.Parameters.AddWithValue("@Original", original);
+                    cmd.Parameters.AddWithValue("@ExtraMeanings", json);
+                    cmd.Parameters.AddWithValue("@Phonetic", phonetic);
+                    cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
+                    cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
 
-                await cmd.ExecuteNonQueryAsync();
+                    await cmd.ExecuteNonQueryAsync();
+                });
             }
             else
             {
@@ -144,15 +159,18 @@ namespace ScreenLookup.src.utils.Database
                     INSERT INTO dictionary (Original, Translated, SourceLanguage, TargetLanguage, ProviderServices, ExtraMeanings, Phonetic)
                     VALUES (@Original, '', @SourceLanguage, @TargetLanguage, @ProviderServices, @ExtraMeanings, @Phonetic)";
 
-                using var cmd = new SqliteCommand(insertQuery, Database.GetConnection());
-                cmd.Parameters.AddWithValue("@Original", original);
-                cmd.Parameters.AddWithValue("@ExtraMeanings", json);
-                cmd.Parameters.AddWithValue("@Phonetic", phonetic);
-                cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
-                cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                await Database.ExecuteAsync(async conn =>
+                {
+                    using var cmd = new SqliteCommand(insertQuery, conn);
+                    cmd.Parameters.AddWithValue("@Original", original);
+                    cmd.Parameters.AddWithValue("@ExtraMeanings", json);
+                    cmd.Parameters.AddWithValue("@Phonetic", phonetic);
+                    cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
+                    cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
 
-                await cmd.ExecuteNonQueryAsync();
+                    await cmd.ExecuteNonQueryAsync();
+                });
             }
         }
     }

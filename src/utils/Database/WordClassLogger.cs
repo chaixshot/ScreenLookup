@@ -11,38 +11,44 @@ namespace ScreenLookup.src.utils.Database
 
         private static void InitializeDatabase()
         {
-            using var command = new SqliteCommand(@"
-                CREATE TABLE IF NOT EXISTS word_class (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Original TEXT,
-                    Translated TEXT,
-                    TargetLanguage INTEGER
-                );
-                CREATE INDEX IF NOT EXISTS idx_word_class_lookup
-                ON word_class (Original, TargetLanguage);
-            ", Database.GetConnection());
-            command.ExecuteNonQuery();
+            Database.Execute(conn =>
+            {
+                using var command = new SqliteCommand(@"
+                    CREATE TABLE IF NOT EXISTS word_class (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Original TEXT,
+                        Translated TEXT,
+                        TargetLanguage INTEGER
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_word_class_lookup
+                    ON word_class (Original, TargetLanguage);
+                ", conn);
+                command.ExecuteNonQuery();
+            });
         }
 
         public static async Task<string?> GetAsync(string original, int targetLang)
         {
-            string query = @"
-                SELECT Translated
-                FROM word_class
-                WHERE Original = @Original AND TargetLanguage = @TargetLanguage
-                LIMIT 1";
-
-            using var command = new SqliteCommand(query, Database.GetConnection());
-            command.Parameters.AddWithValue("@Original", original.Trim());
-            command.Parameters.AddWithValue("@TargetLanguage", targetLang);
-
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            return await Database.ExecuteAsync(async conn =>
             {
-                return reader.IsDBNull(0) ? null : reader.GetString(0);
-            }
+                string query = @"
+                    SELECT Translated
+                    FROM word_class
+                    WHERE Original = @Original AND TargetLanguage = @TargetLanguage
+                    LIMIT 1";
 
-            return null;
+                using var command = new SqliteCommand(query, conn);
+                command.Parameters.AddWithValue("@Original", original.Trim());
+                command.Parameters.AddWithValue("@TargetLanguage", targetLang);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return reader.IsDBNull(0) ? null : reader.GetString(0);
+                }
+
+                return null;
+            });
         }
 
         public static async Task SaveAsync(string original, string translated, int targetLang)
@@ -57,11 +63,14 @@ namespace ScreenLookup.src.utils.Database
                     SET Translated = @Translated
                     WHERE Original = @Original AND TargetLanguage = @TargetLanguage";
 
-                using var cmd = new SqliteCommand(updateQuery, Database.GetConnection());
-                cmd.Parameters.AddWithValue("@Original", original.Trim());
-                cmd.Parameters.AddWithValue("@Translated", translated.Trim());
-                cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                await cmd.ExecuteNonQueryAsync();
+                await Database.ExecuteAsync(async conn =>
+                {
+                    using var cmd = new SqliteCommand(updateQuery, conn);
+                    cmd.Parameters.AddWithValue("@Original", original.Trim());
+                    cmd.Parameters.AddWithValue("@Translated", translated.Trim());
+                    cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                    await cmd.ExecuteNonQueryAsync();
+                });
             }
             else
             {
@@ -69,11 +78,14 @@ namespace ScreenLookup.src.utils.Database
                     INSERT INTO word_class (Original, Translated, TargetLanguage)
                     VALUES (@Original, @Translated, @TargetLanguage)";
 
-                using var cmd = new SqliteCommand(insertQuery, Database.GetConnection());
-                cmd.Parameters.AddWithValue("@Original", original.Trim());
-                cmd.Parameters.AddWithValue("@Translated", translated.Trim());
-                cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                await cmd.ExecuteNonQueryAsync();
+                await Database.ExecuteAsync(async conn =>
+                {
+                    using var cmd = new SqliteCommand(insertQuery, conn);
+                    cmd.Parameters.AddWithValue("@Original", original.Trim());
+                    cmd.Parameters.AddWithValue("@Translated", translated.Trim());
+                    cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
+                    await cmd.ExecuteNonQueryAsync();
+                });
             }
         }
 
