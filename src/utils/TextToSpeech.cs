@@ -36,9 +36,21 @@ namespace ScreenLookup.src.utils
 
             StopTTS();
             _playTTSCancelToken = new CancellationTokenSource();
+            CancellationToken cancellationToken = _playTTSCancelToken.Token;
 
+            IEnumerable<string> sentences = [.. SplitIntoSentences(text)];
             GLanguage languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
-            string? errorMsg = await Task.Run(() => PlayTTS(text, langID, _playTTSCancelToken.Token));
+            string? errorMsg = null;
+
+            foreach (string sentence in sentences)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                errorMsg = await Task.Run(() => PlayTTS(sentence, langID, cancellationToken), cancellationToken);
+                if (!string.IsNullOrEmpty(errorMsg))
+                    break;
+            }
 
             if (!string.IsNullOrEmpty(errorMsg))
             {
@@ -55,7 +67,34 @@ namespace ScreenLookup.src.utils
         }
         #endregion
 
-        #region Private Audio Stream Playback
+        #region Private Audio Stream Playback & Sentence Chunking
+        private static IEnumerable<string> SplitIntoSentences(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                yield break;
+
+            string[]? rawSentences = AppUtilities.RegexPunctuation().Split(text);
+            foreach (string s in rawSentences)
+            {
+                string trimmed = s.Trim();
+                if (string.IsNullOrEmpty(trimmed))
+                    continue;
+
+                // Do not output chunks that consist entirely of punctuation or symbols
+                if (trimmed.All(c => char.IsPunctuation(c) || char.IsSymbol(c) || char.IsWhiteSpace(c)))
+                    continue;
+
+                // Split long sentences if they exceed 250 characters
+                if (trimmed.Length > 250)
+                {
+                    for (int i = 0; i < trimmed.Length; i += 250)
+                        yield return trimmed.Substring(i, Math.Min(250, trimmed.Length - i));
+                }
+                else
+                    yield return trimmed;
+            }
+        }
+
         private static async Task<string?> PlayTTS(string text, int langID, CancellationToken token)
         {
             try
@@ -85,7 +124,7 @@ namespace ScreenLookup.src.utils
                             stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6391FromID(langID));
                         }
 
-                        var memStream = new MemoryStream();
+                        MemoryStream memStream = new();
                         byte[] buffer = new byte[32768];
                         int read;
                         while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
@@ -112,9 +151,9 @@ namespace ScreenLookup.src.utils
                 cancelToken = new CancellationTokenSource();
 
                 AudioStreamCTS.TryAdd(text, cancelToken);
-                _ = Task.Delay(30 * 1000).ContinueWith(_ =>
+                _ = Task.Delay(30 * 1000, cancelToken.Token).ContinueWith(_ =>
                 {
-                    if (AudioStreamCache.TryGetValue(text, out var stream))
+                    if (AudioStreamCache.TryGetValue(text, out Stream? stream))
                     {
                         stream.Close();
                         AudioStreamCache.Remove(text);
@@ -142,9 +181,10 @@ namespace ScreenLookup.src.utils
                         waveOut.Play();
 
                         while (waveOut.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
-                        {
                             await Task.Delay(100, token);
-                        }
+
+                        if (token.IsCancellationRequested)
+                            waveOut.Stop();
                         keepPlaying = false;
                     }
                     catch (NAudio.MmException ex) when (
