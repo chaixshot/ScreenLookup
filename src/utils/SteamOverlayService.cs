@@ -702,20 +702,17 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        private void UpdateLaserOverlay(Vector3 source, Vector3 hitPoint)
+        private void UpdateLaserOverlay(Vector3 startPos, Vector3 hitPoint)
         {
             CVROverlay? overlay = OpenVR.Overlay;
             if (overlay == null || laserOverlayHandle == OpenVR.k_ulOverlayHandleInvalid || d3dDevice == null || d3dContext == null) return;
 
-            Vector3 dir = hitPoint - source;
+            Vector3 dir = hitPoint - startPos;
             float totalDist = dir.Length();
             if (totalDist < 0.1f) return;
 
             Vector3 normDir = Vector3.Normalize(dir);
-            float tipOffset = 0.2f;
-            if (totalDist <= tipOffset) return;
 
-            Vector3 startPos = source + (normDir * tipOffset);
             Vector3 actualLaserDir = hitPoint - startPos;
             float laserLength = actualLaserDir.Length();
             if (laserLength < 0.01f) return;
@@ -785,15 +782,17 @@ namespace ScreenLookup.src.utils
                     unsafe
                     {
                         byte r = 218, g = 96, b = 255;
-                        int fadeLen = Math.Min(100, targetHeight);
+                        int fadeLen = Math.Min(200, targetHeight);
+                        int endPointOffset = 30; // Define offset at the End point
 
                         for (int y = 0; y < targetHeight; y++)
                         {
                             byte alpha = 255;
-                            int distFromEnd = (targetHeight - 1) - y;
-                            if (distFromEnd < fadeLen)
+                            if (y < endPointOffset)
+                                alpha = 0;
+                            else if (y < endPointOffset + fadeLen)
                             {
-                                float fadeRatio = (float)distFromEnd / fadeLen;
+                                float fadeRatio = (float)(y - endPointOffset) / fadeLen;
                                 alpha = (byte)(255 * fadeRatio);
                             }
 
