@@ -199,7 +199,6 @@ namespace ScreenLookup.src.utils
         private ControllerHand activeHand = ControllerHand.Right;
         private uint ActiveControllerIdx => activeHand == ControllerHand.Right ? inputService.RightControllerIdx : inputService.LeftControllerIdx;
 
-        private bool wasTriggerHeld = false;
         private bool hasPointerIntersection = false;
         private int pointerLocalX = 0;
         private int pointerLocalY = 0;
@@ -215,6 +214,7 @@ namespace ScreenLookup.src.utils
         private uint grabbingControllerIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
         private Vector3 lastGrabControllerPos;
         private Vector3 currentOverlayPos;
+        private float lastScaleControllerDist = -1f;
 
         // 1-Euro Filter tuned for iconic XSOverlay silky-smooth pointer feel
         private readonly OneEuroFilter3D hitPosFilter = new(minCutoff: 0.6f, beta: 1.0f);
@@ -430,6 +430,9 @@ namespace ScreenLookup.src.utils
                 inputService.UpdatePosesAndIndices();
                 inputService.UpdateActionState();
 
+                ulong primaryTrigger = (activeHand == ControllerHand.Right)
+                        ? inputService.TriggerRightHandle
+                        : inputService.TriggerLeftHandle;
                 ulong secondaryTrigger = (activeHand == ControllerHand.Right)
                     ? inputService.TriggerLeftHandle
                     : inputService.TriggerRightHandle;
@@ -578,30 +581,54 @@ namespace ScreenLookup.src.utils
                             currentOverlayPos -= fwd * pushAmount; // fwd points HMD<-overlay, so negate
                         }
 
-                        HmdMatrix34_t newTransform = new()
+                        // Primary trigger held + controller push/pull -> scale overlay
+                        // Push toward overlay -> decrease scale, pull away -> increase scale
+                        if (inputService.IsActionJustPressed(primaryTrigger) || (inputService.IsActionHeld(primaryTrigger) && lastScaleControllerDist != -1f))
                         {
-                            m0 = right.X,
-                            m1 = up.X,
-                            m2 = fwd.X,
-                            m3 = currentOverlayPos.X,
-                            m4 = right.Y,
-                            m5 = up.Y,
-                            m6 = fwd.Y,
-                            m7 = currentOverlayPos.Y,
-                            m8 = right.Z,
-                            m9 = up.Z,
-                            m10 = fwd.Z,
-                            m11 = currentOverlayPos.Z
-                        };
+                            Vector3 secCtrlPos = VRInputService.PosFromMatrix(inputService.Poses[ActiveControllerIdx].mDeviceToAbsoluteTracking);
+                            float secDist = Vector3.Distance(secCtrlPos, currentOverlayPos);
 
-                        overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref newTransform);
+                            if (lastScaleControllerDist >= 0f)
+                            {
+                                const float ScaleSpeed = 4f;
+                                float distDelta = lastScaleControllerDist - secDist;
+                                float newScale = Math.Clamp(App.setting.OverlayScale + distDelta * ScaleSpeed, 0.2f, 10f);
+                                if (MathF.Abs(newScale - App.setting.OverlayScale) > 0.001f)
+                                    App.setting.OverlayScale = newScale;
+                            }
 
-                        cachedAnchorTransform = newTransform;
-                        hasAnchorTransform = true;
+                            lastScaleControllerDist = secDist;
+                        }
+                        else
+                        {
+                            HmdMatrix34_t newTransform = new()
+                            {
+                                m0 = right.X,
+                                m1 = up.X,
+                                m2 = fwd.X,
+                                m3 = currentOverlayPos.X,
+                                m4 = right.Y,
+                                m5 = up.Y,
+                                m6 = fwd.Y,
+                                m7 = currentOverlayPos.Y,
+                                m8 = right.Z,
+                                m9 = up.Z,
+                                m10 = fwd.Z,
+                                m11 = currentOverlayPos.Z
+                            };
+
+                            overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref newTransform);
+
+                            cachedAnchorTransform = newTransform;
+                            hasAnchorTransform = true;
+                            lastScaleControllerDist = -1f;
+                        }
+
                         isOverlayDirty = true;
                     }
                     else
                     {
+                        lastScaleControllerDist = -1f;
                         isGrabbingOverlay = false;
                         grabbingControllerIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
                     }
@@ -634,12 +661,7 @@ namespace ScreenLookup.src.utils
                 // Input Trigger Button
                 if (isIntersecting && !isGrabbingOverlay)
                 {
-                    ulong primaryTrigger = (activeHand == ControllerHand.Right)
-                        ? inputService.TriggerRightHandle
-                        : inputService.TriggerLeftHandle;
-                    bool isTriggerHeld = inputService.IsActionHeld(primaryTrigger);
-
-                    if (isTriggerHeld && !wasTriggerHeld)
+                    if (inputService.IsActionJustPressed(primaryTrigger))
                     {
                         clickPulseStartTime = Environment.TickCount;
                         clickPulseX = pointerLocalX;
@@ -657,27 +679,10 @@ namespace ScreenLookup.src.utils
                             }
                             SetCursorPos(clickX, clickY);
                             mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-                            isOverlayDirty = true;
-                        });
-                    }
-                    else if (!isTriggerHeld && wasTriggerHeld)
-                    {
-                        targetWindow?.Dispatcher.InvokeAsync(async () =>
-                        {
                             mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                             isOverlayDirty = true;
                         });
                     }
-                    wasTriggerHeld = isTriggerHeld;
-                }
-                else if (wasTriggerHeld)
-                {
-                    targetWindow?.Dispatcher.InvokeAsync(() =>
-                    {
-                        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-                        isOverlayDirty = true;
-                    });
-                    wasTriggerHeld = false;
                 }
 
                 // Input B/Y Button
