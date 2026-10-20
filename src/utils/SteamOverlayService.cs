@@ -434,11 +434,7 @@ namespace ScreenLookup.src.utils
                     ? inputService.TriggerLeftHandle
                     : inputService.TriggerRightHandle;
 
-                if (inputService.IsActionJustPressed(secondaryTrigger))
-                    activeHand = (activeHand == ControllerHand.Right) ? ControllerHand.Left : ControllerHand.Right;
-
                 bool isIntersecting = false;
-
 
                 // Raycaster
                 if (ActiveControllerIdx != OpenVR.k_unTrackedDeviceIndexInvalid && inputService.Poses[ActiveControllerIdx].bPoseIsValid)
@@ -709,7 +705,9 @@ namespace ScreenLookup.src.utils
                     });
                 }
 
-
+                // Become active hand
+                if (inputService.IsActionJustReleased(secondaryTrigger))
+                    activeHand = (activeHand == ControllerHand.Right) ? ControllerHand.Left : ControllerHand.Right;
             }
             catch (Exception ex)
             {
