@@ -216,6 +216,12 @@ namespace ScreenLookup.src.utils
         private Vector3 lastGrabControllerPos;
         private Vector3 currentOverlayPos;
 
+        // 1-Euro Filter tuned for iconic XSOverlay silky-smooth pointer feel
+        private readonly OneEuroFilter3D hitPosFilter = new(minCutoff: 0.6f, beta: 1.0f);
+        private readonly OneEuroFilter3D hitNormalFilter = new(minCutoff: 1.0f, beta: 1.2f);
+        private readonly OneEuroFilter2D uvFilter = new(minCutoff: 0.6f, beta: 1.0f);
+        private long lastInputTimeTicks = 0;
+
         public bool IsInitialized => isInitialized;
         public bool IsVisible => isVisible;
         #endregion
@@ -462,11 +468,24 @@ namespace ScreenLookup.src.utils
 
                         if (sharedCaptureBmp != null && sharedCaptureBmp.Width > 0 && sharedCaptureBmp.Height > 0 && overlay.ComputeOverlayIntersection(overlayHandle, ref params_, ref results_))
                         {
+                            long currentTicks = Environment.TickCount64;
+                            float dt = (lastInputTimeTicks > 0) ? MathF.Max(0.001f, (currentTicks - lastInputTimeTicks) / 1000f) : 0.016f;
+                            lastInputTimeTicks = currentTicks;
+
+                            Vector2 rawUV = new(results_.vUVs.v0, 1f - results_.vUVs.v1);
+                            Vector3 rawHitPos = new(results_.vPoint.v0, results_.vPoint.v1, results_.vPoint.v2);
+                            Vector3 rawHitNormal = new(results_.vNormal.v0, results_.vNormal.v1, results_.vNormal.v2);
+
+                            // Apply 1-Euro Filtering for silky-smooth motion without lag
+                            Vector2 smoothedUV = uvFilter.Filter(rawUV, dt);
+                            hitPos = hitPosFilter.Filter(rawHitPos, dt);
+                            hitNormal = Vector3.Normalize(hitNormalFilter.Filter(rawHitNormal, dt));
+
                             int compW = sharedCaptureBmp.Width;
                             int compH = sharedCaptureBmp.Height;
 
-                            int localX = (int)(results_.vUVs.v0 * compW);
-                            int localY = (int)((1f - results_.vUVs.v1) * compH);
+                            int localX = (int)(smoothedUV.X * compW);
+                            int localY = (int)(smoothedUV.Y * compH);
 
                             int screenX = _cachedMinLeft + localX;
                             int screenY = _cachedMinTop + localY;
@@ -481,9 +500,12 @@ namespace ScreenLookup.src.utils
                             isOverlayDirty = true;
 
                             SetCursorPos(screenX, screenY);
-
-                            hitPos = new(results_.vPoint.v0, results_.vPoint.v1, results_.vPoint.v2);
-                            hitNormal = new(results_.vNormal.v0, results_.vNormal.v1, results_.vNormal.v2);
+                        }
+                        else
+                        {
+                            hitPosFilter.Reset();
+                            hitNormalFilter.Reset();
+                            uvFilter.Reset();
                         }
 
                         UpdateLaserOverlay(sourcePos, hitPos);
@@ -493,10 +515,18 @@ namespace ScreenLookup.src.utils
                             HideCursorOverlay();
                     }
                     else
+                    {
+                        hitPosFilter.Reset();
+                        hitNormalFilter.Reset();
+                        uvFilter.Reset();
                         HideCursorOverlay();
+                    }
                 }
                 else
                 {
+                    hitPosFilter.Reset();
+                    hitNormalFilter.Reset();
+                    uvFilter.Reset();
                     HideCursorOverlay();
                 }
 
@@ -1342,6 +1372,9 @@ namespace ScreenLookup.src.utils
 
         private void HideCursorOverlay()
         {
+            hitPosFilter.Reset();
+            hitNormalFilter.Reset();
+            uvFilter.Reset();
             CVROverlay? overlay = OpenVR.Overlay;
             if (overlay != null && cursorOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
                 overlay.HideOverlay(cursorOverlayHandle);
@@ -1604,4 +1637,122 @@ namespace ScreenLookup.src.utils
         }
         #endregion
     }
+
+    #region 1-Euro Filter for Ultra-Smooth Tracking
+    internal class OneEuroFilter3D
+    {
+        private Vector3 xPrev = Vector3.Zero;
+        private Vector3 dxPrev = Vector3.Zero;
+        private bool initialized = false;
+
+        private readonly float minCutoff;
+        private readonly float beta;
+        private readonly float dCutoff;
+
+        public OneEuroFilter3D(float minCutoff = 0.8f, float beta = 0.08f, float dCutoff = 1.0f)
+        {
+            this.minCutoff = minCutoff;
+            this.beta = beta;
+            this.dCutoff = dCutoff;
+        }
+
+        public void Reset()
+        {
+            initialized = false;
+        }
+
+        private static float Alpha(float rate, float cutoff)
+        {
+            float tau = 1.0f / (2.0f * MathF.PI * cutoff);
+            float te = 1.0f / rate;
+            return 1.0f / (1.0f + (tau / te));
+        }
+
+        public Vector3 Filter(Vector3 x, float dt)
+        {
+            if (dt <= 0.0001f) dt = 0.016f;
+            float rate = 1.0f / dt;
+
+            if (!initialized)
+            {
+                initialized = true;
+                xPrev = x;
+                dxPrev = Vector3.Zero;
+                return x;
+            }
+
+            Vector3 dx = (x - xPrev) * rate;
+            float edxAlpha = Alpha(rate, dCutoff);
+            Vector3 dxHat = Vector3.Lerp(dxPrev, dx, edxAlpha);
+            dxPrev = dxHat;
+
+            float speed = dxHat.Length();
+            float cutoff = minCutoff + (beta * speed);
+
+            float xAlpha = Alpha(rate, cutoff);
+            Vector3 xHat = Vector3.Lerp(xPrev, x, xAlpha);
+            xPrev = xHat;
+
+            return xHat;
+        }
+    }
+
+    internal class OneEuroFilter2D
+    {
+        private Vector2 xPrev = Vector2.Zero;
+        private Vector2 dxPrev = Vector2.Zero;
+        private bool initialized = false;
+
+        private readonly float minCutoff;
+        private readonly float beta;
+        private readonly float dCutoff;
+
+        public OneEuroFilter2D(float minCutoff = 1.0f, float beta = 0.05f, float dCutoff = 1.0f)
+        {
+            this.minCutoff = minCutoff;
+            this.beta = beta;
+            this.dCutoff = dCutoff;
+        }
+
+        public void Reset()
+        {
+            initialized = false;
+        }
+
+        private static float Alpha(float rate, float cutoff)
+        {
+            float tau = 1.0f / (2.0f * MathF.PI * cutoff);
+            float te = 1.0f / rate;
+            return 1.0f / (1.0f + (tau / te));
+        }
+
+        public Vector2 Filter(Vector2 x, float dt)
+        {
+            if (dt <= 0.0001f) dt = 0.016f;
+            float rate = 1.0f / dt;
+
+            if (!initialized)
+            {
+                initialized = true;
+                xPrev = x;
+                dxPrev = Vector2.Zero;
+                return x;
+            }
+
+            Vector2 dx = (x - xPrev) * rate;
+            float edxAlpha = Alpha(rate, dCutoff);
+            Vector2 dxHat = Vector2.Lerp(dxPrev, dx, edxAlpha);
+            dxPrev = dxHat;
+
+            float speed = dxHat.Length();
+            float cutoff = minCutoff + (beta * speed);
+
+            float xAlpha = Alpha(rate, cutoff);
+            Vector2 xHat = Vector2.Lerp(xPrev, x, xAlpha);
+            xPrev = xHat;
+
+            return xHat;
+        }
+    }
+    #endregion
 }
