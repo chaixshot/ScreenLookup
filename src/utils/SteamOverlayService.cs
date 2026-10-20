@@ -551,6 +551,14 @@ namespace ScreenLookup.src.utils
                         OpenVR.System?.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, hmdPoses);
                         TrackedDevicePose_t hmdPose = hmdPoses[OpenVR.k_unTrackedDeviceIndex_Hmd];
 
+                        // Thumbstick up/down -> push/pull overlay along HMD-to-overlay axis
+                        ulong thumbstickHandle = (grabbingControllerIdx == inputService.RightControllerIdx)
+                            ? inputService.ThumbstickRightHandle
+                            : inputService.ThumbstickLeftHandle;
+                        float thumbY = inputService.GetThumbstickY(thumbstickHandle);
+                        const float PushPullSpeed = 3f;
+                        const float DeadZone = 0.15f;
+
                         Vector3 hmdPos = hmdPose.bPoseIsValid
                             ? VRInputService.PosFromMatrix(hmdPose.mDeviceToAbsoluteTracking)
                             : new Vector3(0f, currentOverlayPos.Y, 0f);
@@ -566,6 +574,13 @@ namespace ScreenLookup.src.utils
                         else
                             right = Vector3.Normalize(right);
                         Vector3 up = Vector3.Normalize(Vector3.Cross(fwd, right));
+
+                        // Apply thumbstick push/pull: move overlay away from (up) or toward (down) HMD
+                        if (MathF.Abs(thumbY) > DeadZone)
+                        {
+                            float pushAmount = thumbY * PushPullSpeed * 0.016f; // scale by nominal frame time
+                            currentOverlayPos -= fwd * pushAmount; // fwd points HMD<-overlay, so negate
+                        }
 
                         HmdMatrix34_t newTransform = new()
                         {
