@@ -726,39 +726,40 @@ namespace ScreenLookup.src.utils
 
             Vector3 normDir = Vector3.Normalize(dir);
 
-            Vector3 actualLaserDir = hitPoint - startPos;
-            float laserLength = actualLaserDir.Length();
-            if (laserLength < 0.01f) return;
+            // Place overlay center at midpoint; Y axis aligned to beam direction.
+            Vector3 mid = startPos + normDir * (totalDist * 0.5f);
 
-            Vector3 mid = (startPos + hitPoint) * 0.5f;
-
-            Vector3 up = Vector3.Normalize(actualLaserDir);
-            Vector3 right = MathF.Abs(up.Y) < 0.99f
-                ? Vector3.Normalize(Vector3.Cross(up, Vector3.UnitY))
-                : Vector3.Normalize(Vector3.Cross(up, Vector3.UnitX));
-            Vector3 fwd = Vector3.Normalize(Vector3.Cross(right, up));
+            // Build orthonormal basis: Y axis = beam direction (matches LaserPointer.cs: transform.up = direction)
+            // Cross order must be (up, worldRef) to keep the matrix right-handed (det = +1).
+            Vector3 laserUp = normDir;
+            Vector3 laserRight = MathF.Abs(laserUp.Y) < 0.99f
+                ? Vector3.Normalize(Vector3.Cross(laserUp, Vector3.UnitY))
+                : Vector3.Normalize(Vector3.Cross(laserUp, Vector3.UnitX));
+            Vector3 laserFwd = Vector3.Normalize(Vector3.Cross(laserRight, laserUp));
 
             HmdMatrix34_t laserTransform = new()
             {
-                m0 = right.X,
-                m1 = up.X,
-                m2 = fwd.X,
+                m0 = laserRight.X,
+                m1 = laserUp.X,
+                m2 = laserFwd.X,
                 m3 = mid.X,
-                m4 = right.Y,
-                m5 = up.Y,
-                m6 = fwd.Y,
+                m4 = laserRight.Y,
+                m5 = laserUp.Y,
+                m6 = laserFwd.Y,
                 m7 = mid.Y,
-                m8 = right.Z,
-                m9 = up.Z,
-                m10 = fwd.Z,
+                m8 = laserRight.Z,
+                m9 = laserUp.Z,
+                m10 = laserFwd.Z,
                 m11 = mid.Z
             };
 
             overlay.SetOverlayTransformAbsolute(laserOverlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref laserTransform);
             overlay.SetOverlayWidthInMeters(laserOverlayHandle, 0.0025f);
 
-            int targetHeight = Math.Max(10, (int)(laserLength * 500f));
-            float distDelta = MathF.Abs(laserLength - lastLaserLength);
+            // Physical overlay height = width × (texHeight / texWidth) = 0.0025 × targetHeight
+            // → to match totalDist exactly: targetHeight = totalDist / 0.0025 = totalDist × 400
+            int targetHeight = Math.Max(10, (int)(totalDist * 400f));
+            float distDelta = MathF.Abs(totalDist - lastLaserLength);
             float currentTime = (float)Environment.TickCount64 / 1000f;
 
             lock (d3dLock)
@@ -788,7 +789,7 @@ namespace ScreenLookup.src.utils
                     laserStagingTex = d3dDevice.CreateTexture2D(desc);
 
                     lastLaserTexHeight = targetHeight;
-                    lastLaserLength = laserLength;
+                    lastLaserLength = totalDist;
                     lastUpdateLengthTime = currentTime;
 
                     MappedSubresource map = d3dContext.Map(laserStagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
