@@ -145,6 +145,7 @@ namespace ScreenLookup.src.utils
         #region Private Fields
         private ulong overlayHandle = OpenVR.k_ulOverlayHandleInvalid;
         private ulong laserOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
+        private ulong cursorOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
         private bool isInitialized = false;
         private bool isVisible = false;
 
@@ -158,6 +159,10 @@ namespace ScreenLookup.src.utils
         private int lastLaserTexHeight = 0;
         private float lastLaserLength = 0f;
         private float lastUpdateLengthTime = 0f;
+
+        private ID3D11Texture2D? cursorD3dTex;
+        private ID3D11Texture2D? cursorStagingTex;
+        private IntPtr lastCursorHandle = IntPtr.Zero;
 
         private readonly Lock d3dLock = new();
         private CaptureWindow targetWindow = null!;
@@ -286,6 +291,14 @@ namespace ScreenLookup.src.utils
                 overlay.SetOverlayWidthInMeters(laserOverlayHandle, 0.0025f);
             }
 
+            EVROverlayError cursorOverlayError = overlay.CreateOverlay("ScreenLookup.CursorOverlay", "ScreenLookup Cursor", ref cursorOverlayHandle);
+            if (cursorOverlayError == EVROverlayError.None)
+            {
+                overlay.SetOverlayInputMethod(cursorOverlayHandle, VROverlayInputMethod.None);
+                overlay.SetOverlayFlag(cursorOverlayHandle, VROverlayFlags.IsPremultiplied, true);
+                overlay.SetOverlayWidthInMeters(cursorOverlayHandle, 0.045f);
+            }
+
             return isInitialized = true;
         }
 
@@ -308,6 +321,7 @@ namespace ScreenLookup.src.utils
                 inputService.BlockGameInput = false;
                 overlay.HideOverlay(overlayHandle);
                 HideLaserOverlay();
+                HideCursorOverlay();
             }
 
             isVisible = visible;
@@ -444,6 +458,7 @@ namespace ScreenLookup.src.utils
                         Vector3 sourcePos = new(source.v0, source.v1, source.v2);
                         Vector3 rayDir = Vector3.Normalize(new Vector3(direction.v0, direction.v1, direction.v2));
                         Vector3 hitPos = sourcePos + rayDir * 1.5f;
+                        Vector3 hitNormal = Vector3.Zero;
 
                         if (sharedCaptureBmp != null && sharedCaptureBmp.Width > 0 && sharedCaptureBmp.Height > 0 && overlay.ComputeOverlayIntersection(overlayHandle, ref params_, ref results_))
                         {
@@ -468,10 +483,21 @@ namespace ScreenLookup.src.utils
                             SetCursorPos(screenX, screenY);
 
                             hitPos = new(results_.vPoint.v0, results_.vPoint.v1, results_.vPoint.v2);
+                            hitNormal = new(results_.vNormal.v0, results_.vNormal.v1, results_.vNormal.v2);
                         }
 
                         UpdateLaserOverlay(sourcePos, hitPos);
+                        if (hasPointerIntersection)
+                            UpdateCursorOverlay(hitPos, hitNormal);
+                        else
+                            HideCursorOverlay();
                     }
+                    else
+                        HideCursorOverlay();
+                }
+                else
+                {
+                    HideCursorOverlay();
                 }
 
                 // Input Grip Button
@@ -1050,7 +1076,6 @@ namespace ScreenLookup.src.utils
 
                 RenderHint(compositeWidth);
                 RenderRecentering(compositeWidth, compositeHeight);
-                RenderCursor(compositeWidth, compositeHeight);
                 RenderClickAnimation();
                 RenderCaptureOverlay(compositeWidth, compositeHeight);
             }
@@ -1095,98 +1120,231 @@ namespace ScreenLookup.src.utils
             return popupWindows;
         }
 
-        private void RenderCursor(int compositeWidth, int compositeHeight)
+        private void UpdateCursorOverlay(Vector3 hitPos, Vector3 hitNormal)
         {
-            // Render Cursor (Extracted via DIB Section to cleanly handle 32-bit alpha and drop shadow)
-            CURSORINFO ci = new() { cbSize = Marshal.SizeOf<CURSORINFO>() };
-            if (hasPointerIntersection && GetCursorInfo(out ci) && (ci.flags & 1) != 0 && ci.hCursor != IntPtr.Zero)
+            CVROverlay? overlay = OpenVR.Overlay;
+            if (overlay == null || cursorOverlayHandle == OpenVR.k_ulOverlayHandleInvalid || d3dDevice == null || d3dContext == null) return;
+
+            if (!hasPointerIntersection)
             {
-                if (GetIconInfo(ci.hCursor, out ICONINFO iconInfo))
+                HideCursorOverlay();
+                return;
+            }
+
+            CURSORINFO ci = new() { cbSize = Marshal.SizeOf<CURSORINFO>() };
+            IntPtr hCursor = IntPtr.Zero;
+            int xHotspot = 16;
+            int yHotspot = 16;
+            int w = 32;
+            int h = 32;
+            bool hasCursorInfo = false;
+
+            if (GetCursorInfo(out ci) && (ci.flags & 1) != 0 && ci.hCursor != IntPtr.Zero)
+            {
+                hCursor = ci.hCursor;
+                if (GetIconInfo(hCursor, out ICONINFO iconInfo))
                 {
-                    int cursorX = pointerLocalX - iconInfo.xHotspot;
-                    int cursorY = pointerLocalY - iconInfo.yHotspot;
+                    xHotspot = iconInfo.xHotspot;
+                    yHotspot = iconInfo.yHotspot;
 
-                    bool isMonochrome = iconInfo.hbmColor == IntPtr.Zero;
-                    if (!isMonochrome)
+                    if (iconInfo.hbmColor != IntPtr.Zero && GetObject(iconInfo.hbmColor, Marshal.SizeOf<BITMAP>(), out BITMAP bm) > 0)
                     {
-                        if (GetObject(iconInfo.hbmColor, Marshal.SizeOf<BITMAP>(), out BITMAP bm) > 0)
-                        {
-                            int w = bm.bmWidth;
-                            int h = bm.bmHeight;
-
-                            IntPtr hdcScreen = GetDC(IntPtr.Zero);
-                            IntPtr hdcMem = CreateCompatibleDC(hdcScreen);
-
-                            BITMAPINFOHEADER bmi = new()
-                            {
-                                biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(),
-                                biWidth = w,
-                                biHeight = -h, // Top-down DIB
-                                biPlanes = 1,
-                                biBitCount = 32,
-                                biCompression = 0 // BI_RGB
-                            };
-
-                            IntPtr hbmDib = CreateDIBSection(hdcMem, ref bmi, 0, out IntPtr bitsPtr, IntPtr.Zero, 0);
-                            IntPtr hOld = SelectObject(hdcMem, hbmDib);
-
-                            DrawIconEx(hdcMem, 0, 0, ci.hCursor, w, h, 0, IntPtr.Zero, 0x0003);
-
-                            unsafe
-                            {
-                                byte* srcPixels = (byte*)bitsPtr;
-                                for (int y = 0; y < h; y++)
-                                {
-                                    int targetY = cursorY + y;
-                                    if (targetY < 0 || targetY >= compositeHeight) continue;
-
-                                    byte* srcRow = srcPixels + (y * bm.bmWidthBytes);
-                                    for (int x = 0; x < w; x++)
-                                    {
-                                        int targetX = cursorX + x;
-                                        if (targetX < 0 || targetX >= compositeWidth) continue;
-
-                                        int srcOffset = x * 4;
-                                        byte b = srcRow[srcOffset + 0];
-                                        byte g = srcRow[srcOffset + 1];
-                                        byte r = srcRow[srcOffset + 2];
-                                        byte a = srcRow[srcOffset + 3];
-
-                                        if (a == 0) continue;
-
-                                        // Filter out cursor drop shadow (semi-transparent black fringe)
-                                        if (a < 180 && r < 50 && g < 50 && b < 50) continue;
-
-                                        sharedCaptureBmp!.SetPixel(targetX, targetY, Color.FromArgb(a, r, g, b));
-                                    }
-                                }
-                            }
-
-                            SelectObject(hdcMem, hOld);
-                            DeleteObject(hbmDib);
-                            DeleteDC(hdcMem);
-                            ReleaseDC(IntPtr.Zero, hdcScreen);
-                        }
-                    }
-                    else
-                    {
-                        IntPtr hdc = sharedCaptureGraphics!.GetHdc();
-                        DrawIconEx(hdc, cursorX, cursorY, ci.hCursor, 0, 0, 0, IntPtr.Zero, 0x0003);
-                        sharedCaptureGraphics.ReleaseHdc(hdc);
+                        w = bm.bmWidth;
+                        h = bm.bmHeight;
                     }
 
                     if (iconInfo.hbmColor != IntPtr.Zero) DeleteObject(iconInfo.hbmColor);
                     if (iconInfo.hbmMask != IntPtr.Zero) DeleteObject(iconInfo.hbmMask);
+                    hasCursorInfo = true;
                 }
             }
-            else if (hasPointerIntersection)
+
+            lock (d3dLock)
             {
-                using SolidBrush dotBrush = new(Color.FromArgb(220, 255, 255, 255));
-                using Pen dotBorder = new(Color.FromArgb(255, 218, 96, 255), 2f);
-                sharedCaptureGraphics!.SmoothingMode = SmoothingMode.AntiAlias;
-                sharedCaptureGraphics.FillEllipse(dotBrush, pointerLocalX - 4, pointerLocalY - 4, 8, 8);
-                sharedCaptureGraphics.DrawEllipse(dotBorder, pointerLocalX - 4, pointerLocalY - 4, 8, 8);
+                if (cursorD3dTex == null || lastCursorHandle != hCursor)
+                {
+                    cursorD3dTex?.Dispose();
+                    cursorStagingTex?.Dispose();
+
+                    Texture2DDescription desc = new()
+                    {
+                        Width = (uint)w,
+                        Height = (uint)h,
+                        MipLevels = 1,
+                        ArraySize = 1,
+                        Format = Format.B8G8R8A8_UNorm,
+                        SampleDescription = new SampleDescription(1, 0),
+                        Usage = ResourceUsage.Default,
+                        BindFlags = BindFlags.ShaderResource
+                    };
+                    cursorD3dTex = d3dDevice.CreateTexture2D(desc);
+
+                    desc.Usage = ResourceUsage.Staging;
+                    desc.BindFlags = BindFlags.None;
+                    desc.CPUAccessFlags = CpuAccessFlags.Write;
+                    cursorStagingTex = d3dDevice.CreateTexture2D(desc);
+
+                    lastCursorHandle = hCursor;
+
+                    MappedSubresource map = d3dContext.Map(cursorStagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
+
+                    if (hasCursorInfo && hCursor != IntPtr.Zero)
+                    {
+                        IntPtr hdcScreen = GetDC(IntPtr.Zero);
+                        IntPtr hdcMem = CreateCompatibleDC(hdcScreen);
+
+                        BITMAPINFOHEADER bmi = new()
+                        {
+                            biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(),
+                            biWidth = w,
+                            biHeight = -h, // Top-down DIB
+                            biPlanes = 1,
+                            biBitCount = 32,
+                            biCompression = 0 // BI_RGB
+                        };
+
+                        IntPtr hbmDib = CreateDIBSection(hdcMem, ref bmi, 0, out IntPtr bitsPtr, IntPtr.Zero, 0);
+                        IntPtr hOld = SelectObject(hdcMem, hbmDib);
+
+                        DrawIconEx(hdcMem, 0, 0, hCursor, w, h, 0, IntPtr.Zero, 0x0003);
+
+                        unsafe
+                        {
+                            byte* srcPixels = (byte*)bitsPtr;
+                            for (int y = 0; y < h; y++)
+                            {
+                                byte* srcRow = srcPixels + (y * (w * 4));
+                                byte* destRow = (byte*)map.DataPointer + (y * map.RowPitch);
+                                for (int x = 0; x < w; x++)
+                                {
+                                    int offset = x * 4;
+                                    byte b = srcRow[offset + 0];
+                                    byte gVal = srcRow[offset + 1];
+                                    byte r = srcRow[offset + 2];
+                                    byte a = srcRow[offset + 3];
+
+                                    // Filter out drop shadow semi-transparent black fringe
+                                    if (a == 0 || (a < 180 && r < 50 && gVal < 50 && b < 50))
+                                    {
+                                        *(uint*)(destRow + offset) = 0;
+                                        continue;
+                                    }
+
+                                    destRow[offset + 0] = (byte)((b * a + 127) / 255);
+                                    destRow[offset + 1] = (byte)((gVal * a + 127) / 255);
+                                    destRow[offset + 2] = (byte)((r * a + 127) / 255);
+                                    destRow[offset + 3] = a;
+                                }
+                            }
+                        }
+
+                        SelectObject(hdcMem, hOld);
+                        DeleteObject(hbmDib);
+                        DeleteDC(hdcMem);
+                        ReleaseDC(IntPtr.Zero, hdcScreen);
+                    }
+                    else
+                    {
+                        using Bitmap dotBmp = new(w, h, PixelFormat.Format32bppPArgb);
+                        using (Graphics g = Graphics.FromImage(dotBmp))
+                        {
+                            g.Clear(Color.Transparent);
+                            g.SmoothingMode = SmoothingMode.AntiAlias;
+                            using SolidBrush dotBrush = new(Color.FromArgb(220, 255, 255, 255));
+                            using Pen dotBorder = new(Color.FromArgb(255, 218, 96, 255), 2f);
+                            g.FillEllipse(dotBrush, (w / 2) - 4, (h / 2) - 4, 8, 8);
+                            g.DrawEllipse(dotBorder, (w / 2) - 4, (h / 2) - 4, 8, 8);
+                        }
+
+                        BitmapData bData = dotBmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadOnly, dotBmp.PixelFormat);
+                        unsafe
+                        {
+                            for (int y = 0; y < h; y++)
+                            {
+                                byte* srcRow = (byte*)bData.Scan0 + (y * bData.Stride);
+                                byte* destRow = (byte*)map.DataPointer + (y * map.RowPitch);
+                                for (int x = 0; x < w; x++)
+                                {
+                                    int offset = x * 4;
+                                    byte a = srcRow[offset + 3];
+                                    byte b = srcRow[offset + 0];
+                                    byte gVal = srcRow[offset + 1];
+                                    byte r = srcRow[offset + 2];
+
+                                    destRow[offset + 0] = (byte)((b * a + 127) / 255);
+                                    destRow[offset + 1] = (byte)((gVal * a + 127) / 255);
+                                    destRow[offset + 2] = (byte)((r * a + 127) / 255);
+                                    destRow[offset + 3] = a;
+                                }
+                            }
+                        }
+                        dotBmp.UnlockBits(bData);
+                    }
+
+                    d3dContext.Unmap(cursorStagingTex, 0);
+                    d3dContext.CopyResource(cursorD3dTex, cursorStagingTex);
+
+                    Texture_t tex = new()
+                    {
+                        handle = cursorD3dTex.NativePointer,
+                        eType = ETextureType.DirectX,
+                        eColorSpace = EColorSpace.Auto
+                    };
+                    overlay.SetOverlayTexture(cursorOverlayHandle, ref tex);
+                }
             }
+
+            float overlayQuadWidth = App.setting.OverlayScale * 0.0225f;
+            overlay.SetOverlayWidthInMeters(cursorOverlayHandle, overlayQuadWidth);
+
+            // Compute basis vectors aligned with the curved overlay surface normal at hitPos
+            Vector3 fwd = Vector3.Normalize(hitNormal);
+            if (fwd.LengthSquared() < 0.001f)
+                fwd = Vector3.Normalize(new Vector3(cachedAnchorTransform.m2, cachedAnchorTransform.m6, cachedAnchorTransform.m10));
+
+            Vector3 anchorUp = Vector3.Normalize(new Vector3(cachedAnchorTransform.m1, cachedAnchorTransform.m5, cachedAnchorTransform.m9));
+            if (anchorUp.LengthSquared() < 0.001f) anchorUp = Vector3.UnitY;
+
+            Vector3 right = Vector3.Normalize(Vector3.Cross(anchorUp, fwd));
+            if (right.LengthSquared() < 0.001f) right = Vector3.UnitX;
+
+            Vector3 up = Vector3.Normalize(Vector3.Cross(fwd, right));
+
+            float metersPerPixel = overlayQuadWidth / (float)w;
+            float deltaX = (xHotspot - (w / 2.0f)) * metersPerPixel;
+            float deltaY = ((h / 2.0f) - yHotspot) * metersPerPixel;
+
+            Vector3 cursorCenterPos = hitPos - (right * deltaX) - (up * deltaY) + (fwd * 0.001f);
+
+            HmdMatrix34_t cursorTransform = new()
+            {
+                m0 = right.X,
+                m1 = up.X,
+                m2 = fwd.X,
+                m3 = cursorCenterPos.X,
+                m4 = right.Y,
+                m5 = up.Y,
+                m6 = fwd.Y,
+                m7 = cursorCenterPos.Y,
+                m8 = right.Z,
+                m9 = up.Z,
+                m10 = fwd.Z,
+                m11 = cursorCenterPos.Z
+            };
+
+            overlay.SetOverlayTransformAbsolute(cursorOverlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref cursorTransform);
+            overlay.ShowOverlay(cursorOverlayHandle);
+
+            float curve = 0f;
+            overlay.GetOverlayCurvature(overlayHandle, ref curve);
+            overlay.SetOverlayCurvature(cursorOverlayHandle, curve);
+        }
+
+        private void HideCursorOverlay()
+        {
+            CVROverlay? overlay = OpenVR.Overlay;
+            if (overlay != null && cursorOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
+                overlay.HideOverlay(cursorOverlayHandle);
         }
 
         private void RenderRecentering(int compositeWidth, int compositeHeight)
@@ -1421,6 +1579,9 @@ namespace ScreenLookup.src.utils
                     if (overlay != null && laserOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
                         overlay.DestroyOverlay(laserOverlayHandle);
 
+                    if (overlay != null && cursorOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
+                        overlay.DestroyOverlay(cursorOverlayHandle);
+
                     sharedCaptureGraphics?.Dispose();
                     sharedCaptureBmp?.Dispose();
 
@@ -1429,6 +1590,9 @@ namespace ScreenLookup.src.utils
 
                     laserD3dTex?.Dispose();
                     laserStagingTex?.Dispose();
+
+                    cursorD3dTex?.Dispose();
+                    cursorStagingTex?.Dispose();
 
                     d3dContext?.Dispose();
                     d3dDevice?.Dispose();
