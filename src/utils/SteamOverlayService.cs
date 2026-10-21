@@ -211,7 +211,6 @@ namespace ScreenLookup.src.utils
         private int lastScreenY = 0;
 
         private bool isGrabbingOverlay = false;
-        private uint grabbingControllerIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
         private Vector3 lastGrabControllerPos;
         private Vector3 currentOverlayPos;
         private float lastScaleControllerDist = -1f;
@@ -430,88 +429,91 @@ namespace ScreenLookup.src.utils
                 inputService.UpdatePosesAndIndices();
                 inputService.UpdateActionState();
 
-                ulong primaryTrigger = (activeHand == ControllerHand.Right)
-                        ? inputService.TriggerRightHandle
-                        : inputService.TriggerLeftHandle;
-                ulong secondaryTrigger = (activeHand == ControllerHand.Right)
-                    ? inputService.TriggerLeftHandle
-                    : inputService.TriggerRightHandle;
-
                 bool isIntersecting = false;
+                ulong primaryTrigger = (activeHand == ControllerHand.Right) ? inputService.TriggerRightHandle : inputService.TriggerLeftHandle;
+                ulong secondaryTrigger = (activeHand == ControllerHand.Right) ? inputService.TriggerLeftHandle : inputService.TriggerRightHandle;
+                ulong primaryGrip = (activeHand == ControllerHand.Right) ? inputService.GripRightHandle : inputService.GripLeftHandle;
+                ulong primaryThumbstick = (ActiveControllerIdx == inputService.RightControllerIdx) ? inputService.ThumbstickRightHandle : inputService.ThumbstickLeftHandle;
+                ulong primaryPointer = (activeHand == ControllerHand.Right) ? inputService.PointerRightHandle : inputService.PointerLeftHandle;
+                HmdMatrix34_t devicePose = inputService.Poses[ActiveControllerIdx].mDeviceToAbsoluteTracking;
 
                 // Raycaster
-                if (ActiveControllerIdx != OpenVR.k_unTrackedDeviceIndexInvalid && inputService.Poses[ActiveControllerIdx].bPoseIsValid)
                 {
-                    HmdMatrix34_t pose = inputService.Poses[ActiveControllerIdx].mDeviceToAbsoluteTracking;
-                    ulong pointerHandle = (activeHand == ControllerHand.Right)
-                        ? inputService.PointerRightHandle
-                        : inputService.PointerLeftHandle;
-
-                    if (inputService.GetPointerRay(pointerHandle, pose, out HmdVector3_t source, out HmdVector3_t direction))
+                    if (ActiveControllerIdx != OpenVR.k_unTrackedDeviceIndexInvalid && inputService.Poses[ActiveControllerIdx].bPoseIsValid)
                     {
-                        hasPointerIntersection = false;
-                        isIntersecting = false;
-
-                        VROverlayIntersectionParams_t params_ = new()
+                        if (inputService.GetPointerRay(primaryPointer, devicePose, out HmdVector3_t source, out HmdVector3_t direction))
                         {
-                            eOrigin = ETrackingUniverseOrigin.TrackingUniverseStanding,
-                            vSource = source,
-                            vDirection = direction
-                        };
-                        VROverlayIntersectionResults_t results_ = new();
+                            hasPointerIntersection = false;
+                            isIntersecting = false;
 
-                        Vector3 sourcePos = new(source.v0, source.v1, source.v2);
-                        Vector3 rayDir = Vector3.Normalize(new Vector3(direction.v0, direction.v1, direction.v2));
-                        Vector3 hitPos = sourcePos + rayDir * 1.5f;
-                        Vector3 hitNormal = Vector3.Zero;
+                            VROverlayIntersectionParams_t params_ = new()
+                            {
+                                eOrigin = ETrackingUniverseOrigin.TrackingUniverseStanding,
+                                vSource = source,
+                                vDirection = direction
+                            };
+                            VROverlayIntersectionResults_t results_ = new();
 
-                        if (sharedCaptureBmp != null && sharedCaptureBmp.Width > 0 && sharedCaptureBmp.Height > 0 && overlay.ComputeOverlayIntersection(overlayHandle, ref params_, ref results_))
-                        {
-                            long currentTicks = Environment.TickCount64;
-                            float dt = (lastInputTimeTicks > 0) ? MathF.Max(0.001f, (currentTicks - lastInputTimeTicks) / 1000f) : 0.016f;
-                            lastInputTimeTicks = currentTicks;
+                            Vector3 sourcePos = new(source.v0, source.v1, source.v2);
+                            Vector3 rayDir = Vector3.Normalize(new Vector3(direction.v0, direction.v1, direction.v2));
+                            Vector3 hitPos = sourcePos + rayDir * 1.5f;
+                            Vector3 hitNormal = Vector3.Zero;
 
-                            Vector2 rawUV = new(results_.vUVs.v0, 1f - results_.vUVs.v1);
-                            Vector3 rawHitPos = new(results_.vPoint.v0, results_.vPoint.v1, results_.vPoint.v2);
-                            Vector3 rawHitNormal = new(results_.vNormal.v0, results_.vNormal.v1, results_.vNormal.v2);
+                            if (sharedCaptureBmp != null && sharedCaptureBmp.Width > 0 && sharedCaptureBmp.Height > 0 && overlay.ComputeOverlayIntersection(overlayHandle, ref params_, ref results_))
+                            {
+                                long currentTicks = Environment.TickCount64;
+                                float dt = (lastInputTimeTicks > 0) ? MathF.Max(0.001f, (currentTicks - lastInputTimeTicks) / 1000f) : 0.016f;
+                                lastInputTimeTicks = currentTicks;
 
-                            // Apply 1-Euro Filtering for silky-smooth motion without lag
-                            Vector2 smoothedUV = uvFilter.Filter(rawUV, dt);
-                            hitPos = hitPosFilter.Filter(rawHitPos, dt);
-                            hitNormal = Vector3.Normalize(hitNormalFilter.Filter(rawHitNormal, dt));
+                                Vector2 rawUV = new(results_.vUVs.v0, 1f - results_.vUVs.v1);
+                                Vector3 rawHitPos = new(results_.vPoint.v0, results_.vPoint.v1, results_.vPoint.v2);
+                                Vector3 rawHitNormal = new(results_.vNormal.v0, results_.vNormal.v1, results_.vNormal.v2);
 
-                            int compW = sharedCaptureBmp.Width;
-                            int compH = sharedCaptureBmp.Height;
+                                // Apply 1-Euro Filtering for silky-smooth motion without lag
+                                Vector2 smoothedUV = uvFilter.Filter(rawUV, dt);
+                                hitPos = hitPosFilter.Filter(rawHitPos, dt);
+                                hitNormal = Vector3.Normalize(hitNormalFilter.Filter(rawHitNormal, dt));
 
-                            int localX = (int)(smoothedUV.X * compW);
-                            int localY = (int)(smoothedUV.Y * compH);
+                                int compW = sharedCaptureBmp.Width;
+                                int compH = sharedCaptureBmp.Height;
 
-                            int screenX = _cachedMinLeft + localX;
-                            int screenY = _cachedMinTop + localY;
+                                int localX = (int)(smoothedUV.X * compW);
+                                int localY = (int)(smoothedUV.Y * compH);
 
-                            lastScreenX = screenX;
-                            lastScreenY = screenY;
+                                int screenX = _cachedMinLeft + localX;
+                                int screenY = _cachedMinTop + localY;
 
-                            pointerLocalX = localX;
-                            pointerLocalY = localY;
-                            hasPointerIntersection = true;
-                            isIntersecting = true;
-                            isOverlayDirty = true;
+                                lastScreenX = screenX;
+                                lastScreenY = screenY;
 
-                            SetCursorPos(screenX, screenY);
+                                pointerLocalX = localX;
+                                pointerLocalY = localY;
+                                hasPointerIntersection = true;
+                                isIntersecting = true;
+                                isOverlayDirty = true;
+
+                                SetCursorPos(screenX, screenY);
+                            }
+                            else
+                            {
+                                hitPosFilter.Reset();
+                                hitNormalFilter.Reset();
+                                uvFilter.Reset();
+                            }
+
+                            UpdateLaserOverlay(sourcePos, hitPos);
+                            if (hasPointerIntersection)
+                                UpdateCursorOverlay(hitPos, hitNormal);
+                            else
+                                HideCursorOverlay();
                         }
                         else
                         {
                             hitPosFilter.Reset();
                             hitNormalFilter.Reset();
                             uvFilter.Reset();
-                        }
-
-                        UpdateLaserOverlay(sourcePos, hitPos);
-                        if (hasPointerIntersection)
-                            UpdateCursorOverlay(hitPos, hitNormal);
-                        else
                             HideCursorOverlay();
+                        }
                     }
                     else
                     {
@@ -521,139 +523,103 @@ namespace ScreenLookup.src.utils
                         HideCursorOverlay();
                     }
                 }
-                else
-                {
-                    hitPosFilter.Reset();
-                    hitNormalFilter.Reset();
-                    uvFilter.Reset();
-                    HideCursorOverlay();
-                }
 
                 // Input Grip Button
-                if (isGrabbingOverlay)
                 {
-                    ulong currentGrabGrip = (grabbingControllerIdx == inputService.RightControllerIdx)
-                        ? inputService.GripRightHandle
-                        : inputService.GripLeftHandle;
-
-                    if (inputService.IsActionHeld(currentGrabGrip) &&
-                        grabbingControllerIdx != OpenVR.k_unTrackedDeviceIndexInvalid &&
-                        inputService.Poses[grabbingControllerIdx].bPoseIsValid)
+                    // Gripping
+                    if (isGrabbingOverlay)
                     {
-                        Vector3 currentControllerPos = VRInputService.PosFromMatrix(inputService.Poses[grabbingControllerIdx].mDeviceToAbsoluteTracking);
-                        Vector3 frameDelta = currentControllerPos - lastGrabControllerPos;
-                        lastGrabControllerPos = currentControllerPos;
-
-                        currentOverlayPos += frameDelta * 4f;
-
                         TrackedDevicePose_t[] hmdPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
                         OpenVR.System?.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, hmdPoses);
                         TrackedDevicePose_t hmdPose = hmdPoses[OpenVR.k_unTrackedDeviceIndex_Hmd];
+                        Vector3 hmdPos = hmdPose.bPoseIsValid ? VRInputService.PosFromMatrix(hmdPose.mDeviceToAbsoluteTracking) : new Vector3(0f, currentOverlayPos.Y, 0f);
 
-                        // Thumbstick up/down -> push/pull overlay along HMD-to-overlay axis
-                        ulong thumbstickHandle = (grabbingControllerIdx == inputService.RightControllerIdx)
-                            ? inputService.ThumbstickRightHandle
-                            : inputService.ThumbstickLeftHandle;
-                        float thumbY = inputService.GetThumbstickY(thumbstickHandle);
-                        const float PushPullSpeed = 3f;
-                        const float DeadZone = 0.15f;
-
-                        Vector3 hmdPos = hmdPose.bPoseIsValid
-                            ? VRInputService.PosFromMatrix(hmdPose.mDeviceToAbsoluteTracking)
-                            : new Vector3(0f, currentOverlayPos.Y, 0f);
-
-                        Vector3 dir = hmdPos - currentOverlayPos;
-                        if (dir.LengthSquared() < 0.0001f)
-                            dir = new Vector3(0f, 0f, -1f);
-                        Vector3 fwd = Vector3.Normalize(dir);
-                        Vector3 worldUp = new(0f, 1f, 0f);
-                        Vector3 right = Vector3.Cross(worldUp, fwd);
-                        if (right.LengthSquared() < 0.0001f)
-                            right = new Vector3(1f, 0f, 0f);
-                        else
-                            right = Vector3.Normalize(right);
-                        Vector3 up = Vector3.Normalize(Vector3.Cross(fwd, right));
-
-                        // Apply thumbstick push/pull: move overlay away from (up) or toward (down) HMD
-                        if (MathF.Abs(thumbY) > DeadZone)
+                        if (inputService.IsActionHeld(primaryGrip))
                         {
-                            float pushAmount = thumbY * PushPullSpeed * 0.016f; // scale by nominal frame time
-                            currentOverlayPos -= fwd * pushAmount; // fwd points HMD<-overlay, so negate
-                        }
+                            Vector3 currentControllerPos = VRInputService.PosFromMatrix(devicePose);
+                            Vector3 frameDelta = currentControllerPos - lastGrabControllerPos;
+                            lastGrabControllerPos = currentControllerPos;
 
-                        // Primary trigger held + controller push/pull -> scale overlay
-                        // Push toward overlay -> decrease scale, pull away -> increase scale
-                        if (inputService.IsActionJustPressed(primaryTrigger) || (inputService.IsActionHeld(primaryTrigger) && lastScaleControllerDist != -1f))
-                        {
-                            Vector3 secCtrlPos = VRInputService.PosFromMatrix(inputService.Poses[ActiveControllerIdx].mDeviceToAbsoluteTracking);
-                            float secDist = Vector3.Distance(secCtrlPos, currentOverlayPos);
+                            currentOverlayPos += frameDelta * 4f;
 
-                            if (lastScaleControllerDist >= 0f)
+                            // Thumbstick up/down -> push/pull overlay along HMD-to-overlay axis
+                            float thumbY = inputService.GetThumbstickY(primaryThumbstick);
+                            const float PushPullSpeed = 3f;
+                            const float DeadZone = 0.15f;
+
+                            Vector3 dir = hmdPos - currentOverlayPos;
+                            if (dir.LengthSquared() < 0.0001f)
+                                dir = new Vector3(0f, 0f, -1f);
+                            Vector3 fwd = Vector3.Normalize(dir);
+                            Vector3 worldUp = new(0f, 1f, 0f);
+                            Vector3 right = Vector3.Cross(worldUp, fwd);
+                            if (right.LengthSquared() < 0.0001f)
+                                right = new Vector3(1f, 0f, 0f);
+                            else
+                                right = Vector3.Normalize(right);
+                            Vector3 up = Vector3.Normalize(Vector3.Cross(fwd, right));
+
+                            // Apply thumbstick push/pull: move overlay away from (up) or toward (down) HMD
+                            if (MathF.Abs(thumbY) > DeadZone)
                             {
-                                const float ScaleSpeed = 4f;
-                                float distDelta = lastScaleControllerDist - secDist;
-                                float newScale = Math.Clamp(App.setting.OverlayScale + distDelta * ScaleSpeed, 0.2f, 10f);
-                                if (MathF.Abs(newScale - App.setting.OverlayScale) > 0.001f)
-                                    App.setting.OverlayScale = newScale;
+                                float pushAmount = thumbY * PushPullSpeed * 0.016f; // scale by nominal frame time
+                                currentOverlayPos -= fwd * pushAmount; // fwd points HMD<-overlay, so negate
                             }
 
-                            lastScaleControllerDist = secDist;
-                        }
-                        else
-                        {
-                            HmdMatrix34_t newTransform = new()
+                            // Primary trigger held + controller push/pull -> scale overlay
+                            // Push toward overlay -> decrease scale, pull away -> increase scale
+                            if (inputService.IsActionJustPressed(primaryTrigger) || (inputService.IsActionHeld(primaryTrigger) && lastScaleControllerDist != -1f))
                             {
-                                m0 = right.X,
-                                m1 = up.X,
-                                m2 = fwd.X,
-                                m3 = currentOverlayPos.X,
-                                m4 = right.Y,
-                                m5 = up.Y,
-                                m6 = fwd.Y,
-                                m7 = currentOverlayPos.Y,
-                                m8 = right.Z,
-                                m9 = up.Z,
-                                m10 = fwd.Z,
-                                m11 = currentOverlayPos.Z
-                            };
+                                Vector3 secCtrlPos = VRInputService.PosFromMatrix(devicePose);
+                                float secDist = Vector3.Distance(secCtrlPos, currentOverlayPos);
 
-                            overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref newTransform);
+                                if (lastScaleControllerDist >= 0f)
+                                {
+                                    const float ScaleSpeed = 4f;
+                                    float distDelta = lastScaleControllerDist - secDist;
+                                    float newScale = Math.Clamp(App.setting.OverlayScale + distDelta * ScaleSpeed, 0.2f, 10f);
+                                    if (MathF.Abs(newScale - App.setting.OverlayScale) > 0.001f)
+                                        App.setting.OverlayScale = newScale;
+                                }
 
-                            cachedAnchorTransform = newTransform;
-                            hasAnchorTransform = true;
-                            lastScaleControllerDist = -1f;
+                                lastScaleControllerDist = secDist;
+                            }
+                            else
+                            {
+                                HmdMatrix34_t newTransform = CreateLookAtHmdTransform(currentOverlayPos, hmdPos);
+
+                                overlay.SetOverlayTransformAbsolute(overlayHandle, ETrackingUniverseOrigin.TrackingUniverseStanding, ref newTransform);
+
+                                cachedAnchorTransform = newTransform;
+                                hasAnchorTransform = true;
+                                lastScaleControllerDist = -1f;
+                            }
+
+                            isOverlayDirty = true;
                         }
+                        else // Release Grab
+                        {
+                            lastScaleControllerDist = -1f;
+                            isGrabbingOverlay = false;
 
-                        isOverlayDirty = true;
+                            if (hmdPose.bPoseIsValid)
+                            {
+                                App.setting.OverlayHigh = currentOverlayPos.Y - hmdPos.Y;
+                                App.setting.OverlayDistance = Vector2.Distance(new Vector2(currentOverlayPos.X, currentOverlayPos.Z), new Vector2(hmdPos.X, hmdPos.Z));
+                                cachedAnchorHigh = App.setting.OverlayHigh;
+                                cachedAnchorDistance = App.setting.OverlayDistance;
+                            }
+                        }
                     }
-                    else
+                    else if (hasPointerIntersection)
                     {
-                        lastScaleControllerDist = -1f;
-                        isGrabbingOverlay = false;
-                        grabbingControllerIdx = OpenVR.k_unTrackedDeviceIndexInvalid;
-                    }
-                }
-                else if (hasPointerIntersection)
-                {
-                    uint[] gripControllers = [inputService.RightControllerIdx, inputService.LeftControllerIdx];
-                    foreach (uint ctrlIdx in gripControllers)
-                    {
-                        if (ctrlIdx == OpenVR.k_unTrackedDeviceIndexInvalid) continue;
-                        if (ActiveControllerIdx != ctrlIdx) continue;
-                        if (!inputService.Poses[ctrlIdx].bPoseIsValid) continue;
-
-                        ulong gripHandle = (ctrlIdx == inputService.RightControllerIdx)
-                            ? inputService.GripRightHandle
-                            : inputService.GripLeftHandle;
-
-                        if (inputService.IsActionJustPressed(gripHandle))
+                        // Start Grab
+                        if (inputService.IsActionJustPressed(primaryGrip))
                         {
                             isGrabbingOverlay = true;
-                            grabbingControllerIdx = ctrlIdx;
 
-                            lastGrabControllerPos = VRInputService.PosFromMatrix(inputService.Poses[ctrlIdx].mDeviceToAbsoluteTracking);
+                            lastGrabControllerPos = VRInputService.PosFromMatrix(devicePose);
                             currentOverlayPos = VRInputService.PosFromMatrix(cachedAnchorTransform);
-                            break;
                         }
                     }
                 }
@@ -694,20 +660,17 @@ namespace ScreenLookup.src.utils
                     PerformClose();
 
                 // Input Thumbstick Vertical Scrolling
-                float thumbstickY = 0f;
-                float leftY = inputService.GetThumbstickY(inputService.ThumbstickLeftHandle);
-                float rightY = inputService.GetThumbstickY(inputService.ThumbstickRightHandle);
-                if (MathF.Abs(leftY) > 0.2f) thumbstickY = leftY;
-                else if (MathF.Abs(rightY) > 0.2f) thumbstickY = rightY;
-
-                if (MathF.Abs(thumbstickY) > 0.2f)
                 {
-                    int scrollAmount = (int)(thumbstickY * App.setting.OverlayScrollSpeed);
-                    targetWindow?.Dispatcher.InvokeAsync(() =>
+                    float axisY = axisY = inputService.GetThumbstickY(primaryThumbstick);
+                    if (MathF.Abs(axisY) > 0.05f)
                     {
-                        mouse_event(MOUSEEVENTF_WHEEL, 0, 0, (uint)scrollAmount, 0);
-                        isOverlayDirty = true;
-                    });
+                        int scrollAmount = (int)(axisY * App.setting.OverlayScrollSpeed);
+                        targetWindow?.Dispatcher.InvokeAsync(() =>
+                        {
+                            mouse_event(MOUSEEVENTF_WHEEL, 0, 0, (uint)scrollAmount, 0);
+                            isOverlayDirty = true;
+                        });
+                    }
                 }
 
                 // Become active hand
@@ -852,6 +815,37 @@ namespace ScreenLookup.src.utils
         #endregion
 
         #region Direct3D Overlay Composition
+        private static HmdMatrix34_t CreateLookAtHmdTransform(Vector3 overlayPos, Vector3 hmdPos)
+        {
+            Vector3 dir = hmdPos - overlayPos;
+            if (dir.LengthSquared() < 0.0001f)
+                dir = new Vector3(0f, 0f, -1f);
+            Vector3 fwd = Vector3.Normalize(dir);
+            Vector3 worldUp = new(0f, 1f, 0f);
+            Vector3 right = Vector3.Cross(worldUp, fwd);
+            if (right.LengthSquared() < 0.0001f)
+                right = new Vector3(1f, 0f, 0f);
+            else
+                right = Vector3.Normalize(right);
+            Vector3 up = Vector3.Normalize(Vector3.Cross(fwd, right));
+
+            return new HmdMatrix34_t
+            {
+                m0 = right.X,
+                m1 = up.X,
+                m2 = fwd.X,
+                m3 = overlayPos.X,
+                m4 = right.Y,
+                m5 = up.Y,
+                m6 = fwd.Y,
+                m7 = overlayPos.Y,
+                m8 = right.Z,
+                m9 = up.Z,
+                m10 = fwd.Z,
+                m11 = overlayPos.Z
+            };
+        }
+
         private void UpdateOverlayTransform(float pixelShiftX, float pixelShiftY, float metersPerPixel)
         {
             CVROverlay? overlay = OpenVR.Overlay;
@@ -870,13 +864,24 @@ namespace ScreenLookup.src.utils
                 if (hmdPose.bPoseIsValid)
                 {
                     HmdMatrix34_t hmdMatrix = hmdPose.mDeviceToAbsoluteTracking;
+                    Vector3 hmdPos = VRInputService.PosFromMatrix(hmdMatrix);
+
                     float forwardX = -cachedAnchorTransform.m2;
                     float forwardZ = -cachedAnchorTransform.m10;
+                    float horizontalLength = MathF.Sqrt(forwardX * forwardX + forwardZ * forwardZ);
+                    if (horizontalLength > 0.0001f)
+                    {
+                        forwardX /= horizontalLength;
+                        forwardZ /= horizontalLength;
+                    }
 
-                    cachedAnchorTransform.m3 = hmdMatrix.m3 + (forwardX * currentTargetDistance);
-                    cachedAnchorTransform.m7 = hmdMatrix.m7 + (currentTargetHigh);
-                    cachedAnchorTransform.m11 = hmdMatrix.m11 + (forwardZ * currentTargetDistance);
+                    Vector3 overlayPos = new(
+                        hmdPos.X + (forwardX * currentTargetDistance),
+                        hmdPos.Y + currentTargetHigh,
+                        hmdPos.Z + (forwardZ * currentTargetDistance)
+                    );
 
+                    cachedAnchorTransform = CreateLookAtHmdTransform(overlayPos, hmdPos);
                     cachedAnchorDistance = currentTargetDistance;
                     cachedAnchorHigh = currentTargetHigh;
                 }
@@ -891,6 +896,7 @@ namespace ScreenLookup.src.utils
                 if (!hmdPose.bPoseIsValid) return;
 
                 HmdMatrix34_t hmdMatrix = hmdPose.mDeviceToAbsoluteTracking;
+                Vector3 hmdPos = VRInputService.PosFromMatrix(hmdMatrix);
 
                 float rawForwardX = -hmdMatrix.m2;
                 float rawForwardZ = -hmdMatrix.m10;
@@ -905,24 +911,14 @@ namespace ScreenLookup.src.utils
 
                 float fX = rawForwardX / horizontalLength;
                 float fZ = rawForwardZ / horizontalLength;
-                float rX = -fZ;
-                float rZ = fX;
 
-                cachedAnchorTransform = new HmdMatrix34_t
-                {
-                    m0 = rX,
-                    m1 = 0f,
-                    m2 = -fX,
-                    m3 = hmdMatrix.m3 + (fX * currentTargetDistance),
-                    m4 = 0f,
-                    m5 = 1f,
-                    m6 = 0f,
-                    m7 = hmdMatrix.m7 + (currentTargetHigh),
-                    m8 = rZ,
-                    m9 = 0f,
-                    m10 = -fZ,
-                    m11 = hmdMatrix.m11 + (fZ * currentTargetDistance)
-                };
+                Vector3 overlayPos = new(
+                    hmdPos.X + (fX * currentTargetDistance),
+                    hmdPos.Y + currentTargetHigh,
+                    hmdPos.Z + (fZ * currentTargetDistance)
+                );
+
+                cachedAnchorTransform = CreateLookAtHmdTransform(overlayPos, hmdPos);
                 cachedAnchorDistance = currentTargetDistance;
                 cachedAnchorHigh = currentTargetHigh;
                 hasAnchorTransform = true;
