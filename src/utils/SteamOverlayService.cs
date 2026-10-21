@@ -287,13 +287,17 @@ namespace ScreenLookup.src.utils
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.SendVRSmoothScrollEvents, false);
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.MakeOverlaysInteractiveIfVisible, false);
             overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.IsPremultiplied, true);
+            overlay.SetOverlayFlag(overlayHandle, VROverlayFlags.SortWithNonSceneOverlays, true);
+            overlay.SetOverlaySortOrder(overlayHandle, 100);
 
             EVROverlayError laserOverlayError = overlay.CreateOverlay("ScreenLookup.LaserOverlay", "ScreenLookup Laser Pointer", ref laserOverlayHandle);
             if (laserOverlayError == EVROverlayError.None)
             {
                 overlay.SetOverlayInputMethod(laserOverlayHandle, VROverlayInputMethod.None);
                 overlay.SetOverlayFlag(laserOverlayHandle, VROverlayFlags.IsPremultiplied, true);
+                overlay.SetOverlayFlag(laserOverlayHandle, VROverlayFlags.SortWithNonSceneOverlays, true);
                 overlay.SetOverlayWidthInMeters(laserOverlayHandle, 0.0025f);
+                overlay.SetOverlaySortOrder(laserOverlayHandle, 200);
             }
 
             EVROverlayError cursorOverlayError = overlay.CreateOverlay("ScreenLookup.CursorOverlay", "ScreenLookup Cursor", ref cursorOverlayHandle);
@@ -301,7 +305,9 @@ namespace ScreenLookup.src.utils
             {
                 overlay.SetOverlayInputMethod(cursorOverlayHandle, VROverlayInputMethod.None);
                 overlay.SetOverlayFlag(cursorOverlayHandle, VROverlayFlags.IsPremultiplied, true);
+                overlay.SetOverlayFlag(cursorOverlayHandle, VROverlayFlags.SortWithNonSceneOverlays, true);
                 overlay.SetOverlayWidthInMeters(cursorOverlayHandle, 0.045f);
+                overlay.SetOverlaySortOrder(cursorOverlayHandle, 300);
             }
 
             return isInitialized = true;
@@ -1358,7 +1364,7 @@ namespace ScreenLookup.src.utils
             float deltaX = (xHotspot - (w / 2.0f)) * metersPerPixel;
             float deltaY = ((h / 2.0f) - yHotspot) * metersPerPixel;
 
-            Vector3 cursorCenterPos = hitPos - (right * deltaX) - (up * deltaY) + (fwd * 0.001f);
+            Vector3 cursorCenterPos = hitPos - (right * deltaX) - (up * deltaY) + (fwd * 0.003f);
 
             HmdMatrix34_t cursorTransform = new()
             {
