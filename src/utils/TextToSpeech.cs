@@ -206,6 +206,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
+                SnackbarHost.Show("PlayTTS", $"{ex.Message}", type: SnackbarType.Error);
                 return ex.Message;
             }
         }

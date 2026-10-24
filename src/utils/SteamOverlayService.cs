@@ -266,7 +266,7 @@ namespace ScreenLookup.src.utils
 
                 if (initError != EVRInitError.None)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SteamVR] Initialization failed: {initError}");
+                    SnackbarHost.Show("SteamVR", $"Initialization failed: {initError}", type: SnackbarType.Error);
                     return false;
                 }
             }
@@ -279,7 +279,7 @@ namespace ScreenLookup.src.utils
             EVROverlayError overlayError = overlay.CreateOverlay("ScreenLookup.WorldOverlay", "ScreenLookup Floating Window", ref overlayHandle);
             if (overlayError != EVROverlayError.None)
             {
-                System.Diagnostics.Debug.WriteLine($"[SteamVR] World overlay creation failed: {overlayError}");
+                SnackbarHost.Show("SteamVR", $"World overlay creation failed: {overlayError}", type: SnackbarType.Error);
                 return false;
             }
 
@@ -685,7 +685,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SteamVR] Input processing error: {ex.Message}");
+                SnackbarHost.Show("SteamVR", $"Input processing error: {ex.Message}", type: SnackbarType.Error);
             }
         }
 
@@ -1131,7 +1131,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SteamVR] Frame rendering encountered error: {ex.Message}");
+                SnackbarHost.Show("SteamVR", $"Frame rendering encountered error: {ex.Message}", type: SnackbarType.Error);
             }
         }
 

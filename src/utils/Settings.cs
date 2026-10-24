@@ -129,7 +129,7 @@ namespace ScreenLookup.src.utils
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[Settings] Failed to load settings: {ex.Message}");
+                    SnackbarHost.Show("Settings", $"Failed to load settings: {ex.Message}", type: SnackbarType.Error);
                 }
             }
         }
@@ -148,7 +148,7 @@ namespace ScreenLookup.src.utils
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Settings] Failed to save settings: {ex.Message}");
+                SnackbarHost.Show("Settings", $"Failed to save settings: {ex.Message}", type: SnackbarType.Error);
             }
         }
 

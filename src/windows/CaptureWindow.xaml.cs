@@ -167,7 +167,7 @@ namespace ScreenLookup.src.windows
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"DesktopCaptureScreen Error: {ex.Message}");
+                SnackbarHost.Show("CaptureWindow", $"DesktopCaptureScreen Error: {ex.Message}", type: SnackbarType.Error);
             }
             finally
             {
@@ -295,7 +295,10 @@ namespace ScreenLookup.src.windows
                     });
                 }
                 catch (OperationCanceledException) { }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OCR Error: {ex.Message}"); }
+                catch (Exception ex)
+                {
+                    SnackbarHost.Show("CaptureWindow", $"OCR Error: {ex.Message}", type: SnackbarType.Error);
+                }
                 finally
                 {
                     await Dispatcher.InvokeAsync(() =>

@@ -52,7 +52,7 @@ namespace ScreenLookup.src.utils
             if (File.Exists(manifestPath))
                 OpenVR.Input?.SetActionManifestPath(manifestPath);
             else
-                System.Diagnostics.Debug.WriteLine($"[VRInput] actions.json not found at: {manifestPath}");
+                SnackbarHost.Show("VRInput", $"actions.json not found at: {manifestPath}", type: SnackbarType.Error);
 
             var input = OpenVR.Input;
             if (input == null) return;

@@ -41,7 +41,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DownloadHelper] Error downloading file: {ex.Message}");
+                SnackbarHost.Show("DownloadHelper", $"Error downloading file: {ex.Message}", type: SnackbarType.Error);
                 return false;
             }
         }

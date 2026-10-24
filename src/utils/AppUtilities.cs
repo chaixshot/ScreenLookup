@@ -150,7 +150,6 @@ namespace ScreenLookup.src.utils
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[PlaySound] NAudio playback error: {ex.Message}");
                         try
                         {
                             using var player = new SoundPlayer(soundPath);
@@ -158,7 +157,7 @@ namespace ScreenLookup.src.utils
                         }
                         catch (Exception fallbackEx)
                         {
-                            Debug.WriteLine($"[PlaySound] Fallback SoundPlayer error: {fallbackEx.Message}");
+                            SnackbarHost.Show("PlaySound", $"{fallbackEx.Message}", type: SnackbarType.Error);
                         }
                     }
                 });

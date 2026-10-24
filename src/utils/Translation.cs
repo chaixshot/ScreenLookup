@@ -216,7 +216,7 @@ namespace ScreenLookup.src.utils
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"[GetExtraDetailsAsync] Endpoint failed: {ex.Message}");
+                                SnackbarHost.Show("GetExtraDetailsAsync", $"Endpoint failed: {ex.Message}", type: SnackbarType.Error);
                             }
 
                             await Task.Delay(150).ConfigureAwait(false);
@@ -292,7 +292,6 @@ namespace ScreenLookup.src.utils
             catch (Exception ex)
             {
                 SnackbarHost.Show("ParseGoogleDictionaryJson", $"{ex.Message}", SnackbarType.Error);
-                System.Diagnostics.Debug.WriteLine($"[ParseGoogleDictionaryJson] Error: {ex.Message}");
             }
 
             return list;
@@ -328,7 +327,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ParseGooglePhoneticJson] Error: {ex.Message}");
+                SnackbarHost.Show("ParseGooglePhoneticJson", $"Endpoint failed: {ex.Message}", type: SnackbarType.Error);
             }
             return string.Empty;
         }
