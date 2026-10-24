@@ -714,7 +714,7 @@ namespace ScreenLookup.src.windows
 
         private void App_Deactivated(object sender, EventArgs e)
         {
-            if (App.setting.CloseLostFocus && !IsVR)
+            if (App.setting.CloseLostFocus && !App.setting.Topmost && !IsVR)
                 CloseWindow();
         }
 
@@ -740,6 +740,65 @@ namespace ScreenLookup.src.windows
         #endregion
 
         #region UI Event Handlers
+        private void CopyImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (captureImage.Source is BitmapSource bitmapSource)
+            {
+                Clipboard.SetImage(bitmapSource);
+                SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
+            }
+            CloseTranslatedExpanded();
+        }
+
+        private void SaveImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (CapturedImageEditable == null && CapturedImage == null && captureImage.Source is not BitmapSource) return;
+
+            Microsoft.Win32.SaveFileDialog saveFileDialog = new()
+            {
+                Filter = "PNG Image (*.png)|*.png|JPEG Image (*.jpg;*.jpeg)|*.jpg;*.jpeg|Bitmap Image (*.bmp)|*.bmp",
+                DefaultExt = "png",
+                FileName = $"ScreenLookup_{DateTime.Now:yyyyMMdd_HHmmss}.png"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (CapturedImageEditable != null || CapturedImage != null)
+                    {
+                        Bitmap bmpToSave = CapturedImageEditable ?? CapturedImage!;
+                        System.Drawing.Imaging.ImageFormat format = Path.GetExtension(saveFileDialog.FileName).ToLower() switch
+                        {
+                            ".jpg" or ".jpeg" => System.Drawing.Imaging.ImageFormat.Jpeg,
+                            ".bmp" => System.Drawing.Imaging.ImageFormat.Bmp,
+                            _ => System.Drawing.Imaging.ImageFormat.Png
+                        };
+                        bmpToSave.Save(saveFileDialog.FileName, format);
+                    }
+                    else if (captureImage.Source is BitmapSource bitmapSource)
+                    {
+                        using var fileStream = new FileStream(saveFileDialog.FileName, FileMode.Create);
+                        BitmapEncoder encoder = Path.GetExtension(saveFileDialog.FileName).ToLower() switch
+                        {
+                            ".jpg" or ".jpeg" => new JpegBitmapEncoder(),
+                            ".bmp" => new BmpBitmapEncoder(),
+                            _ => new PngBitmapEncoder()
+                        };
+                        encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+                        encoder.Save(fileStream);
+                    }
+
+                    SnackbarHost.Show("Saved", "Image saved successfully.", type: SnackbarType.Success);
+                }
+                catch (Exception ex)
+                {
+                    SnackbarHost.Show("Error", $"Failed to save image:\n{ex.Message}", type: SnackbarType.Error);
+                }
+            }
+            CloseTranslatedExpanded();
+        }
+
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
             App.ToggleTopmost(!App.setting.Topmost);
