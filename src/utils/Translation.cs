@@ -1,7 +1,6 @@
 ﻿using Porter2Stemmer;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils.Database;
-using System.Net.Http;
 using System.Text.Json;
 
 namespace ScreenLookup.src.utils
@@ -214,6 +213,7 @@ namespace ScreenLookup.src.utils
                                     }
                                 }
                             }
+                            catch (OperationCanceledException) { }
                             catch (Exception ex)
                             {
                                 SnackbarHost.Show("GetExtraDetailsAsync", $"Endpoint failed: {ex.Message}", type: SnackbarType.Error);
