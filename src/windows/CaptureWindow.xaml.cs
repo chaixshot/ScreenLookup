@@ -44,8 +44,15 @@ namespace ScreenLookup.src.windows
         private static CancellationTokenSource ProcessImageCancelToken = new();
         private static CancellationTokenSource TranslatesCancelToken = new();
 
-        private int EditRotate = 0;
-        private double EditZoom = 1.0;
+        private bool isImageEditing = false;
+        private bool isDraggingRotation = false;
+        private bool isDraggingScaling = false;
+        private float editRotate = 0;
+        private double editZoom = 1.0;
+        private Point rotationDragStartPoint;
+        private float rotationDragStartAngle = 0;
+        private Point scalingDragStartPoint;
+        private double scalingDragStartZoom = 1.0;
 
         private readonly Dictionary<string, string> translatedCache = [];
         #endregion
@@ -608,7 +615,6 @@ namespace ScreenLookup.src.windows
             if (isConfig)
             {
                 configMenu.Visibility = Visibility.Visible;
-                ImageControlPanel.Visibility = Visibility.Collapsed;
 
                 captureCard.Visibility = Visibility.Collapsed;
                 originalCard.Visibility = Visibility.Collapsed;
@@ -623,7 +629,6 @@ namespace ScreenLookup.src.windows
                 TranslatesCancelToken = new CancellationTokenSource();
 
                 configMenu.Visibility = Visibility.Collapsed;
-                ImageControlPanel.Visibility = Visibility.Visible;
 
                 if (App.setting.LookupOnImage)
                 {
@@ -678,7 +683,7 @@ namespace ScreenLookup.src.windows
             originalWordsLoading.Visibility = Visibility.Visible;
             ProcessImageOverlay.Visibility = Visibility.Collapsed;
             Contol_Undo.Visibility = Visibility.Collapsed;
-            Contol_Confirm.Visibility = Visibility.Collapsed;
+            Control_Confirm_Overlay.Visibility = Visibility.Collapsed;
 
             AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
@@ -699,8 +704,8 @@ namespace ScreenLookup.src.windows
             translationMessage.Clear();
             translatedCache.Clear();
 
-            EditRotate = 0;
-            EditZoom = 1.0;
+            editRotate = 0;
+            editZoom = 1.0;
 
             this.Left = -10000;
             this.UpdateLayout();
@@ -906,72 +911,196 @@ namespace ScreenLookup.src.windows
         {
             if (CapturedImage == null) return;
 
+            isImageEditing = false;
             AltoText.ItemsSource = null;
             Contol_Undo.Visibility = Visibility.Hidden;
-            Contol_Confirm.Visibility = Visibility.Visible;
+            Control_Confirm_Overlay.Visibility = Visibility.Visible;
 
             CapturedImageEditable = CapturedImage;
-            EditRotate = 0;
-            EditZoom = 1.0;
+            editRotate = 0;
+            editZoom = 1.0;
 
-            ChangeCaptureImage(CapturedImageEditable);
-            SetWindowSize();
+            ApplyCaptureEdit();
         }
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
             if (CapturedImageEditable == null) return;
 
+            isImageEditing = false;
             AltoText.ItemsSource = null;
 
             if (CapturedImageEditable == CapturedImage)
                 Contol_Undo.Visibility = Visibility.Collapsed;
 
-            Contol_Confirm.Visibility = Visibility.Collapsed;
+            Control_Confirm_Overlay.Visibility = Visibility.Collapsed;
+            ApplyCaptureEdit();
             ProcessImage(CapturedImageEditable);
-        }
-
-        private void RotateLeft_Click(object sender, RoutedEventArgs e)
-        {
-            AltoText.ItemsSource = null;
-            Contol_Undo.Visibility = Visibility.Visible;
-            Contol_Confirm.Visibility = Visibility.Visible;
-
-            EditRotate -= 1;
-            ApplyCaptureEdit();
-        }
-
-        private void RotateRight_Click(object sender, RoutedEventArgs e)
-        {
-            AltoText.ItemsSource = null;
-            Contol_Undo.Visibility = Visibility.Visible;
-            Contol_Confirm.Visibility = Visibility.Visible;
-
-            EditRotate += 1;
-            ApplyCaptureEdit();
-        }
-
-        private void Zoom_Click(object sender, RoutedEventArgs e)
-        {
-            AltoText.ItemsSource = null;
-            Contol_Undo.Visibility = Visibility.Visible;
-            Contol_Confirm.Visibility = Visibility.Visible;
-
-            EditZoom += 0.1;
-            ApplyCaptureEdit();
         }
 
         private void ApplyCaptureEdit()
         {
             if (CapturedImage == null) return;
 
+            rotationAngleText?.Text = $"{editRotate:0.#}°";
+            scalingText?.Text = $"{Math.Round(editZoom * 100)}%";
+
             CapturedImageEditable = CapturedImage;
-            CapturedImageEditable = Convertor.BitmapRescale(CapturedImageEditable, EditZoom);
-            CapturedImageEditable = Convertor.BitmapRotate(CapturedImageEditable, EditRotate);
+            CapturedImageEditable = Convertor.BitmapRescale(CapturedImageEditable, editZoom);
+            CapturedImageEditable = Convertor.BitmapRotate(CapturedImageEditable, editRotate);
 
             ChangeCaptureImage(CapturedImageEditable);
-            SetWindowSize();
-            SetWindowPosition(new Point(this.Left, this.Top));
+            if (!isImageEditing)
+            {
+                SetWindowSize();
+                SetWindowPosition(new Point(this.Left, this.Top));
+            }
+        }
+        #endregion
+
+        #region Vertical Image Rotation Drag Control
+        private void RotationControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is UIElement element)
+            {
+                isDraggingRotation = true;
+                rotationDragStartPoint = e.GetPosition(this);
+                rotationDragStartAngle = editRotate;
+                element.CaptureMouse();
+
+                AltoText.ItemsSource = null;
+                Contol_Undo.Visibility = Visibility.Visible;
+                Control_Confirm_Overlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void RotationControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDraggingRotation)
+            {
+                Point currentPoint = e.GetPosition(this);
+                double deltaY = rotationDragStartPoint.Y - currentPoint.Y;
+                double sensitivity = 0.2;
+                double newAngle = rotationDragStartAngle + (deltaY * sensitivity);
+
+                // Normalize angle to -180 .. +180
+                newAngle %= 360;
+                if (newAngle > 180) newAngle -= 360;
+                else if (newAngle < -180) newAngle += 360;
+
+                isImageEditing = true;
+                editRotate = (float)Math.Round(newAngle, 1);
+
+                ApplyCaptureEdit();
+            }
+        }
+
+        private void RotationControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isDraggingRotation && sender is UIElement element)
+            {
+                isDraggingRotation = false;
+                element.ReleaseMouseCapture();
+                ApplyCaptureEdit();
+            }
+        }
+
+        private void RotateLeft_Click(object sender, RoutedEventArgs e)
+        {
+            if (e is MouseButtonEventArgs mbe)
+                mbe.Handled = true;
+
+            AltoText.ItemsSource = null;
+            Contol_Undo.Visibility = Visibility.Visible;
+            Control_Confirm_Overlay.Visibility = Visibility.Visible;
+
+            editRotate -= 1;
+            ApplyCaptureEdit();
+        }
+
+        private void RotateRight_Click(object sender, RoutedEventArgs e)
+        {
+            if (e is MouseButtonEventArgs mbe)
+                mbe.Handled = true;
+
+            AltoText.ItemsSource = null;
+            Contol_Undo.Visibility = Visibility.Visible;
+            Control_Confirm_Overlay.Visibility = Visibility.Visible;
+
+            editRotate += 1;
+            ApplyCaptureEdit();
+        }
+
+        #endregion
+
+        #region Horizontal Image Scaling Drag Control
+        private void ScalingControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is UIElement element)
+            {
+                isDraggingScaling = true;
+                scalingDragStartPoint = e.GetPosition(this);
+                scalingDragStartZoom = editZoom;
+                element.CaptureMouse();
+
+                AltoText.ItemsSource = null;
+                Contol_Undo.Visibility = Visibility.Visible;
+                Control_Confirm_Overlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void ScalingControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDraggingScaling)
+            {
+                Point currentPoint = e.GetPosition(this);
+                double deltaX = currentPoint.X - scalingDragStartPoint.X;
+
+                double sensitivity = 0.002;
+                double newZoom = scalingDragStartZoom + (deltaX * sensitivity);
+
+                isImageEditing = true;
+                newZoom = Math.Clamp(newZoom, 0.1, 5.0);
+                editZoom = Math.Round(newZoom, 2);
+
+                ApplyCaptureEdit();
+            }
+        }
+
+        private void ScalingControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isDraggingScaling && sender is UIElement element)
+            {
+                isDraggingScaling = false;
+                element.ReleaseMouseCapture();
+                ApplyCaptureEdit();
+            }
+        }
+
+        private void ScaleDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (e is MouseButtonEventArgs mbe)
+                mbe.Handled = true;
+
+            AltoText.ItemsSource = null;
+            Contol_Undo.Visibility = Visibility.Visible;
+            Control_Confirm_Overlay.Visibility = Visibility.Visible;
+
+            editZoom = Math.Max(0.1, Math.Round(editZoom - 0.1, 2));
+            ApplyCaptureEdit();
+        }
+
+        private void ScaleUp_Click(object sender, RoutedEventArgs e)
+        {
+            if (e is MouseButtonEventArgs mbe)
+                mbe.Handled = true;
+
+            AltoText.ItemsSource = null;
+            Contol_Undo.Visibility = Visibility.Visible;
+            Control_Confirm_Overlay.Visibility = Visibility.Visible;
+
+            editZoom = Math.Min(5.0, Math.Round(editZoom + 0.1, 2));
+            ApplyCaptureEdit();
         }
         #endregion
 

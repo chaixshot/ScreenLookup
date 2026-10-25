@@ -42,48 +42,6 @@
 
                 <xControls:WordFlyout x:Name="flayOut" Grid.Row="5" />
 
-                <StackPanel x:Name="ImageControlPanel" Orientation="Horizontal">
-                    <Controls:Button
-                        x:Name="Contol_RotateLeft"
-                        Margin="0,0,2,0"
-                        Click="RotateLeft_Click"
-                        Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
-                                                Filled=True}"
-                        ToolTip="Rotate Left" />
-
-                    <Controls:Button
-                        x:Name="Contol_RotateRight"
-                        Margin="0,0,2,0"
-                        Click="RotateRight_Click"
-                        Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise24,
-                                                Filled=True}"
-                        ToolTip="Rotate Right" />
-
-                    <Controls:Button
-                        x:Name="Contol_Zoom"
-                        Margin="0,0,2,0"
-                        Click="Zoom_Click"
-                        Icon="{wpfui:SymbolIcon Symbol=Add24,
-                                                Filled=True}"
-                        ToolTip="Zoom" />
-
-                    <Controls:Button
-                        x:Name="Contol_Undo"
-                        Margin="5,0,2,0"
-                        Click="Undo_Click"
-                        Icon="{wpfui:SymbolIcon Symbol=ArrowUndo24,
-                                                Filled=True}"
-                        ToolTip="Undo" />
-
-                    <Controls:Button
-                        x:Name="Contol_Confirm"
-                        Margin="0,0,2,0"
-                        Click="Confirm_Click"
-                        Icon="{wpfui:SymbolIcon Symbol=Checkmark24,
-                                                Filled=True}"
-                        ToolTip="Confirm" />
-                </StackPanel>
-
                 <StackPanel
                     Margin="0,5,0,5"
                     HorizontalAlignment="Right"
@@ -219,14 +177,30 @@
                             Grid.Column="1"
                             Margin="5,0,0,0"
                             VerticalAlignment="Top">
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--  Capture Image  -->
                             <Controls:Image
                                 x:Name="captureImage"
+                                Grid.Row="0"
+                                Grid.Column="0"
                                 Source="/src/images/applicationIcon.ico"
                                 Stretch="Uniform" />
 
+                            <!--  On Image Word  Buttons  -->
                             <ItemsControl
                                 Name="AltoText"
-                                Grid.Column="1"
+                                Grid.Row="0"
+                                Grid.Column="0"
                                 Width="{Binding Width, ElementName=captureImage}"
                                 Height="{Binding Height, ElementName=captureImage}"
                                 MinWidth="{Binding MinWidth, ElementName=captureImage}"
@@ -280,6 +254,164 @@
                                 </ItemsControl.ItemContainerStyle>
                             </ItemsControl>
 
+                            <!--  Confirm Overlay  -->
+                            <Border
+                                x:Name="Control_Confirm_Overlay"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Background="#4C000000">
+                                <Controls:Button
+                                    Width="76"
+                                    Height="56.52"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Confirm_Click"
+                                    Icon="{wpfui:SymbolIcon Symbol=Checkmark24,
+                                                            Filled=True}"
+                                    ToolTip="Confirm" />
+                            </Border>
+
+                            <!--  Vertical Image Rotation Control  -->
+                            <Border
+                                x:Name="rotationDragControl"
+                                Grid.Column="1"
+                                Width="28"
+                                Margin="0,0,0,20"
+                                Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
+                                BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Cursor="SizeNS"
+                                MouseLeftButtonDown="RotationControl_MouseLeftButtonDown"
+                                MouseLeftButtonUp="RotationControl_MouseLeftButtonUp"
+                                MouseMove="RotationControl_MouseMove"
+                                Opacity="0.85"
+                                ToolTip="Click and drag UP/DOWN to rotate image">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <wpfui:SymbolIcon
+                                        Grid.Row="0"
+                                        Margin="0,6,0,0"
+                                        Cursor="Hand"
+                                        FontSize="12"
+                                        Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                        MouseLeftButtonDown="RotateRight_Click"
+                                        Symbol="ArrowUp24"
+                                        ToolTip="Rotate Right" />
+
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                        <wpfui:SymbolIcon
+                                            FontSize="16"
+                                            Foreground="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Symbol="ArrowRotateClockwise24" />
+                                        <TextBlock
+                                            x:Name="rotationAngleText"
+                                            Margin="0,2,0,0"
+                                            HorizontalAlignment="Center"
+                                            FontSize="10"
+                                            FontWeight="SemiBold"
+                                            Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                            Text="0°" />
+                                    </StackPanel>
+
+                                    <wpfui:SymbolIcon
+                                        Grid.Row="2"
+                                        Margin="0,0,0,6"
+                                        Cursor="Hand"
+                                        FontSize="12"
+                                        Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                        MouseLeftButtonDown="RotateLeft_Click"
+                                        Symbol="ArrowDown24"
+                                        ToolTip="Rotate Left" />
+                                </Grid>
+                            </Border>
+
+                            <!--  Horizontal Image Scaling Control  -->
+                            <Border
+                                x:Name="scalingDragControl"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Height="28"
+                                Margin="0,0,20,0"
+                                VerticalAlignment="Bottom"
+                                Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
+                                BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Cursor="SizeWE"
+                                MouseLeftButtonDown="ScalingControl_MouseLeftButtonDown"
+                                MouseLeftButtonUp="ScalingControl_MouseLeftButtonUp"
+                                MouseMove="ScalingControl_MouseMove"
+                                Opacity="0.85"
+                                ToolTip="Click and drag LEFT/RIGHT to scale image">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <wpfui:SymbolIcon
+                                        Grid.Column="0"
+                                        Margin="6,0,0,0"
+                                        Cursor="Hand"
+                                        FontSize="12"
+                                        Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                        MouseLeftButtonDown="ScaleDown_Click"
+                                        Symbol="ArrowLeft24"
+                                        ToolTip="Scale Down" />
+
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <wpfui:SymbolIcon
+                                            FontSize="14"
+                                            Foreground="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Symbol="ArrowFit24" />
+                                        <TextBlock
+                                            x:Name="scalingText"
+                                            Margin="4,0,0,0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="10"
+                                            FontWeight="SemiBold"
+                                            Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                            Text="100%" />
+                                    </StackPanel>
+
+                                    <wpfui:SymbolIcon
+                                        Grid.Column="2"
+                                        Margin="0,0,6,0"
+                                        Cursor="Hand"
+                                        FontSize="12"
+                                        Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                        MouseLeftButtonDown="ScaleUp_Click"
+                                        Symbol="ArrowRight24"
+                                        ToolTip="Scale Up" />
+                                </Grid>
+                            </Border>
+
+                            <!--  Undo  -->
+                            <Controls:Button
+                                x:Name="Contol_Undo"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Width="28"
+                                Padding="5"
+                                Click="Undo_Click"
+                                Icon="{wpfui:SymbolIcon Symbol=ArrowUndo24,
+                                                        Filled=True}"
+                                ToolTip="Undo" />
                         </Grid>
 
                         <wpfui:CardExpander
