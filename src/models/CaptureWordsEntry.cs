@@ -38,6 +38,7 @@ namespace ScreenLookup.src.models
         public required double Y { get; set; }
         public required double Width { get; set; }
         public required double Height { get; set; }
+        public double Angle { get; set; } = 0;
         public int WordOccurrenceIndex { get; set; } = -1;
     }
 }

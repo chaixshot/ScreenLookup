@@ -268,9 +268,14 @@
                                 </ItemsControl.ItemTemplate>
 
                                 <ItemsControl.ItemContainerStyle>
-                                    <Style>
+                                    <Style TargetType="ContentPresenter">
                                         <Setter Property="Canvas.Left" Value="{Binding X}" />
                                         <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                        <Setter Property="RenderTransform">
+                                            <Setter.Value>
+                                                <RotateTransform Angle="{Binding Angle}" />
+                                            </Setter.Value>
+                                        </Setter>
                                     </Style>
                                 </ItemsControl.ItemContainerStyle>
                             </ItemsControl>

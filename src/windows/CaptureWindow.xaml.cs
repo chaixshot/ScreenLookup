@@ -457,6 +457,7 @@ namespace ScreenLookup.src.windows
                             Y = Math.Max(0, (int.TryParse(data.GetAttribute("VPOS"), out int y) ? y : 0) - 2),
                             Width = Math.Max(4, (int.TryParse(data.GetAttribute("WIDTH"), out int w) ? w : 0) + 2),
                             Height = Math.Max(8, (int.TryParse(data.GetAttribute("HEIGHT"), out int h) ? h : 0) + 4),
+                            Angle = 0,
                             SourceLanguage = App.setting.SourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
@@ -475,6 +476,48 @@ namespace ScreenLookup.src.windows
                     bool isVertical = lineHeight > lineWidth && lineWidth > 0;
 
                     var lineStrings = textLine.GetElementsByTagName("String");
+
+                    // Determine rotation angle of the text line
+                    double lineAngle = 0;
+                    string rotAttr = textLine.GetAttribute("ROTATION");
+                    if (string.IsNullOrEmpty(rotAttr))
+                        rotAttr = textBlock.GetAttribute("ROTATION");
+
+                    if (!string.IsNullOrEmpty(rotAttr) && double.TryParse(rotAttr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsedRot))
+                    {
+                        lineAngle = parsedRot;
+                    }
+                    else if (lineStrings.Count >= 2)
+                    {
+                        XmlElement firstString = (XmlElement)lineStrings[0];
+                        XmlElement lastString = (XmlElement)lineStrings[lineStrings.Count - 1];
+
+                        if (int.TryParse(firstString.GetAttribute("HPOS"), out int x1) &&
+                            int.TryParse(firstString.GetAttribute("VPOS"), out int y1) &&
+                            int.TryParse(lastString.GetAttribute("HPOS"), out int x2) &&
+                            int.TryParse(lastString.GetAttribute("VPOS"), out int y2))
+                        {
+                            double dx = x2 - x1;
+                            double dy = y2 - y1;
+                            if (!isVertical && Math.Abs(dx) > 10)
+                            {
+                                double calculatedAngle = Math.Atan2(dy, dx) * (180.0 / Math.PI);
+                                if (Math.Abs(calculatedAngle) > 0.5 && Math.Abs(calculatedAngle) < 45.0)
+                                {
+                                    lineAngle = calculatedAngle;
+                                }
+                            }
+                            else if (isVertical && Math.Abs(dy) > 10)
+                            {
+                                double calculatedAngle = Math.Atan2(dx, dy) * (180.0 / Math.PI);
+                                if (Math.Abs(calculatedAngle) > 0.5 && Math.Abs(calculatedAngle) < 45.0)
+                                {
+                                    lineAngle = -calculatedAngle;
+                                }
+                            }
+                        }
+                    }
+
                     for (int i = 0; i < lineStrings.Count; i++)
                     {
                         XmlElement data = (XmlElement)lineStrings[i];
@@ -493,8 +536,8 @@ namespace ScreenLookup.src.windows
 
                         if (!isVertical)
                         {
-                            y = Math.Max(0, lineY - 2);
-                            height = Math.Max(8, lineHeight + 4);
+                            y = Math.Max(0, (lineAngle != 0 ? strY : lineY) - 2);
+                            height = Math.Max(8, (lineAngle != 0 && strH > 0 ? strH : lineHeight) + 4);
                             x = Math.Max(0, strX);
 
                             int availableW = strW + 2;
@@ -510,8 +553,8 @@ namespace ScreenLookup.src.windows
                         }
                         else
                         {
-                            x = Math.Max(0, lineX - 2);
-                            width = Math.Max(8, lineWidth + 4);
+                            x = Math.Max(0, (lineAngle != 0 ? strX : lineX) - 2);
+                            width = Math.Max(8, (lineAngle != 0 && strW > 0 ? strW : lineWidth) + 4);
                             y = Math.Max(0, strY);
 
                             int availableH = strH + 2;
@@ -533,6 +576,7 @@ namespace ScreenLookup.src.windows
                             Y = y,
                             Width = width,
                             Height = height,
+                            Angle = lineAngle,
                             SourceLanguage = App.setting.SourceLanguage,
                             TargetLanguage = App.setting.TargetLanguage,
                             Uid = fullTextBlock,
