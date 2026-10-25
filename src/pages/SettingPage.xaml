@@ -195,15 +195,80 @@
                     </StackPanel>
                 </Controls:CardControl.Header>
 
-                <StackPanel Orientation="Horizontal">
-                    <Controls:TextBlock Text="On Line" />
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <!--  On Line Text (Bold when unchecked)  -->
+                    <Controls:TextBlock VerticalAlignment="Center" Text="On Line">
+                        <Controls:TextBlock.Style>
+                            <Style TargetType="Controls:TextBlock">
+                                <Setter Property="FontWeight" Value="Normal" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=lookupToggle}" Value="False">
+                                        <DataTrigger.Setters>
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger.Setters>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Controls:TextBlock.Style>
+                    </Controls:TextBlock>
 
-                    <wpfui:ToggleSwitch
-                        Grid.Column="0"
+                    <!--  Custom Unfilled Toggle Switch  -->
+                    <CheckBox
+                        x:Name="lookupToggle"
                         Margin="10,0"
-                        IsChecked="{Binding LookupOnImage}" />
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding LookupOnImage}">
+                        <CheckBox.Style>
+                            <Style TargetType="CheckBox">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="CheckBox">
+                                            <Grid Background="Transparent" Cursor="Hand">
+                                                <Border
+                                                    x:Name="track"
+                                                    Width="40"
+                                                    Height="20"
+                                                    Background="Transparent"
+                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10">
+                                                    <Ellipse
+                                                        x:Name="knob"
+                                                        Width="12"
+                                                        Height="12"
+                                                        Margin="3,0,0,0"
+                                                        HorizontalAlignment="Left"
+                                                        Fill="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                </Border>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="knob" Property="HorizontalAlignment" Value="Right" />
+                                                    <Setter TargetName="knob" Property="Margin" Value="0,0,3,0" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </CheckBox.Style>
+                    </CheckBox>
 
-                    <Controls:TextBlock Text="On Image" />
+                    <!--  On Image Text (Bold when checked)  -->
+                    <Controls:TextBlock VerticalAlignment="Center" Text="On Image">
+                        <Controls:TextBlock.Style>
+                            <Style TargetType="Controls:TextBlock">
+                                <Setter Property="FontWeight" Value="Normal" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=lookupToggle}" Value="True">
+                                        <DataTrigger.Setters>
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger.Setters>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Controls:TextBlock.Style>
+                    </Controls:TextBlock>
                 </StackPanel>
             </Controls:CardControl>
 
