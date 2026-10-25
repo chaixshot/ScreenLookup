@@ -130,7 +130,7 @@ namespace ScreenLookup.src.pages
             {
                 string tesseractTag = TesseractHelper.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
-                bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
+                bool isInstalled = DownloadHelper.IsInstalled(langAcc, langID);
 
                 items.Add(new ComboBoxItem
                 {

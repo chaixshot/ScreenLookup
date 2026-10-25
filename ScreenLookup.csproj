@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <ApplicationManifest></ApplicationManifest>
     <ApplicationIcon>src\images\applicationIcon.ico</ApplicationIcon>
     <SupportedOSPlatformVersion>10.0.22621.0</SupportedOSPlatformVersion>
@@ -101,7 +102,9 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
     <PackageReference Include="NAudio" Version="2.3.0" />
+    <PackageReference Include="Paddle.Runtime.win_x64" Version="3.3.0.1" />
     <PackageReference Include="Porter2Stemmer" Version="1.0.0" />
+    <PackageReference Include="PaddleOCRSharp" Version="6.2.0" />
     <PackageReference Include="TesseractOCR" Version="5.5.2" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
     <PackageReference Include="Vortice.DirectX" Version="3.8.3" />
@@ -166,4 +169,15 @@
     </None>
   </ItemGroup>
 
+  <Target Name="Compatible_PaddleOCRSharp" AfterTargets="Build;Publish">
+    <PropertyGroup>
+      <!-- Prevent running twice if both triggers overlap during a publish action -->
+      <_IsPublishing Condition="'$(PublishProtocol)' != '' OR '$(PublishDir)' != ''">true</_IsPublishing>
+    </PropertyGroup>
+
+    <!-- Only run cleanup if files actually exist to prevent locking/io exceptions -->
+    <RemoveDir Directories="$(PublishDir)inference;$(TargetDir)inference" Condition="Exists('$(PublishDir)inference') Or Exists('$(TargetDir)inference')" />
+
+    <Delete Files="$(PublishDir)msvcp140.dll;$(PublishDir)msvcp140_1.dll;$(PublishDir)msvcp140_2.dll;$(PublishDir)vcruntime140.dll;$(PublishDir)vcruntime140_1.dll;$(PublishDir)concrt140.dll;$(PublishDir)vcomp140.dll;$(PublishDir)vcamp140.dll;$(PublishDir)vccorlib140.dll;$(TargetDir)msvcp140.dll;$(TargetDir)msvcp140_1.dll;$(TargetDir)msvcp140_2.dll;$(TargetDir)vcruntime140.dll;$(TargetDir)vcruntime140_1.dll;$(TargetDir)concrt140.dll;$(TargetDir)vcomp140.dll;$(TargetDir)vcamp140.dll;$(TargetDir)vccorlib140.dll" />
+  </Target>
 </Project>

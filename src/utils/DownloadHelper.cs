@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Net.Http;
-
-namespace ScreenLookup.src.utils
+﻿namespace ScreenLookup.src.utils
 {
     internal class DownloadHelper
     {
@@ -54,6 +51,13 @@ namespace ScreenLookup.src.utils
                 if (folder.Exists)
                     folder.Delete(true);
             }
+        }
+
+        public static bool IsInstalled(int accID, int langID)
+        {
+            return App.setting.OcrEngineMode == 0
+                ? TesseractHelper.IsInstalled(accID, langID)
+                : PaddleHelper.IsInstalled(accID);
         }
     }
 }

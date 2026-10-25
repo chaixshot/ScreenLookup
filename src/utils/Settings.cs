@@ -1,8 +1,7 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows.Input;
@@ -23,6 +22,7 @@ namespace ScreenLookup.src.utils
         private bool startInBackground = false;
         private bool minimizeToTray = true;
 
+        private int ocrEngineMode = 0;
         private int sourceLanguageAccuracy = 1;
         private int sourceLanguage = 29;
         private bool hunSpell = false;
@@ -44,7 +44,8 @@ namespace ScreenLookup.src.utils
         private int fontSizes = 14;
 
         public Dictionary<string, string> window = [];
-        public Dictionary<string, bool> loadedTesseract = [];
+        public Dictionary<string, bool> loadedTesseract = [];   // kept for migration
+        public Dictionary<string, bool> loadedPaddle = [];
         public Dictionary<string, bool> loadedHunspell = [];
 
         private bool autoConnectStamVR = false;
@@ -75,6 +76,11 @@ namespace ScreenLookup.src.utils
             "Normal",
             "Slow (Accurate)",
         ];
+
+        public readonly string[] OcrEngineModes = [
+            "TesseractOCR",
+            "PaddleOCR",
+        ];
         #endregion
 
         #region Load & Save Methods
@@ -90,6 +96,7 @@ namespace ScreenLookup.src.utils
 
                     Window = settings.Window;
                     LoadedTesseract = settings.loadedTesseract;
+                    LoadedPaddle = settings.loadedPaddle;
                     LoadedHunspell = settings.loadedHunspell;
 
                     FirstRun = settings.FirstRun;
@@ -100,6 +107,7 @@ namespace ScreenLookup.src.utils
 
                     SourceLanguageAccuracy = settings.SourceLanguageAccuracy;
                     SourceLanguage = settings.SourceLanguage;
+                    OcrEngineMode = settings.OcrEngineMode;
                     HunSpell = settings.HunSpell;
                     TargetLanguage = settings.TargetLanguage;
                     TranslationProvider = settings.TranslationProvider;
@@ -160,6 +168,26 @@ namespace ScreenLookup.src.utils
         #endregion
 
         #region Properties
+        public int OcrEngineMode
+        {
+            get => ocrEngineMode;
+            set
+            {
+                ocrEngineMode = value;
+
+                if (App.mainWindow?.IsLoaded == true)
+                {
+                    App.captureWindow.LoadInstalledLanguage();
+                    App.captureWindow.CreateOcrEngine();
+
+                    App.settingPage?.LoadSourceLanguageContent();
+                    App.settingPage?.ButtonDownloadTesseractChanged();
+                }
+
+                OnPropertyChanged();
+            }
+        }
+
         public int SourceLanguageAccuracy
         {
             get => sourceLanguageAccuracy;
@@ -170,7 +198,7 @@ namespace ScreenLookup.src.utils
                 if (App.mainWindow?.IsLoaded == true)
                 {
                     App.captureWindow.LoadInstalledLanguage();
-                    App.captureWindow.CreateTesseractEngine();
+                    App.captureWindow.CreateOcrEngine();
 
                     App.settingPage?.LoadSourceLanguageContent();
                 }
@@ -191,7 +219,7 @@ namespace ScreenLookup.src.utils
 
                 if (App.mainWindow?.IsLoaded == true)
                 {
-                    App.captureWindow.CreateTesseractEngine();
+                    App.captureWindow.CreateOcrEngine();
                     App.captureWindow.SelectConfigLanguage();
 
                     App.settingPage?.SelectSourceLanguage();
@@ -536,6 +564,16 @@ namespace ScreenLookup.src.utils
             set
             {
                 loadedTesseract = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Dictionary<string, bool> LoadedPaddle
+        {
+            get => loadedPaddle;
+            set
+            {
+                loadedPaddle = value;
                 OnPropertyChanged();
             }
         }

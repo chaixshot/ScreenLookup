@@ -1,5 +1,4 @@
 ﻿using ScreenLookup.src.utils;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -21,6 +20,7 @@ namespace ScreenLookup.src.pages
             DataContext = App.setting;
             InitializeComponent();
 
+            LoadOcrEngineModes();
             LoadSourceAccuracyContent();
             LoadSourceLanguageContent();
             LoadTargetLanguageContent();
@@ -41,6 +41,11 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region Content Loading Methods
+        private void LoadOcrEngineModes()
+        {
+            ocrEngineMode.ItemsSource = App.setting.OcrEngineModes;
+        }
+
         private void LoadSourceAccuracyContent()
         {
             List<string> items = [];
@@ -72,7 +77,11 @@ namespace ScreenLookup.src.pages
             {
                 string tesseractTag = TesseractHelper.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
-                bool isInstalled = TesseractHelper.IsInstalled(langAcc, langID);
+                bool isInstalled = DownloadHelper.IsInstalled(langAcc, langID);
+
+                // If Paddle mode is active, double check to ensure it exists in PaddleHelper.LangList (redundant since we loop it directly, but safe)
+                if (App.setting.OcrEngineMode == 1 && !PaddleHelper.LangList.Contains(tesseractTag))
+                    continue;
 
                 items.Add(new ComboBoxItem
                 {
@@ -83,7 +92,7 @@ namespace ScreenLookup.src.pages
                 });
             }
 
-            items = items.OrderBy(o => o.Uid).ToList();
+            items = [.. items.OrderBy(o => o.Uid)];
             sourceLanguage.ItemsSource = items;
 
             SelectSourceLanguage();
@@ -101,7 +110,7 @@ namespace ScreenLookup.src.pages
             ttsProvider.ItemsSource = items;
         }
 
-        private void ButtonDownloadTesseractChanged()
+        public void ButtonDownloadTesseractChanged()
         {
             downloadTesseract.IsEnabled = true;
             downloadTesseract.Visibility = Visibility.Visible;
@@ -111,7 +120,7 @@ namespace ScreenLookup.src.pages
                 tesseractLoadingIcon.Visibility = Visibility.Visible;
                 tesseractLoadIcon.Visibility = Visibility.Collapsed;
             }
-            else if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
+            else if (DownloadHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
                 downloadTesseract.Visibility = Visibility.Hidden;
             else
             {
@@ -158,33 +167,35 @@ namespace ScreenLookup.src.pages
         {
             int langID = App.setting.SourceLanguage;
             int accID = App.setting.SourceLanguageAccuracy;
+            bool isSuccess = false;
 
             if (isLoadingTesseract || string.IsNullOrWhiteSpace(TesseractHelper.LangList[langID]))
                 return;
 
-            string pickedLanguageFile = $"{TesseractHelper.LangList[langID]}.traineddata";
-
             isLoadingTesseract = true;
             ButtonDownloadTesseractChanged();
-            SnackbarHost.Show("Source Language", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
-            string tesseractFilePath = TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy);
-            string filePath = Path.Combine(App.tempFolder, pickedLanguageFile);
-            bool isFileExist = File.Exists(Path.Combine(tesseractFilePath, pickedLanguageFile));
-            bool isDownloaded = false;
-
-            if (!isFileExist)
+            if (App.setting.OcrEngineMode == 0) // TesseractOCR
             {
-                DownloadHelper fileDownloader = new();
-                isDownloaded = await fileDownloader.DownloadFileAsync($"https://raw.githubusercontent.com/tesseract-ocr/{(accID == 0 ? "tessdata" : accID == 1 ? "tessdata_best" : "tessdata_fast")}/main/{pickedLanguageFile}", filePath);
-                await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
+                bool installed = await TesseractHelper.InstallModelAsync(accID, langID);
+                if (installed)
+                {
+                    TesseractHelper.SaveInstalled(accID, langID);
+                    isSuccess = true;
+                }
+            }
+            else // PaddleOCR
+            {
+                bool installed = await PaddleHelper.InstallModelAsync(accID);
+                if (installed)
+                {
+                    PaddleHelper.SaveInstalled(accID);
+                    isSuccess = true;
+                }
             }
 
-            if (isDownloaded || isFileExist)
-            {
-                TesseractHelper.SaveInstalled(accID, langID);
+            if (isSuccess)
                 SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
-            }
             else
                 SnackbarHost.Show("Source Language", $"Unable to download \"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
@@ -264,6 +275,18 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region ComboBox & Control Handlers
+        private void OcrEngineMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedIndex >= 0)
+                    App.setting.OcrEngineMode = comboBox.SelectedIndex;
+
+                ButtonDownloadTesseractChanged();
+                LoadSourceLanguageContent();
+            }
+        }
+
         private void SourceLanguageAccuracy_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)

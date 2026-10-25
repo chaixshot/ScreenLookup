@@ -53,6 +53,20 @@
                 FontWeight="SemiBold"
                 Text="Language" />
 
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="OCR Engine Mode" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Choose Optical Character Recognition engine mode" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <ComboBox
+                    x:Name="ocrEngineMode"
+                    Width="200"
+                    SelectedIndex="{Binding OcrEngineMode}"
+                    SelectionChanged="OcrEngineMode_SelectionChanged" />
+            </Controls:CardControl>
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=LocalLanguage24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">

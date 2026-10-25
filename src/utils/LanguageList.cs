@@ -12,7 +12,7 @@ namespace ScreenLookup.src.utils
         /// <summary>
         /// Removes known Tesseract tag suffixes from the specified tag string.
         /// </summary>
-        public static string ClearTesseractTag(string tesseractTag)
+        public static string ClearLanguageTag(string tesseractTag)
         {
             tesseractTag = tesseractTag.Replace("_frak", string.Empty);
             tesseractTag = tesseractTag.Replace("_old", string.Empty);
@@ -35,7 +35,7 @@ namespace ScreenLookup.src.utils
         /// </summary>
         public static string GetLanguageISO6391FromID(int langID)
         {
-            string tessTag = ClearTesseractTag(GetTesseractTagFromID(langID));
+            string tessTag = ClearLanguageTag(GetTesseractTagFromID(langID));
 
             try
             {
@@ -58,7 +58,7 @@ namespace ScreenLookup.src.utils
         /// </summary>
         public static string GetLanguageISO6393FromID(int langID)
         {
-            string tessTag = ClearTesseractTag(GetTesseractTagFromID(langID));
+            string tessTag = ClearLanguageTag(GetTesseractTagFromID(langID));
 
             try
             {
@@ -81,7 +81,7 @@ namespace ScreenLookup.src.utils
         /// </summary>
         public static string GetDisplayNameFromTesseractTag(string tesseractTag, bool isNative)
         {
-            string tessLangTag = ClearTesseractTag(tesseractTag);
+            string tessLangTag = ClearLanguageTag(tesseractTag);
 
             if (isNative)
             {

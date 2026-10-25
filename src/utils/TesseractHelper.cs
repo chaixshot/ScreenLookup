@@ -22,6 +22,16 @@ namespace ScreenLookup.src.utils
             "tur", "uig", "ukr", "urd", "uzb", "uzb_cyrl", "vie", "yid", "yor"
         ];
 
+        public static string GetTesseractModelName(string langTag)
+        {
+            if (string.IsNullOrEmpty(langTag))
+                return "eng";
+            else if (langTag.EndsWith("_vert"))
+                return LanguageList.ClearLanguageTag(langTag);
+            else
+                return langTag;
+        }
+
         public static string GetTessdataPath(int accID)
         {
             if (accID == 0)
@@ -33,16 +43,64 @@ namespace ScreenLookup.src.utils
 
         public static bool IsInstalled(int accID, int langID)
         {
-            return App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}");
+            if (langID < 0 || langID >= LangList.Length) return false;
+            if (!App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}")) return false;
+
+            string tessdataPath = GetTessdataPath(accID);
+            string rawTag = LangList[langID];
+            string modelName = GetTesseractModelName(rawTag);
+            return File.Exists(Path.Combine(tessdataPath, $"{modelName}.traineddata"));
         }
 
         public static void SaveInstalled(int accID, int langID)
         {
-            App.setting.LoadedTesseract.Add($"{accID},{langID}", true);
+            App.setting.LoadedTesseract[$"{accID},{langID}"] = true;
             App.setting.Save();
 
             App.captureWindow.LoadInstalledLanguage();
-            App.captureWindow.CreateTesseractEngine();
+            App.captureWindow.CreateOcrEngine();
+        }
+
+        public static async Task<bool> InstallModelAsync(int accID, int langID)
+        {
+            if (langID < 0 || langID >= LangList.Length) return false;
+            if (IsInstalled(accID, langID)) return true;
+
+            string rawTag = LangList[langID];
+            string modelName = GetTesseractModelName(rawTag);
+            string pickedLanguageFile = $"{modelName}.traineddata";
+            string tesseractFilePath = GetTessdataPath(accID);
+            string filePath = Path.Combine(App.tempFolder, pickedLanguageFile);
+
+            try
+            {
+                string repoName = accID == 0 ? "tessdata_fast" : (accID == 1 ? "tessdata" : "tessdata_best");
+                string downloadUrl = $"https://raw.githubusercontent.com/tesseract-ocr/{repoName}/main/{pickedLanguageFile}";
+
+                SnackbarHost.Show("Tesseract", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
+
+                DownloadHelper fileDownloader = new();
+                bool isDownloaded = await fileDownloader.DownloadFileAsync(downloadUrl, filePath);
+                if (isDownloaded)
+                {
+                    await DownloadHelper.MoveFileToFolder(filePath, tesseractFilePath);
+                    return File.Exists(Path.Combine(tesseractFilePath, pickedLanguageFile));
+                }
+            }
+            catch (Exception ex)
+            {
+                SnackbarHost.Show("TesseractHelper", $"Failed to install Tesseract model: {ex.Message}", type: SnackbarType.Error);
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                }
+                catch { }
+            }
+
+            return false;
         }
 
         public static Task<TesseractOCR.Page> RunOcrAsync(TesseractOCR.Engine engine, Bitmap image)

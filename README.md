@@ -1,6 +1,6 @@
 # ScreenLookup - Real-time Screen OCR, Translation & VR Language Learning Tool
 
-ScreenLookup is a Windows desktop and SteamVR application designed for language learning from games, movies, and desktop applications. It extracts text from the screen using Tesseract OCR, translates it into your target language, provides dictionary alternative meanings/parts of speech, and speaks pronunciations with Text-To-Speech (TTS).
+ScreenLookup is a Windows desktop and SteamVR application designed for language learning from games, movies, and desktop applications. It extracts text from the screen using OCR, translates it into your target language, provides dictionary alternative meanings/parts of speech, and speaks pronunciations with Text-To-Speech (TTS).
 
 [Download Latest Release](https://github.com/chaixshot/ScreenLookup/releases)
 
@@ -8,7 +8,7 @@ ScreenLookup is a Windows desktop and SteamVR application designed for language 
 
 * **Desktop & VR Screen Capture**: Perform instant OCR on any selected desktop area or use 3D hand gestures in SteamVR (FrameShot) without removing your headset.
 * **Rich Dictionary & Alternative Meanings**: Click any word to view primary translations plus parts of speech (`noun`, `verb`, `adjective`) and alternate meanings (Google Translate).
-* **Tesseract OCR & Hunspell Correction**: High-accuracy optical character recognition with optional Hunspell dictionary spell-correction for stylized game fonts.
+* **OCR & Hunspell Correction**: High-accuracy optical character recognition with optional Hunspell dictionary spell-correction for stylized game fonts.
 * **Text-To-Speech (TTS)**: Listen to native audio pronunciations for source words and translated sentences.
 * **Dual Display Modes**:
   * **On Image**: Places interactive, clickable word boxes directly over the captured image.
@@ -29,7 +29,7 @@ ScreenLookup is a Windows desktop and SteamVR application designed for language 
 1. **Configure Languages & Download Models**:
    <img width="500" src="Resource/SettingsPage.png" />
    * Open the **Settings** page.
-   * Select your **Source Language** and accuracy level, then click **Download** to acquire Tesseract OCR model data.
+   * Select your **Source Language** and accuracy level, then click **Download** to acquire OCR model data.
    * *(Optional)* Download **Hunspell** for spell correction if supported by your source language to fix game font OCR artifacts.
    * Select your **Target Language**, **Translation Provider**, and **TTS Provider**.
 
@@ -105,7 +105,7 @@ ScreenLookup includes native **SteamVR / OpenVR** integration allowing you to ca
 * **Use Image Editing Toolbar**:
   * Use **Rotate Left / Rotate Right** if captured text is vertical or sideways.
   * Use **Zoom** to enlarge tiny or low-resolution text for clearer character recognition.
-  * Click **Confirm** after adjusting to re-run Tesseract OCR on the modified image.
+  * Click **Confirm** after adjusting to re-run OCR on the modified image.
 * Increase the **Source Language Accuracy** level in Settings.
 * Enable **Hunspell** for supported languages to correct OCR misspellings automatically.
 
@@ -118,6 +118,7 @@ ScreenLookup includes native **SteamVR / OpenVR** integration allowing you to ca
 ## Credits
 
 * **[Tesseract OCR](https://github.com/charlesw/tesseract)**: Optical Character Recognition engine for text extraction.
+* **[PaddleOCRSharp](https://github.com/raoyutian/PaddleOCRSharp)**: Optical Character Recognition engine for text extraction.
 * **[HunspellSharp](https://github.com/Tomi-A/HunspellSharp)**: Spell checking and dictionary correction engine.
 * **[GTranslate](https://github.com/Hexed2/GTranslate)**: Multi-provider translation and Text-To-Speech library.
 * **[WPF-UI](https://github.com/lepoco/wpfui)**: Modern Fluent UI design system and Mica backdrop controls.
