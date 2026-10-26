@@ -142,7 +142,7 @@
 
                         <StackPanel
                             x:Name="captureCardButton"
-                            Margin="14,70,0,10"
+                            Margin="15,55,0,10"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
 
@@ -341,7 +341,6 @@
                                 Grid.Column="0"
                                 Height="28"
                                 Margin="0,0,20,0"
-                                VerticalAlignment="Bottom"
                                 Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                                 BorderBrush="{wpfui:ThemeResource ControlElevationBorderBrush}"
                                 BorderThickness="1"
@@ -415,8 +414,9 @@
                         </Grid>
 
                         <wpfui:CardExpander
-                            x:Name="imageTranslationExpander"
+                            x:Name="translationExpander"
                             Grid.ColumnSpan="2"
+                            Padding="14,8"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
@@ -424,17 +424,24 @@
                             ContentPadding="0"
                             CornerRadius="0,0,8,0">
                             <wpfui:CardExpander.Header>
-                                <wpfui:SymbolIcon FontSize="26" Symbol="Translate24" />
+                                <Grid
+                                    x:Name="expanderHeader"
+                                    Height="20"
+                                    VerticalAlignment="Center">
+                                    <wpfui:SymbolIcon
+                                        VerticalAlignment="Center"
+                                        FontSize="22"
+                                        Symbol="Translate24" />
+                                </Grid>
                             </wpfui:CardExpander.Header>
 
                             <Border
-                                x:Name="imageTranslatedExpanderContent"
+                                x:Name="expanderContent"
                                 Padding="14,16,14,16"
                                 Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
                                 CornerRadius="0,0,8,0">
                                 <local:TranslationBox
                                     x:Name="translationImage"
-                                    Margin="5,0,0,0"
                                     VerticalAlignment="Top"
                                     ButtonWidth="{Binding ButtonWidth}" />
                             </Border>

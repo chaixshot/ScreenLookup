@@ -77,19 +77,19 @@ namespace ScreenLookup.src.windows
                 {
                     if (flayOut.IsOpen)
                         flayOut.IsOpen = false;
-                    else if (imageTranslationExpander.IsExpanded)
+                    else if (translationExpander.IsExpanded)
                         CloseTranslatedExpanded();
                     else
                         CloseWindow();
                 }
             };
 
-            imageTranslationExpander.Expanded += async (s, e) =>
+            translationExpander.Expanded += async (s, e) =>
             {
                 await TranlsateImageExpander();
             };
 
-            imageTranslationExpander.Collapsed += async (s, e) =>
+            translationExpander.Collapsed += async (s, e) =>
             {
                 TextToSpeech.StopTTS();
             };
@@ -310,7 +310,7 @@ namespace ScreenLookup.src.windows
                     {
                         ProcessImageOverlay.Visibility = Visibility.Collapsed;
 
-                        if (imageTranslationExpander.IsExpanded)
+                        if (translationExpander.IsExpanded)
                             TranlsateImageExpander();
                     });
                 }
@@ -352,16 +352,19 @@ namespace ScreenLookup.src.windows
 
         private async Task TranlsateImageExpander()
         {
-            double targetHeight = imageTranslatedExpanderContent.MaxHeight - 250;
-            imageTranslatedExpanderContent.MinHeight = captureImage.Height;
-            imageTranslatedExpanderContent.MaxHeight = captureImage.Height + (App.setting.FontSizeS * 3);
-            translationImage.MaxHeight = targetHeight > 0 ? targetHeight : imageTranslatedExpanderContent.MaxHeight;
+            double expandeHeight = captureCard.ActualHeight - expanderHeader.ActualHeight - expanderContent.Padding.Top - 5;
+            expanderContent.Height = expandeHeight;
+
+            double expandeWidth = captureCard.ActualWidth;
+            expanderContent.Width = expandeWidth;
+
+            double translationHeight = expandeHeight - expanderContent.Padding.Top - expanderContent.Padding.Bottom;
+            translationImage.Height = translationHeight;
 
             await translationImage.Translate(isWord: false, TesseractPageText, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
             translationMessage.Translated = translationImage.Translated;
             HistoryLogger.Update(LastHistoryID, translationImage.Translated);
         }
-
 
         private void ChangeCaptureImage(Bitmap bmp)
         {
@@ -402,7 +405,7 @@ namespace ScreenLookup.src.windows
                 {
                     captureCard.Visibility = Visibility.Visible;
                     captureCardButton.Visibility = Visibility.Visible;
-                    imageTranslationExpander.Visibility = Visibility.Visible;
+                    translationExpander.Visibility = Visibility.Visible;
                     originalCard.Visibility = Visibility.Collapsed;
                     translatedCard.Visibility = Visibility.Collapsed;
                 }
@@ -410,7 +413,7 @@ namespace ScreenLookup.src.windows
                 {
                     captureCard.Visibility = App.setting.ShowImage ? Visibility.Visible : Visibility.Collapsed;
                     captureCardButton.Visibility = Visibility.Collapsed;
-                    imageTranslationExpander.Visibility = Visibility.Collapsed;
+                    translationExpander.Visibility = Visibility.Collapsed;
                     originalCard.Visibility = Visibility.Visible;
                     translatedCard.Visibility = Visibility.Visible;
                 }
@@ -444,7 +447,7 @@ namespace ScreenLookup.src.windows
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
             captureCardButton.Visibility = Visibility.Collapsed;
-            imageTranslationExpander.Visibility = Visibility.Collapsed;
+            translationExpander.Visibility = Visibility.Collapsed;
             originalCard.Visibility = Visibility.Collapsed;
             translatedCard.Visibility = Visibility.Collapsed;
 
@@ -554,8 +557,8 @@ namespace ScreenLookup.src.windows
 
         private void CloseTranslatedExpanded()
         {
-            if (imageTranslationExpander.IsExpanded)
-                imageTranslationExpander.IsExpanded = false;
+            if (translationExpander.IsExpanded)
+                translationExpander.IsExpanded = false;
         }
         #endregion
 
