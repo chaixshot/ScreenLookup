@@ -189,7 +189,7 @@ namespace ScreenLookup.src.windows
             ResetDefaultState();
 
             IsVR = isVR;
-            CapturedImage = IsVR ? SetBitmapDimension(image) : image;
+            CapturedImage = SetBitmapDimension(image, IsVR);
             CapturedImageEditable = CapturedImage;
 
             if (showOption)
@@ -317,37 +317,77 @@ namespace ScreenLookup.src.windows
             }, ProcessImageCancelToken.Token);
         }
 
-        private static Bitmap SetBitmapDimension(Bitmap bmp)
+        private static Bitmap SetBitmapDimension(Bitmap bmp, bool limit = false)
         {
-            int canvasWidth = 1080;
-            int canvasHeight = 720;
-
-            double ratioX = (double)canvasWidth / bmp.Width;
-            double ratioY = (double)canvasHeight / bmp.Height;
-            double ratio = Math.Min(ratioX, ratioY);
-
-            int newWidth = (int)(bmp.Width * ratio);
-            int newHeight = (int)(bmp.Height * ratio);
-
-            if (newWidth < 1) newWidth = 1;
-            if (newHeight < 1) newHeight = 1;
-
-            int posX = (canvasWidth - newWidth) / 2;
-            int posY = (canvasHeight - newHeight) / 2;
-
-            Bitmap resizedBmp = new Bitmap(canvasWidth, canvasHeight);
-
-            using (Graphics g = Graphics.FromImage(resizedBmp))
+            if (limit) // Fixed dimension
             {
-                g.Clear(Color.White);
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                int canvasWidth = 1080;
+                int canvasHeight = 720;
 
-                g.DrawImage(bmp, posX, posY, newWidth, newHeight);
+                double ratioX = (double)canvasWidth / bmp.Width;
+                double ratioY = (double)canvasHeight / bmp.Height;
+                double ratio = Math.Min(ratioX, ratioY);
+
+                int newWidth = (int)(bmp.Width * ratio);
+                int newHeight = (int)(bmp.Height * ratio);
+
+                if (newWidth < 1) newWidth = 1;
+                if (newHeight < 1) newHeight = 1;
+
+                int posX = (canvasWidth - newWidth) / 2;
+                int posY = (canvasHeight - newHeight) / 2;
+
+                Bitmap resizedBmp = new Bitmap(canvasWidth, canvasHeight);
+
+                using (Graphics g = Graphics.FromImage(resizedBmp))
+                {
+                    g.Clear(Color.White);
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                    g.DrawImage(bmp, posX, posY, newWidth, newHeight);
+                }
+
+                return resizedBmp;
             }
+            else
+            {
+                double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
+                double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
 
-            return resizedBmp;
+                int maxW = (int)Math.Max(100, screenWidth - 50);
+                int maxH = (int)Math.Max(100, screenHeight - 105);
+
+                // Screen boundary hit
+                if (bmp.Width > maxW || bmp.Height > maxH)
+                {
+                    double ratioX = (double)maxW / bmp.Width;
+                    double ratioY = (double)maxH / bmp.Height;
+                    double ratio = Math.Min(ratioX, ratioY);
+
+                    int newWidth = (int)(bmp.Width * ratio);
+                    int newHeight = (int)(bmp.Height * ratio);
+
+                    if (newWidth < 1) newWidth = 1;
+                    if (newHeight < 1) newHeight = 1;
+
+                    Bitmap resizedBmp = new Bitmap(newWidth, newHeight);
+
+                    using (Graphics g = Graphics.FromImage(resizedBmp))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                        g.DrawImage(bmp, 0, 0, newWidth, newHeight);
+                    }
+
+                    return resizedBmp;
+                }
+
+                return bmp;
+            }
         }
 
         private async Task TranlsateImageExpander()
@@ -495,8 +535,8 @@ namespace ScreenLookup.src.windows
 
             UpdateOverlayScale();
 
-            this.MaxWidth = screenWidth - 50;
-            this.MaxHeight = screenHeight - 50;
+            this.MaxWidth = screenWidth;
+            this.MaxHeight = screenHeight;
             this.Width = Math.Min(this.MaxWidth, captureImage.Width + (App.setting.FontSizeS * 10));
         }
 
@@ -719,6 +759,7 @@ namespace ScreenLookup.src.windows
             CapturedImageEditable = CapturedImage;
             CapturedImageEditable = Convertor.BitmapRescale(CapturedImageEditable, editZoom);
             CapturedImageEditable = Convertor.BitmapRotate(CapturedImageEditable, editRotate);
+            CapturedImageEditable = SetBitmapDimension(CapturedImageEditable);
 
             ChangeCaptureImage(CapturedImageEditable);
             if (!isImageEditing)
