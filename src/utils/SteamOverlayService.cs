@@ -1,4 +1,5 @@
 using ScreenLookup.src.windows;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -206,6 +207,10 @@ namespace ScreenLookup.src.utils
         private int clickPulseStartTime = -1000;
         private int clickPulseX = 0;
         private int clickPulseY = 0;
+
+        private bool clickHeld = false;
+        private int lastClickX = 0;
+        private int lastClickY = 0;
 
         private int lastScreenX = 0;
         private int lastScreenY = 0;
@@ -635,22 +640,53 @@ namespace ScreenLookup.src.utils
                 {
                     if (inputService.IsActionJustPressed(primaryTrigger))
                     {
-                        clickPulseStartTime = Environment.TickCount;
-                        clickPulseX = pointerLocalX;
-                        clickPulseY = pointerLocalY;
-
-                        int clickX = lastScreenX;
-                        int clickY = lastScreenY;
+                        lastClickX = lastScreenX;
+                        lastClickY = lastScreenY;
 
                         targetWindow?.Dispatcher.InvokeAsync(async () =>
                         {
-                            if (!IsTargetWindowFronted())
+                            long startTimestamp = Stopwatch.GetTimestamp();
+
+                            // Check click held for 300ms
+                            while (inputService.IsActionHeld(primaryTrigger) && Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds < 300)
+                                await Task.Delay(1);
+
+                            clickHeld = inputService.IsActionHeld(primaryTrigger);
+
+                            if (clickHeld)
                             {
-                                SetForegroundWindow(targetHwnd);
-                                await Task.Delay(50);
+                                clickPulseStartTime = Environment.TickCount;
+                                clickPulseX = pointerLocalX;
+                                clickPulseY = pointerLocalY;
+
+                                if (!IsTargetWindowFronted())
+                                {
+                                    SetForegroundWindow(targetHwnd);
+                                    await Task.Delay(50);
+                                }
+                                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
                             }
-                            SetCursorPos(clickX, clickY);
-                            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                        });
+                    }
+
+                    if (inputService.IsActionJustReleased(primaryTrigger))
+                    {
+                        targetWindow?.Dispatcher.InvokeAsync(async () =>
+                        {
+                            if (!clickHeld)
+                            {
+                                clickPulseStartTime = Environment.TickCount;
+                                clickPulseX = pointerLocalX;
+                                clickPulseY = pointerLocalY;
+
+                                if (!IsTargetWindowFronted())
+                                {
+                                    SetForegroundWindow(targetHwnd);
+                                    await Task.Delay(50);
+                                }
+                                SetCursorPos(lastClickX, lastClickY);
+                                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                            }
                             mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                             isOverlayDirty = true;
                         });
@@ -685,7 +721,7 @@ namespace ScreenLookup.src.utils
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show("SteamVR", $"Input processing error: {ex.Message}", type: SnackbarType.Error);
+                //SnackbarHost.Show("SteamVR", $"Input processing error: {ex.Message}", type: SnackbarType.Error);
             }
         }
 
