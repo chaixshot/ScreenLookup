@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -260,27 +261,23 @@ namespace ScreenLookup.src.utils
                         bool inRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
                         if (inRage)
                         {
-                            inputService.TriggerHapticPulseBoth(50000);
-                            Task.Run(() =>
+                            inputService.TriggerHapticPulseBoth(65000);
+                            Task.Run(async () =>
                             {
-                                long startTime = DateTime.UtcNow.Ticks;
-                                while (true)
+                                long startTimestamp = Stopwatch.GetTimestamp();
+                                while (leftHeld && rightHeld && inRage && Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds < 500)
                                 {
+                                    leftHeld = inputService.IsActionHeld(inputService.GripLeftHandle);
+                                    rightHeld = inputService.IsActionHeld(inputService.GripRightHandle);
                                     inRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
-                                    if (leftHeld && rightHeld && inRage)
-                                    {
-                                        if ((DateTime.UtcNow.Ticks - startTime) / TimeSpan.TicksPerMillisecond >= 500)
-                                        {
-                                            AppUtilities.PlaySound("ready.wav");
-                                            inputService.TriggerHapticPulseBoth(50000);
-                                            EnsureMirrorPipeline();
-                                            IsFraming = true;
-
-                                            break;
-                                        }
-                                    }
-                                    else
-                                        break;
+                                    await Task.Delay(1);
+                                }
+                                if (leftHeld && rightHeld && inRage)
+                                {
+                                    AppUtilities.PlaySound("ready.wav");
+                                    inputService.TriggerHapticPulseBoth(50000);
+                                    EnsureMirrorPipeline();
+                                    IsFraming = true;
                                 }
                             });
                         }
