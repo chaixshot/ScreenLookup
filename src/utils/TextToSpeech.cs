@@ -1,6 +1,5 @@
 using NAudio.Wave;
 using ScreenLookup.src.utils.Database;
-using System.IO;
 using GLanguage = GTranslate.Language;
 
 namespace ScreenLookup.src.utils
@@ -34,11 +33,18 @@ namespace ScreenLookup.src.utils
             if (string.IsNullOrEmpty(text))
                 return;
 
+            string cleanedText = text
+                .Replace("\n\n", ".")
+                .Replace("\r\r", ".")
+                .Replace("\t\t", ".").Replace("\t", ".")
+                .Replace("\n", " ")
+                .Replace("\r", " ");
+
             StopTTS();
             _playTTSCancelToken = new CancellationTokenSource();
             CancellationToken cancellationToken = _playTTSCancelToken.Token;
 
-            IEnumerable<string> sentences = [.. SplitIntoSentences(text)];
+            IEnumerable<string> sentences = [.. SplitIntoSentences(cleanedText)];
             GLanguage languageData = GLanguage.GetLanguage(LanguageList.GetLanguageISO6391FromID(langID));
             string? errorMsg = null;
 
