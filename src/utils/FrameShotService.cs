@@ -261,21 +261,27 @@ namespace ScreenLookup.src.utils
                         bool inRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
                         if (inRage)
                         {
-                            inputService.TriggerHapticPulseBoth(65000);
                             Task.Run(async () =>
                             {
                                 long startTimestamp = Stopwatch.GetTimestamp();
+                                float strength = 0.01f;
+
                                 while (leftHeld && rightHeld && inRage && Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds < 500)
                                 {
+                                    VRInputService.RumbleBoth(0f, 320f, strength);
+
+                                    strength += 0.01f;
                                     leftHeld = inputService.IsActionHeld(inputService.GripLeftHandle);
                                     rightHeld = inputService.IsActionHeld(inputService.GripRightHandle);
                                     inRage = inputService.TryGetHandPositions(App.setting.ActivationRadius, out leftCoords, out rightCoords);
+
                                     await Task.Delay(1);
                                 }
+
                                 if (leftHeld && rightHeld && inRage)
                                 {
                                     AppUtilities.PlaySound("ready.wav");
-                                    inputService.TriggerHapticPulseBoth(50000);
+                                    VRInputService.RumbleBoth(0.02f, 320f, 1f);
                                     EnsureMirrorPipeline();
                                     IsFraming = true;
                                 }
@@ -289,11 +295,11 @@ namespace ScreenLookup.src.utils
 
             if (IsFraming)
             {
-                if (inputService.IsActionJustPressed(inputService.TriggerLeftHandle) || inputService.IsActionJustReleased(inputService.TriggerLeftHandle))
-                    inputService.TriggerHapticPulse(inputService.LeftControllerIdx, 4000);
-                else if (inputService.IsActionJustPressed(inputService.TriggerRightHandle))
+                if (inputService.IsActionJustPressed(inputService.TriggerLeftHandle) || inputService.IsActionJustReleased(inputService.TriggerLeftHandle)) // Left trigger press/release haptic
+                    VRInputService.Rumble(inputService.LeftControllerIdx, 0.01f, 40f, 0.5f);
+                else if (inputService.IsActionJustPressed(inputService.TriggerRightHandle)) // Show last result
                 {
-                    inputService.TriggerHapticPulseBoth(50000);
+                    VRInputService.Rumble(inputService.RightControllerIdx, 0.01f, 40f, 0.5f);
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         App.captureWindow.OpenWindow();
@@ -309,7 +315,7 @@ namespace ScreenLookup.src.utils
                 if (leftHeld && inputService.IsActionJustReleased(inputService.GripRightHandle))
                 {
                     AppUtilities.PlaySound("screenshot.wav");
-                    inputService.TriggerHapticPulseBoth(50000);
+                    VRInputService.RumbleBoth(0.01f, 320f, 1f);
 
                     App.captureWindow.Dispatcher.BeginInvoke(new Action(async () =>
                     {

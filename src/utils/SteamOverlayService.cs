@@ -394,9 +394,9 @@ namespace ScreenLookup.src.utils
 
             Task.Run(async () =>
             {
-                inputService.TriggerHapticPulse(ActiveControllerIdx, 3000);
+                VRInputService.Rumble(ActiveControllerIdx, 0.01f, 320f, 0.5f);
                 await Task.Delay(100, doublePressCts.Token);
-                inputService.TriggerHapticPulse(ActiveControllerIdx, 3000);
+                VRInputService.Rumble(ActiveControllerIdx, 0.01f, 320f, 0.5f);
             });
 
             Task.Run(async () =>
@@ -422,7 +422,7 @@ namespace ScreenLookup.src.utils
         private void PerformClose()
         {
             targetWindow?.Dispatcher.Invoke(() => targetWindow.CloseWindow());
-            inputService.TriggerHapticPulse(ActiveControllerIdx, 3000);
+            VRInputService.Rumble(ActiveControllerIdx, 0.01f, 320f, 0.5f);
         }
         #endregion
 

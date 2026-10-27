@@ -1,5 +1,5 @@
-using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Valve.VR;
 
@@ -41,6 +41,18 @@ namespace ScreenLookup.src.utils
         public ulong ThumbstickLeftHandle { get; private set; } = 0;
         public ulong ThumbstickRightHandle { get; private set; } = 0;
         #endregion
+
+        #region Haptic
+        private class HapticTracker
+        {
+            public CancellationTokenSource? Cts;
+        }
+
+        private static readonly ConditionalWeakTable<object, HapticTracker> ActiveRumbles = new();
+        private static readonly object LeftHandKey = new();
+        private static readonly object RightHandKey = new();
+        #endregion
+
 
         #region Action Registration & Polling
         /// <summary>
@@ -225,18 +237,86 @@ namespace ScreenLookup.src.utils
         }
         #endregion
 
-        public void TriggerHapticPulse(uint controllerIdx, ushort durationMicroSec = 50000)
+        /// <summary>
+        /// Sends a haptic rumble with explicit control over frequency and strength for the specified controller index.
+        /// </summary>
+        /// <param name="controllerIdx">The OpenVR device index of the controller.</param>
+        /// <param name="duration">Total length of the vibration in seconds.</param>
+        /// <param name="frequency">Frequency in Hz (Recommended: 40Hz to 320Hz).</param>
+        /// <param name="strength">Strength from 0.0 to 1.0.</param>
+        public static void Rumble(uint controllerIdx, float duration, float frequency, float strength)
         {
-            if (controllerIdx != OpenVR.k_unTrackedDeviceIndexInvalid)
+            if (controllerIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return;
+
+            var system = OpenVR.System;
+            uint leftIdx = system?.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand) ?? OpenVR.k_unTrackedDeviceIndexInvalid;
+            object handKey = (controllerIdx == leftIdx) ? LeftHandKey : RightHandKey;
+
+            // Stop existing rumble task for this hand if active
+            if (ActiveRumbles.TryGetValue(handKey, out HapticTracker? tracker))
             {
-                OpenVR.System?.TriggerHapticPulse(controllerIdx, 0, durationMicroSec);
+                tracker?.Cts?.Cancel();
+                tracker?.Cts?.Dispose();
             }
+            else
+            {
+                tracker = new HapticTracker();
+                ActiveRumbles.Add(handKey, tracker);
+            }
+
+            tracker.Cts = new CancellationTokenSource();
+            var token = tracker.Cts.Token;
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    ushort pulseWidth = (ushort)(Math.Clamp(strength, 0f, 1f) * 6000f); // Map strength (0.0 - 1.0) to OpenVR microseconds (0 - 6000)
+
+                    if (duration == 0f) // Play once and exit loop immediately for short durations.
+                        OpenVR.System?.TriggerHapticPulse(controllerIdx, 0U, pulseWidth);
+                    else
+                    {
+                        float elapsed = 0f;
+                        float targetFrequency = Math.Clamp(frequency, 10f, 500f);  // Frequency math: Time (seconds) between each pulse = 1 / Frequency
+                        float timeBetweenPulses = 1f / targetFrequency;
+                        int delayMs = (int)(timeBetweenPulses * 1000f);
+
+                        while (elapsed < duration && !token.IsCancellationRequested)
+                        {
+                            OpenVR.System?.TriggerHapticPulse(controllerIdx, 0U, pulseWidth);
+                            await Task.Delay(Math.Max(1, delayMs), token);
+                            elapsed += timeBetweenPulses;
+                        }
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Expected when cancelled
+                }
+                finally
+                {
+                    tracker?.Cts = null;
+                }
+            }, token);
         }
 
-        public void TriggerHapticPulseBoth(ushort durationMicroSec = 50000)
+        /// <summary>
+        /// Sends haptic rumbles to both left and right controllers with explicit control over frequency and strength.
+        /// </summary>
+        /// <param name="duration">Total length of the vibration in seconds.</param>
+        /// <param name="frequency">Frequency in Hz (Recommended: 40Hz to 320Hz).</param>
+        /// <param name="strength">Strength from 0.0 to 1.0.</param>
+        public static void RumbleBoth(float duration, float frequency, float strength)
         {
-            TriggerHapticPulse(LeftControllerIdx, durationMicroSec);
-            TriggerHapticPulse(RightControllerIdx, durationMicroSec);
+            var system = OpenVR.System;
+            if (system == null) return;
+
+            uint leftIdx = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+            uint rightIdx = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+
+            Rumble(leftIdx, duration, frequency, strength);
+            Rumble(rightIdx, duration, frequency, strength);
         }
 
         public float GetThumbstickY(ulong actionHandle)
