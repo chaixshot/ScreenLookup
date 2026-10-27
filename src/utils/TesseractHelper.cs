@@ -44,12 +44,17 @@ namespace ScreenLookup.src.utils
         public static bool IsInstalled(int accID, int langID)
         {
             if (langID < 0 || langID >= LangList.Length) return false;
-            if (!App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}")) return false;
+            if (App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}"))
+                return true;
+            else
+            {
 
-            string tessdataPath = GetTessdataPath(accID);
-            string rawTag = LangList[langID];
-            string modelName = GetTesseractModelName(rawTag);
-            return File.Exists(Path.Combine(tessdataPath, $"{modelName}.traineddata"));
+                string tessdataPath = GetTessdataPath(accID);
+                string rawTag = LangList[langID];
+                string modelName = GetTesseractModelName(rawTag);
+
+                return File.Exists(Path.Combine(tessdataPath, $"{modelName}.traineddata"));
+            }
         }
 
         public static void SaveInstalled(int accID, int langID)
@@ -58,7 +63,6 @@ namespace ScreenLookup.src.utils
             App.setting.Save();
 
             App.captureWindow.LoadInstalledLanguage();
-            App.captureWindow.CreateOcrEngine();
         }
 
         public static async Task<bool> InstallModelAsync(int accID, int langID)

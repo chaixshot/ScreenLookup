@@ -63,7 +63,7 @@
                 <ComboBox
                     x:Name="ocrEngineMode"
                     Width="200"
-                    SelectedIndex="{Binding OcrEngineMode}"
+                    SelectedValue="{Binding OcrEngineMode}"
                     SelectionChanged="OcrEngineMode_SelectionChanged" />
             </Controls:CardControl>
 

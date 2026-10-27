@@ -1,6 +1,7 @@
 ﻿using ScreenLookup.src.utils;
 using System.Windows;
 using System.Windows.Controls;
+using static ScreenLookup.src.utils.OcrHelper;
 
 namespace ScreenLookup.src.pages
 {
@@ -43,7 +44,7 @@ namespace ScreenLookup.src.pages
         #region Content Loading Methods
         private void LoadOcrEngineModes()
         {
-            ocrEngineMode.ItemsSource = App.setting.OcrEngineModes;
+            ocrEngineMode.ItemsSource = Enum.GetValues<OcrEngine>();
         }
 
         private void LoadSourceAccuracyContent()
@@ -79,9 +80,11 @@ namespace ScreenLookup.src.pages
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = DownloadHelper.IsInstalled(langAcc, langID);
 
-                // If Paddle mode is active, double check to ensure it exists in PaddleHelper.LangList (redundant since we loop it directly, but safe)
-                if (App.setting.OcrEngineMode == 1 && !PaddleHelper.LangList.Contains(tesseractTag))
-                    continue;
+                if (App.setting.OcrEngineMode == OcrEngine.PaddleOCR) // If Paddle mode is active
+                {
+                    if (!PaddleHelper.LangList.Contains(tesseractTag)) // double check to ensure it exists in PaddleHelper.LangList (redundant since we loop it directly, but safe)
+                        continue;
+                }
 
                 items.Add(new ComboBoxItem
                 {
@@ -175,23 +178,22 @@ namespace ScreenLookup.src.pages
             isLoadingTesseract = true;
             ButtonDownloadTesseractChanged();
 
-            if (App.setting.OcrEngineMode == 0) // TesseractOCR
+            switch (App.setting.OcrEngineMode)
             {
-                bool installed = await TesseractHelper.InstallModelAsync(accID, langID);
-                if (installed)
-                {
-                    TesseractHelper.SaveInstalled(accID, langID);
-                    isSuccess = true;
-                }
-            }
-            else // PaddleOCR
-            {
-                bool installed = await PaddleHelper.InstallModelAsync(accID);
-                if (installed)
-                {
-                    PaddleHelper.SaveInstalled(accID);
-                    isSuccess = true;
-                }
+                case OcrEngine.TesseraceOCR:
+                    isSuccess = await TesseractHelper.InstallModelAsync(accID, langID);
+                    if (isSuccess)
+                        TesseractHelper.SaveInstalled(accID, langID);
+
+                    break;
+                case OcrEngine.PaddleOCR:
+                    isSuccess = await PaddleHelper.InstallModelAsync(accID);
+                    if (isSuccess)
+                        PaddleHelper.SaveInstalled(accID);
+
+                    break;
+                default:
+                    break;
             }
 
             if (isSuccess)
@@ -280,7 +282,7 @@ namespace ScreenLookup.src.pages
             if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
             {
                 if (comboBox.SelectedIndex >= 0)
-                    App.setting.OcrEngineMode = comboBox.SelectedIndex;
+                    App.setting.OcrEngineMode = (OcrEngine)comboBox.SelectedIndex;
 
                 ButtonDownloadTesseractChanged();
                 LoadSourceLanguageContent();

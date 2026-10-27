@@ -55,9 +55,12 @@
 
         public static bool IsInstalled(int accID, int langID)
         {
-            return App.setting.OcrEngineMode == 0
-                ? TesseractHelper.IsInstalled(accID, langID)
-                : PaddleHelper.IsInstalled(accID);
+            return App.setting.OcrEngineMode switch
+            {
+                OcrHelper.OcrEngine.TesseraceOCR => TesseractHelper.IsInstalled(accID, langID),
+                OcrHelper.OcrEngine.PaddleOCR => PaddleHelper.IsInstalled(accID),
+                _ => TesseractHelper.IsInstalled(accID, langID),
+            };
         }
     }
 }

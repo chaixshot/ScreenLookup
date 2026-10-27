@@ -19,23 +19,23 @@ namespace ScreenLookup.src.utils
 
         public static bool IsInstalled(int accID)
         {
-            if (App.setting.LoadedPaddle.ContainsKey($"{accID}")) return true;
-
-            string modelDir = GetModelPath(accID);
-            string detDir = Path.Combine(modelDir, "det");
-            string recDir = Path.Combine(modelDir, "rec");
-
-            // Check if both det and rec subfolders exist with valid model configuration/weights
-            bool hasDet = Directory.Exists(detDir) &&
-                            (File.Exists(Path.Combine(detDir, "inference.json")) || File.Exists(Path.Combine(detDir, "inference.pdmodel")) || File.Exists(Path.Combine(detDir, "model.pdmodel")));
-
-            bool hasRec = Directory.Exists(recDir) &&
-                            (File.Exists(Path.Combine(recDir, "inference.json")) || File.Exists(Path.Combine(recDir, "inference.pdmodel")) || File.Exists(Path.Combine(recDir, "model.pdmodel")));
-
-            if (Directory.Exists(modelDir) && hasDet && hasRec)
+            if (App.setting.LoadedPaddle.ContainsKey($"{accID}"))
                 return true;
+            else
+            {
+                string modelDir = GetModelPath(accID);
+                string detDir = Path.Combine(modelDir, "det");
+                string recDir = Path.Combine(modelDir, "rec");
 
-            return false;
+                // Check if both det and rec subfolders exist with valid model configuration/weights
+                bool hasDet = Directory.Exists(detDir) &&
+                                (File.Exists(Path.Combine(detDir, "inference.json")) || File.Exists(Path.Combine(detDir, "inference.pdmodel")) || File.Exists(Path.Combine(detDir, "model.pdmodel")));
+
+                bool hasRec = Directory.Exists(recDir) &&
+                                (File.Exists(Path.Combine(recDir, "inference.json")) || File.Exists(Path.Combine(recDir, "inference.pdmodel")) || File.Exists(Path.Combine(recDir, "model.pdmodel")));
+
+                return Directory.Exists(modelDir) && hasDet && hasRec;
+            }
         }
 
         public static void SaveInstalled(int accID)
@@ -44,7 +44,6 @@ namespace ScreenLookup.src.utils
             App.setting.Save();
 
             App.captureWindow.LoadInstalledLanguage();
-            App.captureWindow.CreateOcrEngine();
         }
 
         public static string GetModelPath(int accID)

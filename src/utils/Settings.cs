@@ -22,7 +22,7 @@ namespace ScreenLookup.src.utils
         private bool startInBackground = false;
         private bool minimizeToTray = true;
 
-        private int ocrEngineMode = 0;
+        private OcrHelper.OcrEngine ocrEngineMode = OcrHelper.OcrEngine.TesseraceOCR;
         private int sourceLanguageAccuracy = 1;
         private int sourceLanguage = 29;
         private bool hunSpell = false;
@@ -75,11 +75,6 @@ namespace ScreenLookup.src.utils
             "Fast (Bad)",
             "Normal",
             "Slow (Accurate)",
-        ];
-
-        public readonly string[] OcrEngineModes = [
-            "TesseractOCR",
-            "PaddleOCR",
         ];
         #endregion
 
@@ -168,7 +163,7 @@ namespace ScreenLookup.src.utils
         #endregion
 
         #region Properties
-        public int OcrEngineMode
+        public OcrHelper.OcrEngine OcrEngineMode
         {
             get => ocrEngineMode;
             set
@@ -178,7 +173,7 @@ namespace ScreenLookup.src.utils
                 if (App.mainWindow?.IsLoaded == true)
                 {
                     App.captureWindow.LoadInstalledLanguage();
-                    App.captureWindow.CreateOcrEngine();
+                    OcrHelper.Dispose();
 
                     App.settingPage?.LoadSourceLanguageContent();
                     App.settingPage?.ButtonDownloadTesseractChanged();
@@ -198,7 +193,7 @@ namespace ScreenLookup.src.utils
                 if (App.mainWindow?.IsLoaded == true)
                 {
                     App.captureWindow.LoadInstalledLanguage();
-                    App.captureWindow.CreateOcrEngine();
+                    OcrHelper.Dispose();
 
                     App.settingPage?.LoadSourceLanguageContent();
                 }
@@ -219,7 +214,7 @@ namespace ScreenLookup.src.utils
 
                 if (App.mainWindow?.IsLoaded == true)
                 {
-                    App.captureWindow.CreateOcrEngine();
+                    OcrHelper.Dispose();
                     App.captureWindow.SelectConfigLanguage();
 
                     App.settingPage?.SelectSourceLanguage();

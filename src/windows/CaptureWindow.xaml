@@ -14,7 +14,7 @@
     Background="Transparent"
     Deactivated="App_Deactivated"
     ExtendsContentIntoTitleBar="True"
-    MouseLeftButtonDown="captureWindow_MouseDown"
+    MouseLeftButtonDown="CaptureWindow_MouseDown"
     RenderOptions.ClearTypeHint="Enabled"
     ResizeMode="NoResize"
     ShowInTaskbar="False"
@@ -34,13 +34,12 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <xControls:WordFlyout x:Name="flayOut" Grid.Row="5" />
+                <xControls:WordFlyout x:Name="flayOut" Grid.Row="4" />
 
                 <StackPanel
                     Margin="0,5,0,5"
@@ -458,19 +457,8 @@
                 </Controls:Card>
 
                 <Controls:Card
-                    x:Name="ocrCard"
-                    Grid.Row="3"
-                    Margin="0,3,0,0">
-                    <Controls:TextBlock
-                        x:Name="ocrText"
-                        Margin="45,0,0,0"
-                        Text="ocrText"
-                        TextWrapping="Wrap" />
-                </Controls:Card>
-
-                <Controls:Card
                     x:Name="originalCard"
-                    Grid.Row="4"
+                    Grid.Row="3"
                     Margin="0,3,0,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -566,7 +554,7 @@
 
                 <Controls:Card
                     x:Name="translatedCard"
-                    Grid.Row="5"
+                    Grid.Row="4"
                     Margin="0,3,0,0">
                     <local:TranslationBox x:Name="translationMessage" ButtonWidth="{Binding ButtonWidth}" />
                 </Controls:Card>
@@ -574,7 +562,7 @@
 
             <Controls:SnackbarPresenter
                 x:Name="snackbarHost"
-                Grid.Row="5"
+                Grid.Row="4"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom" />
 

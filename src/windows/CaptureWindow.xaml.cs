@@ -1,4 +1,3 @@
-using PaddleOCRSharp;
 using ScreenGrab;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
@@ -11,7 +10,6 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using TesseractOCR.Enums;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
@@ -30,12 +28,9 @@ namespace ScreenLookup.src.windows
         #region Fields & Properties
         private bool IsVR = false;
         private bool IsCapturing = false;
-        private TesseractOCR.Engine? TesseractEngine;
-        private PaddleOCREngine? PaddleEngine;
-        private string OCRPageText = string.Empty;
 
         private DispatcherFrame? ConfigDispatcher;
-        private int LastHistoryID;
+        private int currentHistoryID;
 
         private Bitmap? CapturedImage;
         private Bitmap? CapturedImageEditable;
@@ -61,7 +56,6 @@ namespace ScreenLookup.src.windows
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
 
                 LoadInstalledLanguage();
-                CreateOcrEngine();
             };
 
             PreviewKeyDown += (s, e) =>
@@ -114,48 +108,6 @@ namespace ScreenLookup.src.windows
             targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
 
             SelectConfigLanguage();
-        }
-
-        public void CreateOcrEngine()
-        {
-            TesseractEngine?.Dispose();
-            TesseractEngine = null;
-
-            PaddleEngine?.Dispose();
-            PaddleEngine = null;
-
-            if (App.setting.OcrEngineMode == 0) // TesseractOCR
-            {
-                if (TesseractHelper.IsInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
-                {
-                    try
-                    {
-                        TesseractEngine = new TesseractOCR.Engine(
-                            TesseractHelper.GetTessdataPath(App.setting.SourceLanguageAccuracy),
-                            LanguageList.GetTesseractTagFromID(App.setting.SourceLanguage),
-                            EngineMode.Default);
-                    }
-                    catch (Exception ex)
-                    {
-                        SnackbarHost.Show($"Failed to create Tesseract engine: {ex.Message}", type: SnackbarType.Error);
-                    }
-                }
-            }
-            else // PaddleOCRSharp
-            {
-                if (PaddleHelper.IsInstalled(App.setting.SourceLanguageAccuracy))
-                {
-                    try
-                    {
-                        var (cfg, parameter) = PaddleHelper.GetModelConfig(App.setting.SourceLanguageAccuracy);
-                        PaddleEngine = new PaddleOCREngine(cfg, parameter);
-                    }
-                    catch (Exception ex)
-                    {
-                        SnackbarHost.Show($"Failed to create Paddle engine: {ex.Message}", type: SnackbarType.Error);
-                    }
-                }
-            }
         }
         #endregion
 
@@ -268,76 +220,46 @@ namespace ScreenLookup.src.windows
             {
                 try
                 {
-                    string pageText = string.Empty;
+                    if (OcrHelper.Engine == null && !OcrHelper.CreateOcrEngine())
+                        return; // Create OCR engine failed
+
                     List<CaptureWordsSimplifiedEntry> captureWords = [];
-                    List<CaptureAltoEntry>? altoEntries = null;
-
-                    if (App.setting.OcrEngineMode == 0) // TesseractOCR
-                    {
-                        if (TesseractEngine == null)
-                            throw new InvalidOperationException("Tesseract OCR engine is not initialized.");
-
-                        using var tesseractPage = await TesseractHelper.RunOcrAsync(TesseractEngine, image).ConfigureAwait(false);
-                        pageText = tesseractPage.Text;
-                        captureWords = TesseractHelper.CaptureWordsySimplify(tesseractPage);
-                        altoEntries = App.setting.LookupOnImage ? TesseractHelper.AltoTextProcess(tesseractPage) : null;
-                    }
-                    else // PaddleOCRSharp
-                    {
-                        if (PaddleEngine == null)
-                            throw new InvalidOperationException("PaddleOCR engine is not initialized.");
-
-                        var paddleResult = await PaddleHelper.RunOcrAsync(PaddleEngine, image).ConfigureAwait(false);
-                        pageText = PaddleHelper.FormatTextLayout(paddleResult);
-                        captureWords = PaddleHelper.CaptureWordsSimplify(paddleResult);
-                        altoEntries = App.setting.LookupOnImage ? PaddleHelper.AltoTextProcess(paddleResult, image) : null;
-                    }
-
-                    int historyId = 0;
-                    if (!string.IsNullOrWhiteSpace(pageText))
-                    {
-                        historyId = await HistoryLogger.Add(pageText, captureWords, string.Empty, App.setting.SourceLanguage, App.setting.TargetLanguage).ConfigureAwait(false);
-                    }
+                    dynamic ocrResult = await OcrHelper.RunOcrAsync(image).ConfigureAwait(false) ?? throw new InvalidOperationException("OCR result is null.");
+                    captureWords = OcrHelper.CaptureWordsSimplify(ocrResult);
 
                     double windowWidth = 800;
                     await Dispatcher.InvokeAsync(() => windowWidth = this.Width);
 
-                    var cardWords = (!App.setting.LookupOnImage && !string.IsNullOrWhiteSpace(pageText))
-                        ? Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, windowWidth)
-                        : null;
-
-                    await Dispatcher.InvokeAsync(() =>
+                    await Dispatcher.InvokeAsync(async () =>
                     {
                         if (ProcessImageCancelToken.IsCancellationRequested) return;
-                        OCRPageText = pageText;
-                        LastHistoryID = historyId;
 
-                        if (string.IsNullOrWhiteSpace(OCRPageText))
+                        if (!string.IsNullOrWhiteSpace(OcrHelper.Paragraph))
+                            currentHistoryID = await HistoryLogger.Add(OcrHelper.Paragraph, captureWords, string.Empty, App.setting.SourceLanguage, App.setting.TargetLanguage).ConfigureAwait(false);
+
+                        if (string.IsNullOrWhiteSpace(OcrHelper.Paragraph))
                         {
                             originalCard.Visibility = Visibility.Collapsed;
                             translatedCard.Visibility = Visibility.Collapsed;
                         }
                         else
                         {
-                            ocrText.Text = OCRPageText;
-
                             if (App.setting.LookupOnImage)
-                                AltoText.ItemsSource = altoEntries;
+                                AltoText.ItemsSource = OcrHelper.AltoTextProcess(ocrResult, image);
                             else
                             {
-                                originalWords.ItemsSource = cardWords;
+                                originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, windowWidth);
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
                                 originalCard.Visibility = Visibility.Visible;
                                 translatedCard.Visibility = Visibility.Visible;
-                                translationMessage.SetParagraph(OCRPageText, App.setting.SourceLanguage, App.setting.TargetLanguage);
-                            }
+                                translationMessage.SetParagraph(OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage);
 
-                            if (!App.setting.LookupOnImage)
-                            {
                                 SetWindowSize();
                                 SetWindowPosition();
                             }
                         }
+
+                        ocrResult.Dispose();
                     });
                 }
                 catch (OperationCanceledException) { }
@@ -442,9 +364,9 @@ namespace ScreenLookup.src.windows
             double translationHeight = expandeHeight - expanderContent.Padding.Top - expanderContent.Padding.Bottom;
             translationImage.Height = translationHeight;
 
-            await translationImage.Translate(isWord: false, OCRPageText, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
+            await translationImage.Translate(isWord: false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
             translationMessage.Translated = translationImage.Translated;
-            HistoryLogger.Update(LastHistoryID, translationImage.Translated);
+            HistoryLogger.Update(currentHistoryID, translationImage.Translated);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
@@ -524,7 +446,6 @@ namespace ScreenLookup.src.windows
 
         private void ResetDefaultState()
         {
-            ocrCard.Visibility = Visibility.Collapsed;
             configMenu.Visibility = Visibility.Collapsed;
             captureCard.Visibility = Visibility.Collapsed;
             captureCardButton.Visibility = Visibility.Collapsed;
@@ -539,7 +460,6 @@ namespace ScreenLookup.src.windows
 
             AltoText.ItemsSource = null;
             originalWords.ItemsSource = null;
-            ocrText.Text = string.Empty;
 
             captureImage.Source = null;
             captureImage.Width = 0;
@@ -740,18 +660,16 @@ namespace ScreenLookup.src.windows
 
         private void Button_OriginalTTS(object sender, RoutedEventArgs e)
         {
-            TextToSpeech.StartTTS(ocrText.Text, App.setting.SourceLanguage);
+            TextToSpeech.StartTTS(OcrHelper.Paragraph, App.setting.SourceLanguage);
         }
 
         private void Button_Copy(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button button) return;
-
-            Clipboard.SetText(button.Tag?.ToString() ?? string.Empty);
+            Clipboard.SetText(OcrHelper.Paragraph);
             SnackbarHost.Show(title: "Copied", timeout: 1, width: 110, closeButton: false);
         }
 
-        private void captureWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        private void CaptureWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             CloseTranslatedExpanded();
         }
