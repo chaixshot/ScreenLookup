@@ -141,6 +141,14 @@ namespace ScreenLookup.src.utils
         private readonly Dictionary<ulong, (bool Current, bool Previous)> actionStates = [];
 
         /// <summary>
+        /// Clears tracked action states to prevent pre-held buttons from triggering edge-detection events upon state activation.
+        /// </summary>
+        public void ResetActionStates()
+        {
+            actionStates.Clear();
+        }
+
+        /// <summary>
         /// Updates the IVRInput action set state for this frame.
         /// </summary>
         public void UpdateActionState()

@@ -330,6 +330,7 @@ namespace ScreenLookup.src.utils
                 SetWindow();
 
                 inputService.BlockGameInput = true;
+                inputService.ResetActionStates();
                 overlay.ShowOverlay(overlayHandle);
             }
             else
