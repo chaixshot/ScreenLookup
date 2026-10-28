@@ -1,8 +1,6 @@
 ﻿using NAudio.Wave;
 using System.Diagnostics;
-using System.IO;
 using System.Media;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel;
@@ -16,14 +14,14 @@ namespace ScreenLookup.src.utils
         public const string GitHubReleasesUrl = "https://github.com/chaixshot/ScreenLookup/releases";
         public const string GitHubLatestReleaseApi = "https://api.github.com/repos/chaixshot/ScreenLookup/releases/latest";
 
-        [GeneratedRegex(@"\s*([.!?,。！？，、:;{}\[\]()'‘’""])\s*")]
-        internal static partial Regex RegexPunctuation(); // Use for clean-up word..
+        [GeneratedRegex(@"\s*([.!?,。！？，、:;{}\[\]()'‘’“”""])\s*")]
+        internal static partial Regex RegexPunctuation(); // Use for clean-up word
 
         [GeneratedRegex(@"\s*([{}\[\]])\s*")]
-        internal static partial Regex RegexBracket(); // Use for clean-up word..
+        internal static partial Regex RegexBracket(); // Use for clean-up word
 
         [GeneratedRegex(@"(?<=[.!?。！？，、;{}\[\]()])")]
-        internal static partial Regex PunctuationBoundary(); // Use for split sentence.
+        internal static partial Regex PunctuationBoundary(); // Use for split sentence
         #endregion
 
         #region Application Info

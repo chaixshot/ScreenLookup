@@ -79,7 +79,7 @@ namespace ScreenLookup.src.utils
             if (string.IsNullOrWhiteSpace(text))
                 yield break;
 
-            string[]? rawSentences = AppUtilities.RegexPunctuation().Split(text);
+            string[]? rawSentences = AppUtilities.PunctuationBoundary().Split(text);
             foreach (string s in rawSentences)
             {
                 string trimmed = s.Trim();
