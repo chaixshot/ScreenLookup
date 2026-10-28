@@ -11,7 +11,8 @@
     Title="Setting"
     mc:Ignorable="d">
 
-    <Grid Margin="20,12,20,40">
+    <StackPanel Margin="20,12,20,40">
+        <!--  General  -->
         <StackPanel>
             <TextBlock
                 Margin="5,0,0,5"
@@ -47,7 +48,10 @@
                 </Controls:CardControl.Header>
                 <CheckBox IsChecked="{Binding MinimizeToTray}" />
             </Controls:CardControl>
+        </StackPanel>
 
+        <!--  Language  -->
+        <StackPanel>
             <TextBlock
                 Margin="5,0,0,5"
                 FontWeight="SemiBold"
@@ -169,7 +173,8 @@
                 <ComboBox
                     x:Name="translationProvider"
                     Width="200"
-                    SelectedValue="{Binding TranslationProvider}" />
+                    SelectedValue="{Binding TranslationProvider}"
+                    SelectionChanged="TranslationProvider_SelectionChanged" />
             </Controls:CardControl>
 
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=PersonVoice24}">
@@ -186,6 +191,778 @@
                     SelectedValue="{Binding TTSProvider}" />
             </Controls:CardControl>
 
+        </StackPanel>
+
+        <!--  Ollama  -->
+        <StackPanel x:Name="ollamaApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Ollama API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Model Name" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Model identifier for translation and generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <wpfui:Button
+                        Width="32"
+                        Height="32"
+                        Margin="0,0,10,0"
+                        Padding="0,0,0,0"
+                        Click="OllamaLoadModelsButton_Click"
+                        ToolTip="Fetch Models">
+                        <wpfui:SymbolIcon Symbol="ArrowClockwise24" />
+                    </wpfui:Button>
+                    <ComboBox
+                        x:Name="ollamaModelComboBox"
+                        Width="200"
+                        DisplayMemberPath="Id"
+                        IsEditable="True"
+                        SelectedValuePath="Id"
+                        Text="{Binding OllamaConfig.ModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Temperature" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Controls the randomness, variability, and creativity of a text generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="2"
+                    Minimum="0"
+                    Value="{Binding OllamaConfig.Temperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OllamaConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for LLM translation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OllamaConfig.TranslatePrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details System Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OllamaConfig.ExtraDetailSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details User Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="User prompt template for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OllamaConfig.ExtraDetailPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding OllamaConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  LMStudio  -->
+        <StackPanel x:Name="lmstudioApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="LMStudio API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Model Name" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Model identifier for translation and generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <Controls:Button
+                        Width="32"
+                        Height="32"
+                        Margin="0,0,10,0"
+                        Padding="0"
+                        Click="LMStudioLoadModelsButton_Click"
+                        ToolTip="Fetch Models">
+                        <wpfui:SymbolIcon Symbol="ArrowClockwise24" />
+                    </Controls:Button>
+                    <ComboBox
+                        x:Name="lmstudioModelComboBox"
+                        Width="200"
+                        DisplayMemberPath="Id"
+                        IsEditable="True"
+                        SelectedValuePath="Id"
+                        Text="{Binding LMStudioConfig.ModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Temperature" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Controls the randomness, variability, and creativity of a text generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="2"
+                    Minimum="0"
+                    Value="{Binding LMStudioConfig.Temperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding LMStudioConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for LLM translation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding LMStudioConfig.TranslatePrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details System Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding LMStudioConfig.ExtraDetailSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details User Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="User prompt template for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding LMStudioConfig.ExtraDetailPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding LMStudioConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  OpenAI  -->
+        <StackPanel x:Name="openaiApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="OpenAI API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Key" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API authentication key" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OpenAIConfig.ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Model Name" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Model identifier for translation and generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OpenAIConfig.ModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Temperature" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Controls the randomness, variability, and creativity of a text generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="2"
+                    Minimum="0"
+                    Value="{Binding OpenAIConfig.Temperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OpenAIConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for LLM translation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OpenAIConfig.TranslatePrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details System Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    AcceptsReturn="True"
+                    Text="{Binding OpenAIConfig.ExtraDetailSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details User Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="User prompt template for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OpenAIConfig.ExtraDetailPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding OpenAIConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  OpenRouter  -->
+        <StackPanel x:Name="openrouterApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="OpenRouter API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Key" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API authentication key" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OpenRouterConfig.ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OpenRouterConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Model Name" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Model identifier for translation and generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding OpenRouterConfig.ModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Temperature" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Controls the randomness, variability, and creativity of a text generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="2"
+                    Minimum="0"
+                    Value="{Binding OpenRouterConfig.Temperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for LLM translation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OpenRouterConfig.TranslatePrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details System Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="System prompt for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OpenRouterConfig.ExtraDetailSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Extra Details User Prompt" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="User prompt template for dictionary extra details generation" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="400"
+                    Height="80"
+                    HorizontalContentAlignment="Left"
+                    AcceptsReturn="True"
+                    Text="{Binding OpenRouterConfig.ExtraDetailPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding OpenRouterConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  DeepL  -->
+        <StackPanel x:Name="deeplApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="DeepL API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Key" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API authentication key" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding DeepLConfig.ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding DeepLConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding DeepLConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  Yodao  -->
+        <StackPanel x:Name="yodaoApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Yodao API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="App Key" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Application key for authentication" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding YoudaoConfig.AppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="App Secret" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Application secret for authentication" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding YoudaoConfig.AppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding YoudaoConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding YoudaoConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  MTranServer  -->
+        <StackPanel x:Name="mtranserverApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="MTranServer API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Key" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API authentication key" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding MTranServerConfig.ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding MTranServerConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding MTranServerConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  Baidu  -->
+        <StackPanel x:Name="baiduApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="Baidu API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="App ID" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Application ID for authentication" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding BaiduConfig.AppId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="App Secret" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Application secret for authentication" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding BaiduConfig.AppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding BaiduConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding BaiduConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  LibraTranslate  -->
+        <StackPanel x:Name="libratranslateApiSettingPanel">
+            <TextBlock
+                Margin="5,0,0,5"
+                FontWeight="SemiBold"
+                Text="LibraTranslate API" />
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Key" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API authentication key" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding LibreTranslateConfig.ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=BrainCircuit24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="API Url" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API endpoint URL" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <TextBox
+                    Width="200"
+                    HorizontalContentAlignment="Left"
+                    Text="{Binding LibreTranslateConfig.ApiUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Clock24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Timeout (seconds)" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="API request timeout" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <Controls:NumberBox
+                    Width="200"
+                    Maximum="300"
+                    Minimum="5"
+                    Value="{Binding LibreTranslateConfig.TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Controls:CardControl>
+
+        </StackPanel>
+
+        <!--  Lookup  -->
+        <StackPanel>
             <TextBlock
                 Margin="5,0,0,5"
                 FontWeight="SemiBold"
@@ -373,6 +1150,7 @@
                 Icon="{wpfui:SymbolIcon Symbol=ArrowCounterclockwise24,
                                         Filled=False}"
                 ToolTip="Reset" />
+
         </StackPanel>
-    </Grid>
+    </StackPanel>
 </Page>

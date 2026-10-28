@@ -82,7 +82,7 @@ namespace ScreenLookup.src.controls
             if (string.IsNullOrEmpty(Original))
                 return;
 
-            string mainText = await Translation.GetTranslated(IsWord, Original, sourceLang, targetLang);
+            string mainText = await Translation.GetTranslated(IsWord, Original, sourceLang, targetLang, token.Token);
 
             if (token.IsCancellationRequested)
                 return;

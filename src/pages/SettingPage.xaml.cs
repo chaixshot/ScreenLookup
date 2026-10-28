@@ -1,4 +1,5 @@
-﻿using ScreenLookup.src.utils;
+﻿using ScreenLookup.src.llmAPI;
+using ScreenLookup.src.utils;
 using System.Windows;
 using System.Windows.Controls;
 using static ScreenLookup.src.utils.OcrHelper;
@@ -26,6 +27,7 @@ namespace ScreenLookup.src.pages
             LoadSourceLanguageContent();
             LoadTargetLanguageContent();
             LoadProvidersContent();
+            UpdateApiSettingsVisibility();
 
             ButtonDownloadTesseractChanged();
             ButtonDownloadHunspellChanged();
@@ -300,6 +302,60 @@ namespace ScreenLookup.src.pages
         {
             if (IsLoaded)
                 App.setting.ShortcutKey = captureShortcut.KeySet;
+        }
+
+        private void TranslationProvider_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedValue is ProviderService provider)
+                {
+                    App.setting.TranslationProvider = provider;
+                    Translation.ChangeTranslationProvider(provider);
+                }
+            }
+            UpdateApiSettingsVisibility();
+        }
+
+        private void UpdateApiSettingsVisibility()
+        {
+            if (translationProvider.SelectedValue is ProviderService provider)
+            {
+                ollamaApiSettingPanel.Visibility = provider == ProviderService.Ollama ? Visibility.Visible : Visibility.Collapsed;
+                lmstudioApiSettingPanel.Visibility = provider == ProviderService.LMStudio ? Visibility.Visible : Visibility.Collapsed;
+                openaiApiSettingPanel.Visibility = provider == ProviderService.OpenAI ? Visibility.Visible : Visibility.Collapsed;
+                openrouterApiSettingPanel.Visibility = provider == ProviderService.OpenRouter ? Visibility.Visible : Visibility.Collapsed;
+                deeplApiSettingPanel.Visibility = provider == ProviderService.DeepL ? Visibility.Visible : Visibility.Collapsed;
+                yodaoApiSettingPanel.Visibility = (provider == ProviderService.Youdao || provider == ProviderService.Youdao) ? Visibility.Visible : Visibility.Collapsed;
+                mtranserverApiSettingPanel.Visibility = provider == ProviderService.MTranServer ? Visibility.Visible : Visibility.Collapsed;
+                baiduApiSettingPanel.Visibility = provider == ProviderService.Baidu ? Visibility.Visible : Visibility.Collapsed;
+                libratranslateApiSettingPanel.Visibility = (provider == ProviderService.LibreTranslate || provider == ProviderService.LibreTranslate) ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+        private async void LMStudioLoadModelsButton_Click(object sender, RoutedEventArgs e)
+        {
+            SnackbarHost.Show("LMStudio", $"Getting model list from API...", SnackbarType.Info, timeout: 99999, closeButton: false);
+
+            string baseUrl = App.setting.LMStudioConfig.ApiUrl;
+            var models = await llmModelsService.FetchModelsAsync("LMStudio", baseUrl);
+            lmstudioModelComboBox.ItemsSource = models;
+            if (models.Count > 0)
+                SnackbarHost.Show("LMStudio", $"Loaded {models.Count} models successfully", SnackbarType.Success);
+            else
+                SnackbarHost.Show("LMStudio", "No models found or failed to connect", SnackbarType.Error);
+        }
+
+        private async void OllamaLoadModelsButton_Click(object sender, RoutedEventArgs e)
+        {
+            SnackbarHost.Show("Ollama", $"Getting model list from API...", SnackbarType.Info, timeout: 99999, closeButton: false);
+
+            string baseUrl = App.setting.OllamaConfig.ApiUrl;
+            var models = await llmModelsService.FetchModelsAsync("Ollama", baseUrl);
+            ollamaModelComboBox.ItemsSource = models;
+            if (models.Count > 0)
+                SnackbarHost.Show("Ollama", $"Loaded {models.Count} models successfully", SnackbarType.Success);
+            else
+                SnackbarHost.Show("Ollama", "No models found or failed to connect", SnackbarType.Error);
         }
         #endregion
     }

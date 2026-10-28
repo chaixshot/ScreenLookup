@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using ScreenLookup.src.llmAPI;
 using ScreenLookup.src.models;
 using ScreenLookup.src.pages;
 using System.ComponentModel;
@@ -60,6 +61,16 @@ namespace ScreenLookup.src.utils
         private float hmdRotationThreshold = 0.003f;
         private bool useRightEye = true;
         private int frameOffset = 5;
+
+        public OllamaConfig OllamaConfig { get; set; } = new();
+        public OpenAIConfig OpenAIConfig { get; set; } = new();
+        public LMStudioConfig LMStudioConfig { get; set; } = new();
+        public OpenRouterConfig OpenRouterConfig { get; set; } = new();
+        public DeepLConfig DeepLConfig { get; set; } = new();
+        public YoudaoConfig YoudaoConfig { get; set; } = new();
+        public MTranServerConfig MTranServerConfig { get; set; } = new();
+        public BaiduConfig BaiduConfig { get; set; } = new();
+        public LibreTranslateConfig LibreTranslateConfig { get; set; } = new();
         #endregion
 
         #region Load & Save Methods
@@ -77,6 +88,15 @@ namespace ScreenLookup.src.utils
                     LoadedTesseract = settings.loadedTesseract;
                     LoadedPaddle = settings.loadedPaddle;
                     LoadedHunspell = settings.loadedHunspell;
+                    if (settings.OllamaConfig != null) OllamaConfig = settings.OllamaConfig;
+                    if (settings.OpenAIConfig != null) OpenAIConfig = settings.OpenAIConfig;
+                    if (settings.LMStudioConfig != null) LMStudioConfig = settings.LMStudioConfig;
+                    if (settings.OpenRouterConfig != null) OpenRouterConfig = settings.OpenRouterConfig;
+                    if (settings.DeepLConfig != null) DeepLConfig = settings.DeepLConfig;
+                    if (settings.YoudaoConfig != null) YoudaoConfig = settings.YoudaoConfig;
+                    if (settings.MTranServerConfig != null) MTranServerConfig = settings.MTranServerConfig;
+                    if (settings.BaiduConfig != null) BaiduConfig = settings.BaiduConfig;
+                    if (settings.LibreTranslateConfig != null) LibreTranslateConfig = settings.LibreTranslateConfig;
 
                     FirstRun = settings.FirstRun;
                     Topmost = settings.Topmost;
