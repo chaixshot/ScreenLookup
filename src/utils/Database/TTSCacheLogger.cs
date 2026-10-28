@@ -28,7 +28,7 @@ namespace ScreenLookup.src.utils.Database
             });
         }
 
-        public static async Task<byte[]?> GetTtsAudioAsync(string text, int langID, int providerID)
+        public static async Task<byte[]?> GetTtsAudioAsync(string text, int langID, ProviderService providerID)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
 
@@ -43,7 +43,7 @@ namespace ScreenLookup.src.utils.Database
                 using SqliteCommand command = new(query, conn);
                 command.Parameters.AddWithValue("@Text", text.Trim());
                 command.Parameters.AddWithValue("@Language", langID);
-                command.Parameters.AddWithValue("@ProviderServices", providerID);
+                command.Parameters.AddWithValue("@ProviderServices", (int)providerID);
 
                 using SqliteDataReader reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -58,7 +58,7 @@ namespace ScreenLookup.src.utils.Database
             });
         }
 
-        public static async Task SaveTtsAudioAsync(string text, int langID, int providerID, byte[] audioData)
+        public static async Task SaveTtsAudioAsync(string text, int langID, ProviderService providerID, byte[] audioData)
         {
             if (string.IsNullOrWhiteSpace(text) || audioData == null || audioData.Length == 0) return;
 
@@ -70,7 +70,7 @@ namespace ScreenLookup.src.utils.Database
                 {
                     checkCmd.Parameters.AddWithValue("@Text", text.Trim());
                     checkCmd.Parameters.AddWithValue("@Language", langID);
-                    checkCmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    checkCmd.Parameters.AddWithValue("@ProviderServices", (int)providerID);
                     id = await checkCmd.ExecuteScalarAsync();
                 }
 
@@ -88,7 +88,7 @@ namespace ScreenLookup.src.utils.Database
                     using SqliteCommand insertCmd = new(insertQuery, conn);
                     insertCmd.Parameters.AddWithValue("@Text", text.Trim());
                     insertCmd.Parameters.AddWithValue("@Language", langID);
-                    insertCmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    insertCmd.Parameters.AddWithValue("@ProviderServices", (int)providerID);
                     insertCmd.Parameters.AddWithValue("@AudioStream", audioData);
                     await insertCmd.ExecuteNonQueryAsync();
                 }

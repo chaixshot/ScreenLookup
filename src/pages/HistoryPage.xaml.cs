@@ -119,7 +119,7 @@ namespace ScreenLookup.src.pages
         private void LoadSourceLanguageItems()
         {
             if (sourceLanguage.ItemsSource != null) return;
-            int langAcc = App.setting.SourceLanguageAccuracy;
+            SourceAccuracy langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items =
             [
                 new ComboBoxItem

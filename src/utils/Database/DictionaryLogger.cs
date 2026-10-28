@@ -34,7 +34,7 @@ namespace ScreenLookup.src.utils.Database
             });
         }
 
-        public static async Task<DictionaryEntry?> GetAsync(string original, int sourceLang, int targetLang, int providerID)
+        public static async Task<DictionaryEntry?> GetAsync(string original, int sourceLang, int targetLang, ProviderService providerID)
         {
             return await Database.ExecuteAsync(async conn =>
             {
@@ -48,7 +48,7 @@ namespace ScreenLookup.src.utils.Database
                 command.Parameters.AddWithValue("@Original", original.Trim());
                 command.Parameters.AddWithValue("@SourceLanguage", sourceLang);
                 command.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                command.Parameters.AddWithValue("@ProviderServices", providerID);
+                command.Parameters.AddWithValue("@ProviderServices", (int)providerID);
 
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -73,7 +73,7 @@ namespace ScreenLookup.src.utils.Database
                         Translated = translated,
                         SourceLanguage = reader.GetInt32(reader.GetOrdinal("SourceLanguage")),
                         TargetLanguage = reader.GetInt32(reader.GetOrdinal("TargetLanguage")),
-                        ProviderServices = reader.GetInt32(reader.GetOrdinal("ProviderServices")),
+                        ProviderServices = (ProviderService)reader.GetInt32(reader.GetOrdinal("ProviderServices")),
                         ExtraMeanings = extraMeanings,
                         Phonetic = phonetic
                     };
@@ -83,7 +83,7 @@ namespace ScreenLookup.src.utils.Database
             });
         }
 
-        public static async Task SaveTranslatedAsync(string original, string translated, int sourceLang, int targetLang, int providerID)
+        public static async Task SaveTranslatedAsync(string original, string translated, int sourceLang, int targetLang, ProviderService providerID)
         {
             if (string.IsNullOrWhiteSpace(translated)) return;
 
@@ -102,7 +102,7 @@ namespace ScreenLookup.src.utils.Database
                     cmd.Parameters.AddWithValue("@Translated", translated.Trim());
                     cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
                     cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    cmd.Parameters.AddWithValue("@ProviderServices", (int)providerID);
                     await cmd.ExecuteNonQueryAsync();
                 });
             }
@@ -119,17 +119,16 @@ namespace ScreenLookup.src.utils.Database
                     cmd.Parameters.AddWithValue("@Translated", translated.Trim());
                     cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
                     cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    cmd.Parameters.AddWithValue("@ProviderServices", (int)providerID);
                     await cmd.ExecuteNonQueryAsync();
                 });
             }
         }
 
-        public static async Task SaveExtraDetailsAsync(string original, int sourceLang, int targetLang, int providerID, List<ExtraMeaningEntity> extraMeanings, string phonetic)
+        public static async Task SaveExtraDetailsAsync(string original, int sourceLang, int targetLang, ProviderService providerID, List<ExtraMeaningEntity> extraMeanings, string phonetic)
         {
             if (extraMeanings == null || phonetic == null) return;
 
-            // Serialize using relaxed JSON escaping to preserve raw UTF-8 text
             string json = JsonSerializer.Serialize(extraMeanings, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             var existing = await GetAsync(original, sourceLang, targetLang, providerID);
 
@@ -148,7 +147,7 @@ namespace ScreenLookup.src.utils.Database
                     cmd.Parameters.AddWithValue("@Phonetic", phonetic);
                     cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
                     cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    cmd.Parameters.AddWithValue("@ProviderServices", (int)providerID);
 
                     await cmd.ExecuteNonQueryAsync();
                 });
@@ -167,7 +166,7 @@ namespace ScreenLookup.src.utils.Database
                     cmd.Parameters.AddWithValue("@Phonetic", phonetic);
                     cmd.Parameters.AddWithValue("@SourceLanguage", sourceLang);
                     cmd.Parameters.AddWithValue("@TargetLanguage", targetLang);
-                    cmd.Parameters.AddWithValue("@ProviderServices", providerID);
+                    cmd.Parameters.AddWithValue("@ProviderServices", (int)providerID);
 
                     await cmd.ExecuteNonQueryAsync();
                 });

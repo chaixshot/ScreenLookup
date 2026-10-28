@@ -166,14 +166,14 @@ namespace ScreenLookup.src.utils
             return GetDisplayNameFromTesseractTag(tessTag, isNative);
         }
 
-        public static dynamic GetTranslatorService(int providerID)
+        public static dynamic GetTranslatorService(ProviderService providerID)
         {
             return providerID switch
             {
-                1 => new GoogleTranslator2(),
-                2 => new BingTranslator(),
-                3 => new MicrosoftTranslator(),
-                4 => new YandexTranslator(),
+                ProviderService.GoogleNew => new GoogleTranslator2(),
+                ProviderService.Bing => new BingTranslator(),
+                ProviderService.MicrosoftAzure => new MicrosoftTranslator(),
+                ProviderService.Yandex => new YandexTranslator(),
                 _ => new GoogleTranslator(),
             };
         }

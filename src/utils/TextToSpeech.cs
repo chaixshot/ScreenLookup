@@ -20,7 +20,7 @@ namespace ScreenLookup.src.utils
             ChangeTextToSpeechProvider(App.setting.TTSProvider);
         }
 
-        public static void ChangeTextToSpeechProvider(int providerID)
+        public static void ChangeTextToSpeechProvider(ProviderService providerID)
         {
             TextToSpeechProvider?.Dispose();
             TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
@@ -61,7 +61,7 @@ namespace ScreenLookup.src.utils
             if (!string.IsNullOrEmpty(errorMsg))
             {
                 if (errorMsg.Contains("Language not supported"))
-                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" does not support Text-To-Speech via \"{App.setting.ProviderServices[App.setting.TTSProvider]}\"", type: SnackbarType.Error);
+                    SnackbarHost.Show("Error", $"\"{languageData.NativeName}\" does not support Text-To-Speech via \"{App.setting.TTSProvider.GetDisplayName()}\"", type: SnackbarType.Error);
                 else
                     SnackbarHost.Show("Error", errorMsg, type: SnackbarType.Error);
             }
@@ -105,7 +105,7 @@ namespace ScreenLookup.src.utils
         {
             try
             {
-                int ttsProviderID = App.setting.TTSProvider;
+                ProviderService ttsProviderID = App.setting.TTSProvider;
 
                 // Get or fetch sound stream
                 if (!AudioStreamCache.TryGetValue(text, out Stream? audioStream))

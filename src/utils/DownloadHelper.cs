@@ -53,7 +53,7 @@
             }
         }
 
-        public static bool IsInstalled(int accID, int langID)
+        public static bool IsInstalled(SourceAccuracy accID, int langID)
         {
             return App.setting.OcrEngineMode switch
             {

@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
+using static ScreenLookup.src.utils.TesseractHelper;
 
 namespace ScreenLookup.src.pages
 {
@@ -116,7 +117,7 @@ namespace ScreenLookup.src.pages
         private void LoadSourceLanguageItems()
         {
             if (sourceLanguage.ItemsSource != null) return;
-            int langAcc = App.setting.SourceLanguageAccuracy;
+            SourceAccuracy langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items =
             [
                 new ComboBoxItem

@@ -1,3 +1,5 @@
+using ScreenLookup.src.utils;
+
 namespace ScreenLookup.src.models
 {
     public class DictionaryEntry
@@ -6,7 +8,7 @@ namespace ScreenLookup.src.models
         public string Translated { get; set; } = string.Empty;
         public int SourceLanguage { get; set; }
         public int TargetLanguage { get; set; }
-        public int ProviderServices { get; set; }
+        public ProviderService ProviderServices { get; set; }
         public List<ExtraMeaningEntity>? ExtraMeanings { get; set; }
         public string Phonetic { get; set; } = string.Empty;
     }

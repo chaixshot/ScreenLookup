@@ -23,12 +23,12 @@ namespace ScreenLookup.src.utils
         private bool minimizeToTray = true;
 
         private OcrHelper.OcrEngine ocrEngineMode = OcrHelper.OcrEngine.TesseraceOCR;
-        private int sourceLanguageAccuracy = 1;
+        private SourceAccuracy sourceLanguageAccuracy = SourceAccuracy.Normal;
         private int sourceLanguage = 29;
         private bool hunSpell = false;
         private int targetLanguage = 117;
-        private int translationProvider = 1;
-        private int ttsProvider = 1;
+        private ProviderService translationProvider = ProviderService.GoogleNew;
+        private ProviderService ttsProvider = ProviderService.GoogleNew;
 
         private ShortcutKeySet shortcutKey = new()
         {
@@ -60,22 +60,6 @@ namespace ScreenLookup.src.utils
         private float hmdRotationThreshold = 0.003f;
         private bool useRightEye = true;
         private int frameOffset = 5;
-        #endregion
-
-        #region Readonly Collections
-        public readonly string[] ProviderServices = [
-            "Google",
-            "Google New",
-            "Bing",
-            "Microsoft Azure",
-            "Yandex",
-        ];
-
-        public readonly string[] SourceAccuracys = [
-            "Fast (Bad)",
-            "Normal",
-            "Slow (Accurate)",
-        ];
         #endregion
 
         #region Load & Save Methods
@@ -183,7 +167,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public int SourceLanguageAccuracy
+        public SourceAccuracy SourceLanguageAccuracy
         {
             get => sourceLanguageAccuracy;
             set
@@ -253,7 +237,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public int TranslationProvider
+        public ProviderService TranslationProvider
         {
             get => translationProvider;
             set
@@ -267,7 +251,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public int TTSProvider
+        public ProviderService TTSProvider
         {
             get => ttsProvider;
             set

@@ -49,12 +49,7 @@ namespace ScreenLookup.src.pages
 
         private void LoadSourceAccuracyContent()
         {
-            List<string> items = [];
-            foreach (string accuracy in App.setting.SourceAccuracys)
-            {
-                items.Add(accuracy);
-            }
-            sourceLanguageAccuracy.ItemsSource = items;
+            sourceLanguageAccuracy.ItemsSource = Enum.GetValues<SourceAccuracy>();
         }
 
         private void LoadTargetLanguageContent()
@@ -71,7 +66,7 @@ namespace ScreenLookup.src.pages
 
         public void LoadSourceLanguageContent()
         {
-            int langAcc = App.setting.SourceLanguageAccuracy;
+            SourceAccuracy langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
 
             for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
@@ -103,14 +98,8 @@ namespace ScreenLookup.src.pages
 
         private void LoadProvidersContent()
         {
-            List<string> items = [];
-            foreach (string provider in App.setting.ProviderServices)
-            {
-                items.Add(provider);
-            }
-
-            translationProvider.ItemsSource = items;
-            ttsProvider.ItemsSource = items;
+            translationProvider.ItemsSource = Enum.GetValues<ProviderService>();
+            ttsProvider.ItemsSource = Enum.GetValues<ProviderService>();
         }
 
         public void ButtonDownloadTesseractChanged()
@@ -169,7 +158,7 @@ namespace ScreenLookup.src.pages
         private async void DownloadTesseractButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = App.setting.SourceLanguage;
-            int accID = App.setting.SourceLanguageAccuracy;
+            SourceAccuracy accID = App.setting.SourceLanguageAccuracy;
             bool isSuccess = false;
 
             if (isLoadingTesseract || string.IsNullOrWhiteSpace(TesseractHelper.LangList[langID]))
@@ -197,9 +186,9 @@ namespace ScreenLookup.src.pages
             }
 
             if (isSuccess)
-                SnackbarHost.Show("Source Language", $"\"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
+                SnackbarHost.Show("Source Language", $"\"{accID.GetDisplayName()} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
             else
-                SnackbarHost.Show("Source Language", $"Unable to download \"{App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
+                SnackbarHost.Show("Source Language", $"Unable to download \"{accID.GetDisplayName()} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
             isLoadingTesseract = false;
             ButtonDownloadTesseractChanged();

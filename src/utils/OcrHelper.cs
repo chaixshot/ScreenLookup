@@ -122,4 +122,23 @@ namespace ScreenLookup.src.utils
             Engine = null;
         }
     }
+
+    public enum SourceAccuracy
+    {
+        Fast,
+        Normal,
+        Slow
+    }
+
+    public static class SourceAccuracyExtensions
+    {
+        public static string GetDisplayName(this SourceAccuracy accuracy) => accuracy switch
+        {
+            SourceAccuracy.Fast => "Fast (Bad)",
+            SourceAccuracy.Normal => "Normal",
+            SourceAccuracy.Slow => "Slow (Accurate)",
+            _ => accuracy.ToString()
+        };
+    }
+
 }

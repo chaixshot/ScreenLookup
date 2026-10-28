@@ -46,7 +46,7 @@ namespace ScreenLookup.src.controls
         {
             string url = App.setting.TranslationProvider switch
             {
-                4 => $"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}",
+                ProviderService.Yandex => $"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}",
                 _ => $"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}&op=translate"
             };
 

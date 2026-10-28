@@ -32,23 +32,23 @@ namespace ScreenLookup.src.utils
                 return langTag;
         }
 
-        public static string GetTessdataPath(int accID)
+        public static string GetTessdataPath(SourceAccuracy accID)
         {
-            if (accID == 0)
-                return Path.Combine(App.appDataFolder, "tessdata_fast");
-            if (accID == 1)
-                return Path.Combine(App.appDataFolder, "tessdata");
-            return Path.Combine(App.appDataFolder, "tessdata_best");
+            return accID switch
+            {
+                SourceAccuracy.Fast => Path.Combine(App.appDataFolder, "tessdata_fast"),
+                SourceAccuracy.Normal => Path.Combine(App.appDataFolder, "tessdata"),
+                _ => Path.Combine(App.appDataFolder, "tessdata_best"),
+            };
         }
 
-        public static bool IsInstalled(int accID, int langID)
+        public static bool IsInstalled(SourceAccuracy accID, int langID)
         {
             if (langID < 0 || langID >= LangList.Length) return false;
             if (App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}"))
                 return true;
             else
             {
-
                 string tessdataPath = GetTessdataPath(accID);
                 string rawTag = LangList[langID];
                 string modelName = GetTesseractModelName(rawTag);
@@ -57,7 +57,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static void SaveInstalled(int accID, int langID)
+        public static void SaveInstalled(SourceAccuracy accID, int langID)
         {
             App.setting.LoadedTesseract[$"{accID},{langID}"] = true;
             App.setting.Save();
@@ -65,7 +65,7 @@ namespace ScreenLookup.src.utils
             App.captureWindow.LoadInstalledLanguage();
         }
 
-        public static async Task<bool> InstallModelAsync(int accID, int langID)
+        public static async Task<bool> InstallModelAsync(SourceAccuracy accID, int langID)
         {
             if (langID < 0 || langID >= LangList.Length) return false;
             if (IsInstalled(accID, langID)) return true;
@@ -78,10 +78,15 @@ namespace ScreenLookup.src.utils
 
             try
             {
-                string repoName = accID == 0 ? "tessdata_fast" : (accID == 1 ? "tessdata" : "tessdata_best");
+                string repoName = accID switch
+                {
+                    SourceAccuracy.Fast => "tessdata_fast",
+                    SourceAccuracy.Normal => "tessdata",
+                    _ => "tessdata_best",
+                };
                 string downloadUrl = $"https://raw.githubusercontent.com/tesseract-ocr/{repoName}/main/{pickedLanguageFile}";
 
-                SnackbarHost.Show("Tesseract", $"Downloading {App.setting.SourceAccuracys[accID]} - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
+                SnackbarHost.Show("Tesseract", $"Downloading {accID.GetDisplayName()} - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
                 DownloadHelper fileDownloader = new();
                 bool isDownloaded = await fileDownloader.DownloadFileAsync(downloadUrl, filePath);

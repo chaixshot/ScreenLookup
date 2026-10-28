@@ -95,7 +95,7 @@
                     <ComboBox
                         x:Name="sourceLanguageAccuracy"
                         Width="146"
-                        SelectedIndex="{Binding SourceLanguageAccuracy}"
+                        SelectedValue="{Binding SourceLanguageAccuracy}"
                         SelectionChanged="SourceLanguageAccuracy_SelectionChanged" />
                     <ComboBox
                         x:Name="sourceLanguage"
@@ -169,7 +169,7 @@
                 <ComboBox
                     x:Name="translationProvider"
                     Width="200"
-                    SelectedIndex="{Binding TranslationProvider}" />
+                    SelectedValue="{Binding TranslationProvider}" />
             </Controls:CardControl>
 
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=PersonVoice24}">
@@ -183,7 +183,7 @@
                 <ComboBox
                     x:Name="ttsProvider"
                     Width="200"
-                    SelectedIndex="{Binding TTSProvider}" />
+                    SelectedValue="{Binding TTSProvider}" />
             </Controls:CardControl>
 
             <TextBlock

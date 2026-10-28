@@ -5,6 +5,28 @@ using System.Text.Json;
 
 namespace ScreenLookup.src.utils
 {
+    public enum ProviderService
+    {
+        Google,
+        GoogleNew,
+        Bing,
+        MicrosoftAzure,
+        Yandex
+    }
+
+    public static class ProviderServiceExtensions
+    {
+        public static string GetDisplayName(this ProviderService provider) => provider switch
+        {
+            ProviderService.Google => "Google",
+            ProviderService.GoogleNew => "Google New",
+            ProviderService.Bing => "Bing",
+            ProviderService.MicrosoftAzure => "Microsoft Azure",
+            ProviderService.Yandex => "Yandex",
+            _ => provider.ToString()
+        };
+    }
+
     internal static class Translation
     {
         #region Fields & Initialization
@@ -29,7 +51,7 @@ namespace ScreenLookup.src.utils
         /// <summary>
         /// Changes the current translation provider service to the provider specified by providerID.
         /// </summary>
-        public static void ChangeTranslationProvider(int providerID)
+        public static void ChangeTranslationProvider(ProviderService providerID)
         {
             TranslationProvider?.Dispose();
             TranslationProvider = LanguageList.GetTranslatorService(providerID);
@@ -42,7 +64,7 @@ namespace ScreenLookup.src.utils
         /// </summary>
         public static async Task<string> GetTranslated(bool isWord, string text, int sourceLang, int targetLang)
         {
-            int providerID = App.setting.TranslationProvider;
+            ProviderService providerID = App.setting.TranslationProvider;
             string resultText = string.Empty;
 
             // Check local dictionary for single words
@@ -120,12 +142,10 @@ namespace ScreenLookup.src.utils
             string phonetic = string.Empty;
             bool isSuccess = false;
 
-            int currentProviderIndex = App.setting.TranslationProvider;
-            string providerName = (App.setting.ProviderServices != null && currentProviderIndex >= 0 && currentProviderIndex < App.setting.ProviderServices.Length)
-                ? App.setting.ProviderServices[currentProviderIndex]
-                : string.Empty;
+            ProviderService currentProviderIndex = App.setting.TranslationProvider;
+            string providerName = currentProviderIndex.GetDisplayName();
 
-            if (providerName != "Google" && providerName != "Google New")
+            if (currentProviderIndex != ProviderService.Google && currentProviderIndex != ProviderService.GoogleNew)
                 return (extraMeanings, phonetic);
 
             // Check local dictionary cache

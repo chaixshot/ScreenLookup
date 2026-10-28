@@ -17,7 +17,7 @@ namespace ScreenLookup.src.utils
             "tab", "tam", "tel", "tgl", "tur", "uig", "ukr", "urd", "uzb", "vie"
         ];
 
-        public static bool IsInstalled(int accID)
+        public static bool IsInstalled(SourceAccuracy accID)
         {
             if (App.setting.LoadedPaddle.ContainsKey($"{accID}"))
                 return true;
@@ -38,7 +38,7 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public static void SaveInstalled(int accID)
+        public static void SaveInstalled(SourceAccuracy accID)
         {
             App.setting.LoadedPaddle[$"{accID}"] = true;
             App.setting.Save();
@@ -46,17 +46,17 @@ namespace ScreenLookup.src.utils
             App.captureWindow.LoadInstalledLanguage();
         }
 
-        public static string GetModelPath(int accID)
+        public static string GetModelPath(SourceAccuracy accID)
         {
             return accID switch
             {
-                0 => Path.Combine(App.appDataFolder, "paddle_tiny"),
-                1 => Path.Combine(App.appDataFolder, "paddle_small"),
+                SourceAccuracy.Fast => Path.Combine(App.appDataFolder, "paddle_tiny"),
+                SourceAccuracy.Normal => Path.Combine(App.appDataFolder, "paddle_small"),
                 _ => Path.Combine(App.appDataFolder, "paddle_medium"),
             };
         }
 
-        public static (OCRModelConfig Config, OCRParameter Parameter) GetModelConfig(int accID)
+        public static (OCRModelConfig Config, OCRParameter Parameter) GetModelConfig(SourceAccuracy accID)
         {
             string path = GetModelPath(accID);
 
@@ -98,7 +98,7 @@ namespace ScreenLookup.src.utils
             return (modelConfig, modelParameter);
         }
 
-        public static async Task<bool> InstallModelAsync(int accID)
+        public static async Task<bool> InstallModelAsync(SourceAccuracy accID)
         {
             if (IsInstalled(accID)) return true;
 
@@ -107,8 +107,8 @@ namespace ScreenLookup.src.utils
 
             string tier = accID switch
             {
-                0 => "tiny",
-                1 => "small",
+                SourceAccuracy.Fast => "tiny",
+                SourceAccuracy.Normal => "small",
                 _ => "medium"
             };
 
