@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CsvHelper;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
@@ -15,7 +16,8 @@ namespace ScreenLookup.src.models
         public required string TargetLanguage { get; set; }
     }
 
-    public class HistoryLoggerExportEntry
+    [CsvRecord]
+    public partial class HistoryLoggerExportEntry
     {
         public required string Original { get; set; }
         public required string Translated { get; set; }

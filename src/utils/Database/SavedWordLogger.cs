@@ -1,8 +1,6 @@
 ﻿using CsvHelper;
 using Microsoft.Data.Sqlite;
 using ScreenLookup.src.models;
-using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
@@ -189,7 +187,7 @@ namespace ScreenLookup.src.utils.Database
         {
             await Database.ExecuteAsync(async conn =>
             {
-                List<SavedWordEntry> history = [];
+                List<SavedWordExportEntry> wordList = [];
 
                 string query = @"
                     SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
@@ -203,21 +201,20 @@ namespace ScreenLookup.src.utils.Database
                         int sourceLanguage = int.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
                         int targetLanguage = int.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
 
-                        history.Add(new SavedWordEntry
+                        wordList.Add(new SavedWordExportEntry
                         {
                             Id = reader.GetString(reader.GetOrdinal("Id")),
                             Original = reader.GetString(reader.GetOrdinal("Original")),
                             Translated = reader.GetString(reader.GetOrdinal("Translated")),
                             SourceLanguage = LanguageList.GetDisplayNameFromID(sourceLanguage, false),
                             TargetLanguage = LanguageList.GetDisplayNameFromID(targetLanguage, false),
-                            FontFace = new FontFamily(App.setting.FontFace),
                         });
                     }
                 }
 
                 using var writer = new StreamWriter(filePath, false, new UTF8Encoding(true));
-                using var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-                await csvWriter.WriteRecordsAsync(history);
+                using var csvWriter = CsvWriter.Create(writer);
+                await csvWriter.WriteRecordsAsync(wordList);
             });
         }
     }

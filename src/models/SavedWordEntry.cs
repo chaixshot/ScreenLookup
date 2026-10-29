@@ -14,4 +14,14 @@ namespace ScreenLookup.src.models
         public Visibility ScoreVisibility { get; set; }
         public required FontFamily FontFace { get; set; }
     }
+
+    [CsvRecord]
+    public partial class SavedWordExportEntry
+    {
+        public required string Id { get; set; }
+        public required string Original { get; set; }
+        public required string Translated { get; set; }
+        public required string SourceLanguage { get; set; }
+        public required string TargetLanguage { get; set; }
+    }
 }

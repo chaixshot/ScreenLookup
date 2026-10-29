@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Windows;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-using FormWindowState = System.Windows.Forms.FormWindowState;
 
 namespace ScreenLookup
 {
@@ -54,7 +53,7 @@ namespace ScreenLookup
                     Notification.Show("ScreenLookup running in the background");
                 }
                 catch { }
-                this.WindowState = (WindowState)FormWindowState.Minimized;
+                this.WindowState = WindowState.Maximized;
                 this.Hide();
             }
         }
@@ -63,7 +62,7 @@ namespace ScreenLookup
         {
             this.Show();
             this.Activate();
-            this.WindowState = (WindowState)FormWindowState.Normal;
+            this.WindowState = WindowState.Normal;
         }
 
         private void OnNavigationSelectionChanged(NavigationView navigationView, RoutedEventArgs args)

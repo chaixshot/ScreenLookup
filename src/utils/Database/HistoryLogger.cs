@@ -1,8 +1,6 @@
 ﻿using CsvHelper;
 using Microsoft.Data.Sqlite;
 using ScreenLookup.src.models;
-using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -180,7 +178,7 @@ namespace ScreenLookup.src.utils.Database
         {
             await Database.ExecuteAsync(async conn =>
             {
-                var history = new List<HistoryLoggerExportEntry>();
+                List<HistoryLoggerExportEntry> historyList = [];
 
                 string query = @"
                     SELECT Id, Original, Translated, SourceLanguage, TargetLanguage
@@ -195,7 +193,7 @@ namespace ScreenLookup.src.utils.Database
                         int sourceLanguage = int.Parse(reader.GetString(reader.GetOrdinal("SourceLanguage")));
                         int targetLanguage = int.Parse(reader.GetString(reader.GetOrdinal("TargetLanguage")));
 
-                        history.Add(new HistoryLoggerExportEntry
+                        historyList.Add(new HistoryLoggerExportEntry
                         {
                             Original = reader.GetString(reader.GetOrdinal("Original")),
                             Translated = reader.GetString(reader.GetOrdinal("Translated")),
@@ -206,8 +204,8 @@ namespace ScreenLookup.src.utils.Database
                 }
 
                 using var writer = new StreamWriter(filePath, false, new UTF8Encoding(true));
-                using var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-                await csvWriter.WriteRecordsAsync(history);
+                using var csvWriter = CsvWriter.Create(writer);
+                await csvWriter.WriteRecordsAsync(historyList);
             });
         }
     }
