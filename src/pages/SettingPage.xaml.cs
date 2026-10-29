@@ -101,6 +101,7 @@ namespace ScreenLookup.src.pages
         private void LoadProvidersContent()
         {
             translationProvider.ItemsSource = Enum.GetValues<ProviderService>();
+            paragraphProvider.ItemsSource = Enum.GetValues<ProviderService>();
             ttsProvider.ItemsSource = Enum.GetValues<ProviderService>();
         }
 
@@ -310,8 +311,20 @@ namespace ScreenLookup.src.pages
             {
                 if (comboBox.SelectedValue is ProviderService provider)
                 {
-                    App.setting.TranslationProvider = provider;
+                    App.setting.WordTranslationProvider = provider;
                     Translation.ChangeTranslationProvider(provider);
+                }
+            }
+            UpdateApiSettingsVisibility();
+        }
+
+        private void ParagraphProvider_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedValue is ProviderService provider)
+                {
+                    App.setting.ParagraphTranslationProvider = provider;
                 }
             }
             UpdateApiSettingsVisibility();
@@ -319,19 +332,30 @@ namespace ScreenLookup.src.pages
 
         private void UpdateApiSettingsVisibility()
         {
-            if (translationProvider.SelectedValue is ProviderService provider)
-            {
-                ollamaApiSettingPanel.Visibility = provider == ProviderService.Ollama ? Visibility.Visible : Visibility.Collapsed;
-                lmstudioApiSettingPanel.Visibility = provider == ProviderService.LMStudio ? Visibility.Visible : Visibility.Collapsed;
-                openaiApiSettingPanel.Visibility = provider == ProviderService.OpenAI ? Visibility.Visible : Visibility.Collapsed;
-                openrouterApiSettingPanel.Visibility = provider == ProviderService.OpenRouter ? Visibility.Visible : Visibility.Collapsed;
-                deeplApiSettingPanel.Visibility = provider == ProviderService.DeepL ? Visibility.Visible : Visibility.Collapsed;
-                yodaoApiSettingPanel.Visibility = (provider == ProviderService.Youdao || provider == ProviderService.Youdao) ? Visibility.Visible : Visibility.Collapsed;
-                mtranserverApiSettingPanel.Visibility = provider == ProviderService.MTranServer ? Visibility.Visible : Visibility.Collapsed;
-                baiduApiSettingPanel.Visibility = provider == ProviderService.Baidu ? Visibility.Visible : Visibility.Collapsed;
-                libratranslateApiSettingPanel.Visibility = (provider == ProviderService.LibreTranslate || provider == ProviderService.LibreTranslate) ? Visibility.Visible : Visibility.Collapsed;
-            }
+            ProviderService? tProvider = translationProvider?.SelectedValue as ProviderService?;
+            ProviderService? pProvider = paragraphProvider?.SelectedValue as ProviderService?;
+
+            bool isAnyOllama = tProvider == ProviderService.Ollama || pProvider == ProviderService.Ollama;
+            bool isAnyLMStudio = tProvider == ProviderService.LMStudio || pProvider == ProviderService.LMStudio;
+            bool isAnyOpenAI = tProvider == ProviderService.OpenAI || pProvider == ProviderService.OpenAI;
+            bool isAnyOpenRouter = tProvider == ProviderService.OpenRouter || pProvider == ProviderService.OpenRouter;
+            bool isAnyDeepL = tProvider == ProviderService.DeepL || pProvider == ProviderService.DeepL;
+            bool isAnyYoudao = tProvider == ProviderService.Youdao || pProvider == ProviderService.Youdao;
+            bool isAnyMTranServer = tProvider == ProviderService.MTranServer || pProvider == ProviderService.MTranServer;
+            bool isAnyBaidu = tProvider == ProviderService.Baidu || pProvider == ProviderService.Baidu;
+            bool isAnyLibreTranslate = tProvider == ProviderService.LibreTranslate || pProvider == ProviderService.LibreTranslate;
+
+            ollamaApiSettingPanel.Visibility = isAnyOllama ? Visibility.Visible : Visibility.Collapsed;
+            lmstudioApiSettingPanel.Visibility = isAnyLMStudio ? Visibility.Visible : Visibility.Collapsed;
+            openaiApiSettingPanel.Visibility = isAnyOpenAI ? Visibility.Visible : Visibility.Collapsed;
+            openrouterApiSettingPanel.Visibility = isAnyOpenRouter ? Visibility.Visible : Visibility.Collapsed;
+            deeplApiSettingPanel.Visibility = isAnyDeepL ? Visibility.Visible : Visibility.Collapsed;
+            yodaoApiSettingPanel.Visibility = isAnyYoudao ? Visibility.Visible : Visibility.Collapsed;
+            mtranserverApiSettingPanel.Visibility = isAnyMTranServer ? Visibility.Visible : Visibility.Collapsed;
+            baiduApiSettingPanel.Visibility = isAnyBaidu ? Visibility.Visible : Visibility.Collapsed;
+            libratranslateApiSettingPanel.Visibility = isAnyLibreTranslate ? Visibility.Visible : Visibility.Collapsed;
         }
+
         private async void LMStudioLoadModelsButton_Click(object sender, RoutedEventArgs e)
         {
             SnackbarHost.Show("LMStudio", $"Getting model list from API...", SnackbarType.Info, timeout: 99999, closeButton: false);

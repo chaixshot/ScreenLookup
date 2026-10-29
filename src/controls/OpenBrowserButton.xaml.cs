@@ -44,7 +44,7 @@ namespace ScreenLookup.src.controls
 
         private void Button_OpenBrowser(object sender, RoutedEventArgs e)
         {
-            string url = App.setting.TranslationProvider switch
+            string url = App.setting.WordTranslationProvider switch
             {
                 ProviderService.Yandex => $"https://translate.yandex.com/en/?source_lang={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&target_lang={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}",
                 _ => $"https://translate.google.com/?sl={LanguageList.GetLanguageISO6391FromID(SourceLanguage)}&tl={LanguageList.GetLanguageISO6391FromID(TargetLanguage)}&text={OriginalWord}&op=translate"

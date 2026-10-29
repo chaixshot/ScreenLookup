@@ -108,7 +108,7 @@ namespace ScreenLookup.src.utils
 
         static Translation()
         {
-            ChangeTranslationProvider(App.setting.TranslationProvider);
+            ChangeTranslationProvider(App.setting.WordTranslationProvider);
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace ScreenLookup.src.utils
         /// </summary>
         public static async Task<string> GetTranslated(bool isWord, string text, int sourceLang, int targetLang, CancellationToken token = default)
         {
-            ProviderService providerID = App.setting.TranslationProvider;
+            ProviderService providerID = isWord ? App.setting.WordTranslationProvider : App.setting.ParagraphTranslationProvider;
             string resultText = string.Empty;
 
             // Check local dictionary for single words
@@ -168,10 +168,10 @@ namespace ScreenLookup.src.utils
                             default:
                                 {
                                     Func<int, string>[] tagGetters = [
-                                    LanguageList.GetTesseractTagFromID,
-                                LanguageList.GetLanguageISO6391FromID,
-                                LanguageList.GetLanguageISO6393FromID
-                                ];
+                                        LanguageList.GetTesseractTagFromID,
+                                        LanguageList.GetLanguageISO6391FromID,
+                                        LanguageList.GetLanguageISO6393FromID
+                                    ];
 
                                     for (int i = 0; i < tagGetters.Length; i++)
                                     {
@@ -191,6 +191,10 @@ namespace ScreenLookup.src.utils
                                     break;
                                 }
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return string.Empty;
                     }
                     catch (Exception ex)
                     {
@@ -228,13 +232,13 @@ namespace ScreenLookup.src.utils
             if (token?.IsCancellationRequested == true)
                 return (extraMeanings, phonetic);
 
-            if (!SupportExtraDetail.Contains(App.setting.TranslationProvider))
+            if (!SupportExtraDetail.Contains(App.setting.WordTranslationProvider))
                 return (extraMeanings, phonetic);
 
             // Check local dictionary cache
             try
             {
-                var localEntry = await DictionaryLogger.GetAsync(text, sourceLang, targetLang, App.setting.TranslationProvider);
+                var localEntry = await DictionaryLogger.GetAsync(text, sourceLang, targetLang, App.setting.WordTranslationProvider);
                 if (localEntry != null)
                 {
                     if (localEntry.ExtraMeanings != null && localEntry.ExtraMeanings.Count > 0)
@@ -254,7 +258,7 @@ namespace ScreenLookup.src.utils
                     if (token?.IsCancellationRequested == true)
                         return (extraMeanings, phonetic);
 
-                    switch (App.setting.TranslationProvider)
+                    switch (App.setting.WordTranslationProvider)
                     {
                         case ProviderService.Google:
                         case ProviderService.GoogleNew:
@@ -342,7 +346,7 @@ namespace ScreenLookup.src.utils
                         case ProviderService.OpenRouter:
                             try
                             {
-                                string llmResponse = await llmExtraDetails.GetExtraDetails(App.setting.TranslationProvider, text, token.Token);
+                                string llmResponse = await llmExtraDetails.GetExtraDetails(App.setting.WordTranslationProvider, text, token.Token);
                                 if (!string.IsNullOrEmpty(llmResponse))
                                 {
                                     var (ExtraMeanings, Phonetic) = await ParseLLMExtraDetailsJsonAsync(llmResponse, targetLang);
@@ -371,7 +375,7 @@ namespace ScreenLookup.src.utils
                 if (string.IsNullOrEmpty(phonetic))
                     phonetic = "-";
 
-                await DictionaryLogger.SaveExtraDetailsAsync(text, sourceLang, targetLang, App.setting.TranslationProvider, extraMeanings, phonetic);
+                await DictionaryLogger.SaveExtraDetailsAsync(text, sourceLang, targetLang, App.setting.WordTranslationProvider, extraMeanings, phonetic);
             }
 
             if (string.IsNullOrEmpty(phonetic) || phonetic == "-")

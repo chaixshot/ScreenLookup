@@ -28,7 +28,8 @@ namespace ScreenLookup.src.utils
         private int sourceLanguage = 29;
         private bool hunSpell = false;
         private int targetLanguage = 117;
-        private ProviderService translationProvider = ProviderService.GoogleNew;
+        private ProviderService wordTranslationProvider = ProviderService.GoogleNew;
+        private ProviderService paragraphTranslationProvider = ProviderService.GoogleNew;
         private ProviderService ttsProvider = ProviderService.GoogleNew;
 
         private ShortcutKeySet shortcutKey = new()
@@ -109,7 +110,8 @@ namespace ScreenLookup.src.utils
                     OcrEngineMode = settings.OcrEngineMode;
                     HunSpell = settings.HunSpell;
                     TargetLanguage = settings.TargetLanguage;
-                    TranslationProvider = settings.TranslationProvider;
+                    WordTranslationProvider = settings.WordTranslationProvider;
+                    ParagraphTranslationProvider = settings.ParagraphTranslationProvider != default ? settings.ParagraphTranslationProvider : settings.ParagraphTranslationProvider;
                     TTSProvider = settings.TTSProvider;
 
                     ShortcutKey = settings.ShortcutKey;
@@ -257,16 +259,26 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public ProviderService TranslationProvider
+        public ProviderService WordTranslationProvider
         {
-            get => translationProvider;
+            get => wordTranslationProvider;
             set
             {
-                translationProvider = value;
+                wordTranslationProvider = value;
 
                 if (App.mainWindow?.IsLoaded == true)
                     Translation.ChangeTranslationProvider(value);
 
+                OnPropertyChanged();
+            }
+        }
+
+        public ProviderService ParagraphTranslationProvider
+        {
+            get => paragraphTranslationProvider;
+            set
+            {
+                paragraphTranslationProvider = value;
                 OnPropertyChanged();
             }
         }

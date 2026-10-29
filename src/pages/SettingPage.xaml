@@ -166,15 +166,29 @@
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Translate24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
-                        <Controls:TextBlock Text="Translation Provider" />
-                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for translation service" />
+                        <Controls:TextBlock Text="Word Translation Provider" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for word translation service" />
                     </StackPanel>
                 </Controls:CardControl.Header>
                 <ComboBox
                     x:Name="translationProvider"
                     Width="200"
-                    SelectedValue="{Binding TranslationProvider}"
+                    SelectedValue="{Binding WordTranslationProvider}"
                     SelectionChanged="TranslationProvider_SelectionChanged" />
+            </Controls:CardControl>
+
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Translate24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Paragraph Translation Provider" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Provider for paragraph translation service" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <ComboBox
+                    x:Name="paragraphProvider"
+                    Width="200"
+                    SelectedValue="{Binding ParagraphTranslationProvider}"
+                    SelectionChanged="ParagraphProvider_SelectionChanged" />
             </Controls:CardControl>
 
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=PersonVoice24}">
