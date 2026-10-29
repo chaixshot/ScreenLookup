@@ -10,7 +10,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
-using static ScreenLookup.src.utils.TesseractHelper;
 
 namespace ScreenLookup.src.pages
 {
@@ -32,6 +31,8 @@ namespace ScreenLookup.src.pages
         public string SearchText { get; set; } = string.Empty;
         public int SearchSourceLanguage { get; set; } = -1;
         public string OrderBy { get; set; } = "Score";
+
+        private static CancellationTokenSource TranslatesCancelToken;
 
         private List<SavedWordEntry> _savedItems = [];
         public List<SavedWordEntry> SavedItems
@@ -64,11 +65,16 @@ namespace ScreenLookup.src.pages
                     LoadSavedWord();
                     LoadSourceLanguageItems();
                 }
+
+                TranslatesCancelToken = new();
             };
 
             Unloaded += (s, e) =>
             {
                 TextToSpeech.StopTTS();
+
+                TranslatesCancelToken?.Cancel();
+                TranslatesCancelToken?.Dispose();
             };
 
             SizeChanged += (s, e) =>
@@ -100,6 +106,51 @@ namespace ScreenLookup.src.pages
             maxPage = data.MaxPage > 0 ? data.MaxPage : 1;
             SavedItems = data.Entries;
             PageNumber.Text = $"{currentPage}/{maxPage}";
+
+            SetupTranslationBox();
+        }
+
+        private void SetupTranslationBox()
+        {
+            TranslatesCancelToken?.Cancel();
+            var token = TranslatesCancelToken = new();
+
+            dataGrid.UpdateLayout();
+
+            foreach (var row in FindVisualChildren<DataGridRow>(dataGrid))
+            {
+                if (token.IsCancellationRequested) break;
+                if (row.DataContext is not SavedWordEntry entry) continue;
+
+                var boxes = FindVisualChildren<TranslationBox>(row).ToList();
+                if (boxes.Count < 2) continue;
+
+                int src = int.TryParse(entry.SourceLanguage, out int s) ? s : 0;
+                int tgt = int.TryParse(entry.TargetLanguage, out int t) ? t : 0;
+
+                boxes[0].SetOriginal(entry.Original, src, src);
+                boxes[1].SetOriginal(entry.Translated, tgt, tgt);
+
+                Task.Run(async () =>
+                {
+                    var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(entry.Original, src, tgt, token);
+                    if (token.IsCancellationRequested) return;
+
+                    boxes[0].UpdatePhonetic(phonetic);
+                    boxes[1].UpdateExtraMeanings(extraMeanings);
+                });
+            }
+        }
+
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) yield break;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t) yield return t;
+                foreach (var grandchild in FindVisualChildren<T>(child)) yield return grandchild;
+            }
         }
 
         private void ScrollTop()
@@ -285,36 +336,6 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region Item Action Handlers
-        private void TranslationBox_Original_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is TranslationBox box && box.DataContext is SavedWordEntry entry)
-            {
-                int sourceLang = int.TryParse(entry.SourceLanguage, out int srcLang) ? srcLang : 0;
-                box.SetOriginal(entry.Original, sourceLang, sourceLang);
-
-                _ = Task.Run(async () =>
-                {
-                    var (_, phonetic) = await entry.GetExtraDetailsAsync();
-                    await Dispatcher.InvokeAsync(() => box.UpdatePhonetic(phonetic));
-                });
-            }
-        }
-
-        private void TranslationBox_Translated_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is TranslationBox box && box.DataContext is SavedWordEntry entry)
-            {
-                int targetLang = int.TryParse(entry.TargetLanguage, out int tgtLang) ? tgtLang : 0;
-                box.SetOriginal(entry.Translated, targetLang, targetLang);
-
-                _ = Task.Run(async () =>
-                {
-                    var (extraMeanings, _) = await entry.GetExtraDetailsAsync();
-                    await Dispatcher.InvokeAsync(() => box.UpdateExtraMeanings(extraMeanings));
-                });
-            }
-        }
-
         private async void Delete_click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button button) return;

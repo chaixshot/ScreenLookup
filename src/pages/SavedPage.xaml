@@ -224,7 +224,7 @@
                             <DataGridTemplateColumn Width="*" Header="Original">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <xControls:TranslationBox ButtonWidth="20" Loaded="TranslationBox_Original_Loaded" />
+                                        <xControls:TranslationBox ButtonWidth="20" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -232,7 +232,7 @@
                             <DataGridTemplateColumn Width="*" Header="Translated">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <xControls:TranslationBox ButtonWidth="20" Loaded="TranslationBox_Translated_Loaded" />
+                                        <xControls:TranslationBox ButtonWidth="20" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

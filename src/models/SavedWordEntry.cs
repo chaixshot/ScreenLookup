@@ -1,4 +1,4 @@
-﻿using ScreenLookup.src.utils;
+﻿using CsvHelper;
 using System.Windows;
 using System.Windows.Media;
 
@@ -13,23 +13,5 @@ namespace ScreenLookup.src.models
         public required string TargetLanguage { get; set; }
         public Visibility ScoreVisibility { get; set; }
         public required FontFamily FontFace { get; set; }
-
-        private Task<(List<ExtraMeaningEntity> ExtraMeanings, string Phonetic)>? _extraDetailsTask;
-        private readonly Lock _lock = new();
-
-        public Task<(List<ExtraMeaningEntity> ExtraMeanings, string Phonetic)> GetExtraDetailsAsync()
-        {
-            lock (_lock)
-            {
-                _extraDetailsTask ??= Task.Run(async () =>
-                {
-                    int srcLang = int.TryParse(SourceLanguage, out int s) ? s : 0;
-                    int tgtLang = int.TryParse(TargetLanguage, out int t) ? t : 0;
-                    using var cts = new CancellationTokenSource();
-                    return await Translation.GetExtraDetailsAsync(Original, srcLang, tgtLang, cts);
-                });
-                return _extraDetailsTask;
-            }
-        }
     }
 }

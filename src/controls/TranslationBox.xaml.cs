@@ -37,6 +37,11 @@ namespace ScreenLookup.src.controls
         {
             InitializeComponent();
             ResetDefaultState();
+
+            Unloaded += (s, e) =>
+            {
+                TranslatesCancelToken?.Cancel();
+            };
         }
 
         public void Clear()
@@ -103,7 +108,7 @@ namespace ScreenLookup.src.controls
             this.Tag = mainText;
         }
 
-        public async Task UpdateExtraMeanings(List<ExtraMeaningEntity> extraMeanings)
+        public async void UpdateExtraMeanings(List<ExtraMeaningEntity> extraMeanings)
         {
             await Dispatcher.InvokeAsync(() =>
             {
@@ -120,18 +125,21 @@ namespace ScreenLookup.src.controls
             });
         }
 
-        public void UpdatePhonetic(string phonetic)
+        public async void UpdatePhonetic(string phonetic)
         {
-            if (!string.IsNullOrEmpty(phonetic))
+            await Dispatcher.InvokeAsync(() =>
             {
-                PhoneticTextElement.Text = phonetic;
-                PhoneticTextElement.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                PhoneticTextElement.Text = string.Empty;
-                PhoneticTextElement.Visibility = Visibility.Collapsed;
-            }
+                if (!string.IsNullOrEmpty(phonetic))
+                {
+                    PhoneticTextElement.Text = phonetic;
+                    PhoneticTextElement.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PhoneticTextElement.Text = string.Empty;
+                    PhoneticTextElement.Visibility = Visibility.Collapsed;
+                }
+            });
         }
 
         public void ResetDefaultState()

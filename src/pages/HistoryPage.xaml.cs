@@ -30,6 +30,8 @@ namespace ScreenLookup.src.pages
         public string SearchText { get; set; } = string.Empty;
         public int SearchSourceLanguage { get; set; } = -1;
 
+        private static CancellationTokenSource TranslatesCancelToken;
+
         private readonly Dictionary<string, string> translatedCache = [];
         private List<HistoryLoggerPageEntry> _historyItems = [];
         private Grid? previousExpandedCell;
@@ -60,6 +62,8 @@ namespace ScreenLookup.src.pages
                     LoadHistoryLogger();
                     LoadSourceLanguageItems();
                 }
+
+                TranslatesCancelToken = new();
             };
 
             Unloaded += (s, e) =>
@@ -67,6 +71,9 @@ namespace ScreenLookup.src.pages
                 TextToSpeech.StopTTS();
                 translatedCache.Clear();
                 previousExpandedCell = null;
+
+                TranslatesCancelToken?.Cancel();
+                TranslatesCancelToken?.Dispose();
             };
 
             SizeChanged += (s, e) =>
@@ -316,7 +323,7 @@ namespace ScreenLookup.src.pages
                 {
                     if (item.Id == id)
                     {
-                        string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage));
+                        string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage), TranslatesCancelToken.Token);
 
                         if (!string.IsNullOrEmpty(translatedText))
                         {

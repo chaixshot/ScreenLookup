@@ -225,6 +225,9 @@ namespace ScreenLookup.src.utils
             string phonetic = string.Empty;
             bool isSuccess = false;
 
+            if (token?.IsCancellationRequested == true)
+                return (extraMeanings, phonetic);
+
             if (!SupportExtraDetail.Contains(App.setting.TranslationProvider))
                 return (extraMeanings, phonetic);
 
@@ -248,6 +251,9 @@ namespace ScreenLookup.src.utils
             {
                 (extraMeanings, phonetic) = await ExtraDetailsQueue.EnqueueAsync(async () =>
                 {
+                    if (token?.IsCancellationRequested == true)
+                        return (extraMeanings, phonetic);
+
                     switch (App.setting.TranslationProvider)
                     {
                         case ProviderService.Google:
