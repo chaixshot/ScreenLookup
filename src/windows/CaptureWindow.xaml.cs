@@ -73,7 +73,7 @@ namespace ScreenLookup.src.windows
 
             translationExpander.Expanded += async (s, e) =>
             {
-                await TranlsateImageExpander();
+                TranlsateImageExpander();
             };
 
             translationExpander.Collapsed += async (s, e) =>
@@ -245,7 +245,17 @@ namespace ScreenLookup.src.windows
                         else
                         {
                             if (App.setting.LookupOnImage)
+                            {
                                 AltoText.ItemsSource = OcrHelper.AltoTextProcess(ocrResult, image);
+
+                                if (App.setting.ShowTranslation)
+                                {
+                                    if (translationExpander.IsExpanded)
+                                        TranlsateImageExpander();
+                                    else
+                                        translationExpander.IsExpanded = true;
+                                }
+                            }
                             else
                             {
                                 originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, windowWidth);
@@ -253,6 +263,12 @@ namespace ScreenLookup.src.windows
                                 originalCard.Visibility = Visibility.Visible;
                                 translatedCard.Visibility = Visibility.Visible;
                                 translationMessage.SetParagraph(OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage);
+
+                                if (App.setting.ShowTranslation)
+                                {
+                                    await translationMessage.Translate(isWord: false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
+                                    HistoryLogger.Update(currentHistoryID, translationMessage.Translated);
+                                }
 
                                 SetWindowSize();
                                 SetWindowPosition();
@@ -353,16 +369,16 @@ namespace ScreenLookup.src.windows
             }
         }
 
-        private async Task TranlsateImageExpander()
+        private async void TranlsateImageExpander()
         {
             double expandeHeight = captureCard.ActualHeight - expanderHeader.ActualHeight - expanderContent.Padding.Top - 5;
-            expanderContent.Height = expandeHeight;
+            expanderContent.Height = expandeHeight > 0 ? expandeHeight : captureCard.ActualHeight;
 
             double expandeWidth = captureCard.ActualWidth;
             expanderContent.Width = expandeWidth;
 
             double translationHeight = expandeHeight - expanderContent.Padding.Top - expanderContent.Padding.Bottom;
-            translationImage.Height = translationHeight;
+            translationImage.Height = translationHeight > 0 ? translationHeight : expandeHeight;
 
             await translationImage.Translate(isWord: false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
             translationMessage.Translated = translationImage.Translated;

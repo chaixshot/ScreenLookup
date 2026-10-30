@@ -42,6 +42,7 @@ namespace ScreenLookup.src.utils
         private bool showAuxiliary = true;
         private bool showHighlight = true;
         private bool closeLostFocus = true;
+        private bool showTranslation = true;
         private string fontFace = "Segoe UI";
         private int fontSizes = 14;
 
@@ -120,6 +121,7 @@ namespace ScreenLookup.src.utils
                     ShowAuxiliary = settings.ShowAuxiliary;
                     ShowHighlight = settings.ShowHighlight;
                     CloseLostFocus = settings.CloseLostFocus;
+                    ShowTranslation = settings.ShowTranslation;
                     FontFace = settings.FontFace;
                     FontSizeS = settings.FontSizeS;
 
@@ -379,6 +381,16 @@ namespace ScreenLookup.src.utils
             set
             {
                 closeLostFocus = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool ShowTranslation
+        {
+            get => showTranslation;
+            set
+            {
+                showTranslation = value;
                 OnPropertyChanged();
             }
         }

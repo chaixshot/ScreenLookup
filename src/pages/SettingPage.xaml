@@ -1117,6 +1117,16 @@
                 <CheckBox IsChecked="{Binding CloseLostFocus}" />
             </Controls:CardControl>
 
+            <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon Symbol=Highlight24}">
+                <Controls:CardControl.Header>
+                    <StackPanel Margin="5,0,0,0">
+                        <Controls:TextBlock Text="Show Translation" />
+                        <wpfui:TextBlock Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}" Text="Show translation result after Lookup" />
+                    </StackPanel>
+                </Controls:CardControl.Header>
+                <CheckBox IsChecked="{Binding ShowTranslation}" />
+            </Controls:CardControl>
+
             <Controls:CardControl Margin="0,0,0,4" Icon="{wpfui:SymbolIcon TextFont24}">
                 <Controls:CardControl.Header>
                     <StackPanel Margin="5,0,0,0">
