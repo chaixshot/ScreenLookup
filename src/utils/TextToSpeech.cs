@@ -123,17 +123,21 @@ namespace ScreenLookup.src.utils
                         Stream stream;
                         try
                         {
-                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6393FromID(langID));
+                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6393FromID(langID), cancellationToken: token);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            return null;
                         }
                         catch
                         {
-                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6391FromID(langID));
+                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6391FromID(langID), cancellationToken: token);
                         }
 
                         MemoryStream memStream = new();
                         byte[] buffer = new byte[32768];
                         int read;
-                        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
                         {
                             memStream.Write(buffer, 0, read);
                         }

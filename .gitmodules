@@ -5,3 +5,6 @@
 	path = third-party/ScreenGrab
 	url = https://github.com/chaixshot/ScreenGrab.git
 	branch = CustomFeature
+[submodule "third-party/GTranslate"]
+	path = third-party/GTranslate
+	url = https://github.com/chaixshot/GTranslate.git

@@ -89,7 +89,7 @@ namespace ScreenLookup.src.utils.Database
             }
         }
 
-        public static async Task<string> GetOrTranslateAsync(string pos, int targetLang)
+        public static async Task<string> GetOrTranslateAsync(string pos, int targetLang, CancellationToken token = default)
         {
             if (string.IsNullOrWhiteSpace(pos))
                 return string.Empty;
@@ -114,7 +114,7 @@ namespace ScreenLookup.src.utils.Database
             {
                 // Find English language ID for translation source
                 int engLangID = Array.IndexOf(TesseractHelper.LangList, "eng");
-                string translatedPos = await Translation.GetTranslated(isWord: true, cleanPos, engLangID, targetLang);
+                string translatedPos = await Translation.GetTranslated(isWord: true, cleanPos, engLangID, targetLang, token);
                 if (!string.IsNullOrWhiteSpace(translatedPos))
                 {
                     translatedPos = translatedPos.Trim().Normalize(System.Text.NormalizationForm.FormC);

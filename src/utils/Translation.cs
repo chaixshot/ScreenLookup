@@ -175,12 +175,14 @@ namespace ScreenLookup.src.utils
 
                                     for (int i = 0; i < tagGetters.Length; i++)
                                     {
+                                        if (token.IsCancellationRequested) break;
+
                                         string targetTag = tagGetters[i](targetLang);
                                         string sourceTag = tagGetters[i](sourceLang);
 
                                         if (TranslationProvider != null)
                                         {
-                                            var translateResult = await TranslationProvider.TranslateAsync(text, targetTag, sourceTag);
+                                            var translateResult = await TranslationProvider.TranslateAsync(text, targetTag, sourceTag, token);
                                             if (!string.IsNullOrEmpty(translateResult.Translation))
                                             {
                                                 resultText = translateResult.Translation;
@@ -313,7 +315,7 @@ namespace ScreenLookup.src.utils
                                                 {
                                                     if (extraMeanings.Count == 0 && candidateWord == cleanText)
                                                     {
-                                                        var parsed = await ParseGoogleDictionaryJsonAsync(json, targetLang);
+                                                        var parsed = await ParseGoogleDictionaryJsonAsync(json, targetLang, token.Token);
                                                         if (parsed.Count > 0)
                                                             extraMeanings = parsed;
                                                     }
@@ -349,7 +351,7 @@ namespace ScreenLookup.src.utils
                                 string llmResponse = await llmExtraDetails.GetExtraDetails(App.setting.WordTranslationProvider, text, token.Token);
                                 if (!string.IsNullOrEmpty(llmResponse))
                                 {
-                                    var (ExtraMeanings, Phonetic) = await ParseLLMExtraDetailsJsonAsync(llmResponse, targetLang);
+                                    var (ExtraMeanings, Phonetic) = await ParseLLMExtraDetailsJsonAsync(llmResponse, targetLang, token.Token);
                                     if (ExtraMeanings.Count > 0)
                                         extraMeanings = ExtraMeanings;
                                     if (!string.IsNullOrEmpty(Phonetic))
@@ -388,7 +390,7 @@ namespace ScreenLookup.src.utils
         #endregion
 
         #region Helper Parsing Methods
-        private static async Task<List<ExtraMeaningEntity>> ParseGoogleDictionaryJsonAsync(string json, int targetLang)
+        private static async Task<List<ExtraMeaningEntity>> ParseGoogleDictionaryJsonAsync(string json, int targetLang, CancellationToken token = default)
         {
             var list = new List<ExtraMeaningEntity>();
             try
@@ -406,7 +408,7 @@ namespace ScreenLookup.src.utils
                             if (posItem.ValueKind == JsonValueKind.Array && posItem.GetArrayLength() >= 2)
                             {
                                 string wordClass = posItem[0].GetString() ?? string.Empty;
-                                string translatedWordClass = await WordClassLogger.GetOrTranslateAsync(wordClass, targetLang);
+                                string translatedWordClass = await WordClassLogger.GetOrTranslateAsync(wordClass, targetLang, token);
 
                                 var meaningsArray = posItem[1];
                                 var meanings = new List<string>();
@@ -553,7 +555,7 @@ namespace ScreenLookup.src.utils
             return input;
         }
 
-        private static async Task<(List<ExtraMeaningEntity> ExtraMeanings, string Phonetic)> ParseLLMExtraDetailsJsonAsync(string json, int targetLang)
+        private static async Task<(List<ExtraMeaningEntity> ExtraMeanings, string Phonetic)> ParseLLMExtraDetailsJsonAsync(string json, int targetLang, CancellationToken token = default)
         {
             var extraMeanings = new List<ExtraMeaningEntity>();
             string phonetic = string.Empty;
@@ -594,7 +596,7 @@ namespace ScreenLookup.src.utils
                                     {
                                         pos = posProp.GetString() ?? string.Empty;
                                     }
-                                    string translatedPos = await WordClassLogger.GetOrTranslateAsync(pos, targetLang);
+                                    string translatedPos = await WordClassLogger.GetOrTranslateAsync(pos, targetLang, token);
 
                                     var meanings = new List<string>();
                                     if (item.TryGetProperty("meanings", out var mArrayProp) && mArrayProp.ValueKind == JsonValueKind.Array)
