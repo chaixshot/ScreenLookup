@@ -133,6 +133,9 @@ namespace ScreenLookup.src.pages
 
                 Task.Run(async () =>
                 {
+                    boxes[0].LoadPhonetic();
+                    boxes[1].LoadExtraMeanings();
+
                     var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(entry.Original, src, tgt, token);
                     if (token.IsCancellationRequested) return;
 

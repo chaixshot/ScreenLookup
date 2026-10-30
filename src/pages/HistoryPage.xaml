@@ -321,13 +321,20 @@
                                                     ToolTip="Copy" />
                                             </StackPanel>
 
-                                            <Grid Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Top">
+                                            <Grid
+                                                Grid.Column="1"
+                                                Margin="15,0,0,0"
+                                                VerticalAlignment="Top">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,5,0">
+                                                <StackPanel
+                                                    Grid.Column="0"
+                                                    Margin="0,0,5,0"
+                                                    VerticalAlignment="Top"
+                                                    Orientation="Horizontal">
                                                     <wpfui:ProgressRing
                                                         x:Name="Loading"
                                                         Width="30"

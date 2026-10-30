@@ -223,9 +223,17 @@ namespace ScreenLookup.src.controls
                     // Word extra details
                     _ = Task.Run(async () =>
                     {
-                        var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
-                        await Dispatcher.InvokeAsync(() => translationWord.UpdateExtraMeanings(extraMeanings));
-                        await Dispatcher.InvokeAsync(() => translationOriginalWord.UpdatePhonetic(phonetic));
+                        await Dispatcher.InvokeAsync(async () =>
+                        {
+                            translationOriginalWord.LoadPhonetic();
+                            translationWord.LoadExtraMeanings();
+
+                            var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+                            if (TranslatesCancelToken.IsCancellationRequested) return;
+
+                            translationOriginalWord.UpdatePhonetic(phonetic);
+                            translationWord.UpdateExtraMeanings(extraMeanings);
+                        });
                     }, TranslatesCancelToken.Token);
 
                     // Message

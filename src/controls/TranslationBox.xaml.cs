@@ -55,7 +55,7 @@ namespace ScreenLookup.src.controls
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
-            Loading.Visibility = Visibility.Collapsed;
+            LoadingText.Visibility = Visibility.Collapsed;
             Refresh.Visibility = Visibility.Visible;
         }
 
@@ -66,7 +66,7 @@ namespace ScreenLookup.src.controls
             TargetLanguage = targetLang;
             IsWord = true;
 
-            Loading.Visibility = Visibility.Collapsed;
+            LoadingText.Visibility = Visibility.Collapsed;
             Refresh.Visibility = Visibility.Collapsed;
             TranslatedText.Text = word;
             TranslatedText.Visibility = Visibility.Visible;
@@ -92,7 +92,7 @@ namespace ScreenLookup.src.controls
             if (token.IsCancellationRequested)
                 return;
 
-            Loading.Visibility = Visibility.Collapsed;
+            LoadingText.Visibility = Visibility.Collapsed;
 
             if (string.IsNullOrEmpty(mainText))
             {
@@ -106,6 +106,14 @@ namespace ScreenLookup.src.controls
             Refresh.Visibility = Visibility.Collapsed;
             Translated = mainText;
             this.Tag = mainText;
+        }
+
+        public async void LoadExtraMeanings()
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                LoadingExtraMeanings.Visibility = Visibility.Visible;
+            });
         }
 
         public async void UpdateExtraMeanings(List<ExtraMeaningEntity> extraMeanings)
@@ -122,6 +130,16 @@ namespace ScreenLookup.src.controls
                     ExtraMeaningsList.ItemsSource = null;
                     ExtraMeaningsList.Visibility = Visibility.Collapsed;
                 }
+
+                LoadingExtraMeanings.Visibility = Visibility.Collapsed;
+            });
+        }
+
+        public async void LoadPhonetic()
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                LoadingPhonetic.Visibility = Visibility.Visible;
             });
         }
 
@@ -139,6 +157,8 @@ namespace ScreenLookup.src.controls
                     PhoneticTextElement.Text = string.Empty;
                     PhoneticTextElement.Visibility = Visibility.Collapsed;
                 }
+
+                LoadingPhonetic.Visibility = Visibility.Collapsed;
             });
         }
 
@@ -146,7 +166,7 @@ namespace ScreenLookup.src.controls
         {
             TranslatedText.Text = string.Empty;
             TranslatedText.Visibility = Visibility.Collapsed;
-            Loading.Visibility = Visibility.Visible;
+            LoadingText.Visibility = Visibility.Visible;
             Refresh.Visibility = Visibility.Collapsed;
 
             PhoneticTextElement.Text = string.Empty;

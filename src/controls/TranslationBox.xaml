@@ -53,38 +53,50 @@
             IsScrollingVertically="True"
             VerticalScrollBarVisibility="Visible">
 
-            <StackPanel Orientation="Vertical">
+            <StackPanel>
                 <WrapPanel Orientation="Horizontal">
-                    <StackPanel Orientation="Vertical">
-                        <Controls:TextBlock
-                            x:Name="TranslatedText"
-                            Margin="2,2,10,2"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            FontFamily="{Binding DataContext.FontFace, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                            FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                            TextWrapping="Wrap" />
+                    <StackPanel>
+                        <StackPanel Margin="2,2,10,2">
+                            <Controls:TextBlock
+                                x:Name="TranslatedText"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontFamily="{Binding DataContext.FontFace, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                TextWrapping="Wrap" />
+
+                            <wpfui:ProgressRing
+                                x:Name="LoadingText"
+                                Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                IsIndeterminate="True" />
+                        </StackPanel>
 
                         <!--  Phonetic  -->
-                        <Controls:TextBlock
-                            x:Name="PhoneticTextElement"
-                            Margin="2,2,2,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                            Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
-                            TextWrapping="Wrap"
-                            Visibility="Collapsed" />
-                    </StackPanel>
+                        <StackPanel Margin="2,2,2,0">
+                            <Controls:TextBlock
+                                x:Name="PhoneticTextElement"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Visibility="Collapsed" />
 
-                    <wpfui:ProgressRing
-                        x:Name="Loading"
-                        Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                        Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
-                        IsIndeterminate="True" />
+                            <wpfui:ProgressRing
+                                x:Name="LoadingPhonetic"
+                                Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                                IsIndeterminate="True"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+                    </StackPanel>
 
                     <Controls:Button
                         x:Name="Refresh"
@@ -101,29 +113,38 @@
                 </WrapPanel>
 
                 <!--  Extra Meanings  -->
-                <ItemsControl
-                    x:Name="ExtraMeaningsList"
-                    Margin="2,2,2,0"
-                    Visibility="Collapsed">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock
-                                    FontFamily="{Binding DataContext.FontFace, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                                    FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                                    FontWeight="Bold"
-                                    Foreground="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Text="{Binding Pos}" />
-                                <TextBlock
-                                    FontFamily="{Binding DataContext.FontFace, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                                    FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
-                                    Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
-                                    Text="{Binding MeaningsFormatted}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <StackPanel Margin="2,2,2,0">
+                    <ItemsControl x:Name="ExtraMeaningsList" Visibility="Collapsed">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock
+                                        FontFamily="{Binding DataContext.FontFace, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                        FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                        FontWeight="Bold"
+                                        Foreground="{wpfui:ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        Text="{Binding Pos}" />
+                                    <TextBlock
+                                        FontFamily="{Binding DataContext.FontFace, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                        FontSize="{Binding DataContext.FontSizeS, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                                        Foreground="{wpfui:ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding MeaningsFormatted}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <wpfui:ProgressRing
+                        x:Name="LoadingExtraMeanings"
+                        Width="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                        Height="{Binding ButtonWidth, RelativeSource={RelativeSource AncestorType=local:TranslationBox}}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Foreground="{wpfui:ThemeResource TextFillColorPrimaryBrush}"
+                        IsIndeterminate="True"
+                        Visibility="Collapsed" />
+                </StackPanel>
             </StackPanel>
         </Controls:DynamicScrollViewer>
     </Grid>
