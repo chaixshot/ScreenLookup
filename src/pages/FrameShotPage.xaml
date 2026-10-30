@@ -93,15 +93,81 @@
                     </StackPanel>
                 </Controls:CardControl.Header>
 
-                <StackPanel Orientation="Horizontal">
-                    <Controls:TextBlock Text="Left Eye" />
-                    <wpfui:ToggleSwitch
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <!--  Left Eye Text (Bold when unchecked)  -->
+                    <Controls:TextBlock VerticalAlignment="Center" Text="Left Eye">
+                        <Controls:TextBlock.Style>
+                            <Style TargetType="Controls:TextBlock">
+                                <Setter Property="FontWeight" Value="Normal" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=UseRightEye}" Value="False">
+                                        <DataTrigger.Setters>
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger.Setters>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Controls:TextBlock.Style>
+                    </Controls:TextBlock>
+
+                    <!--  Custom Unfilled Toggle Switch  -->
+                    <CheckBox
                         x:Name="UseRightEye"
-                        Grid.Column="0"
                         Margin="10,0"
+                        VerticalAlignment="Center"
                         Checked="UseRightEye_Changed"
-                        Unchecked="UseRightEye_Changed" />
-                    <Controls:TextBlock Text="Right Eye" />
+                        Unchecked="UseRightEye_Changed">
+                        <CheckBox.Style>
+                            <Style TargetType="CheckBox">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="CheckBox">
+                                            <Grid Background="Transparent" Cursor="Hand">
+                                                <Border
+                                                    x:Name="track"
+                                                    Width="40"
+                                                    Height="20"
+                                                    Background="Transparent"
+                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10">
+                                                    <Ellipse
+                                                        x:Name="knob"
+                                                        Width="12"
+                                                        Height="12"
+                                                        Margin="3,0,0,0"
+                                                        HorizontalAlignment="Left"
+                                                        Fill="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                </Border>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="knob" Property="HorizontalAlignment" Value="Right" />
+                                                    <Setter TargetName="knob" Property="Margin" Value="0,0,3,0" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </CheckBox.Style>
+                    </CheckBox>
+
+                    <!--  Right Eye Text (Bold when checked)  -->
+                    <Controls:TextBlock VerticalAlignment="Center" Text="Right Eye">
+                        <Controls:TextBlock.Style>
+                            <Style TargetType="Controls:TextBlock">
+                                <Setter Property="FontWeight" Value="Normal" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=UseRightEye}" Value="True">
+                                        <DataTrigger.Setters>
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger.Setters>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Controls:TextBlock.Style>
+                    </Controls:TextBlock>
                 </StackPanel>
             </Controls:CardControl>
 
