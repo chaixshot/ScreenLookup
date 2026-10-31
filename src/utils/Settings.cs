@@ -47,9 +47,6 @@ namespace ScreenLookup.src.utils
         private int fontSizes = 14;
 
         public Dictionary<string, string> window = [];
-        public Dictionary<string, bool> loadedTesseract = [];   // kept for migration
-        public Dictionary<string, bool> loadedPaddle = [];
-        public Dictionary<string, bool> loadedHunspell = [];
 
         private bool autoConnectStamVR = false;
         private bool overlayEnable = true;
@@ -87,9 +84,6 @@ namespace ScreenLookup.src.utils
                     fileStream.Close();
 
                     Window = settings.Window;
-                    LoadedTesseract = settings.loadedTesseract;
-                    LoadedPaddle = settings.loadedPaddle;
-                    LoadedHunspell = settings.loadedHunspell;
                     if (settings.OllamaConfig != null) OllamaConfig = settings.OllamaConfig;
                     if (settings.OpenAIConfig != null) OpenAIConfig = settings.OpenAIConfig;
                     if (settings.LMStudioConfig != null) LMStudioConfig = settings.LMStudioConfig;
@@ -577,36 +571,6 @@ namespace ScreenLookup.src.utils
             set
             {
                 window = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public Dictionary<string, bool> LoadedTesseract
-        {
-            get => loadedTesseract;
-            set
-            {
-                loadedTesseract = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public Dictionary<string, bool> LoadedPaddle
-        {
-            get => loadedPaddle;
-            set
-            {
-                loadedPaddle = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public Dictionary<string, bool> LoadedHunspell
-        {
-            get => loadedHunspell;
-            set
-            {
-                loadedHunspell = value;
                 OnPropertyChanged();
             }
         }

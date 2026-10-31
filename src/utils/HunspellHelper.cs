@@ -1,6 +1,4 @@
 using HunspellSharp;
-using ScreenLookup.src.utils.Database;
-using System.IO;
 
 namespace ScreenLookup.src.utils
 {
@@ -69,7 +67,20 @@ namespace ScreenLookup.src.utils
 
         public static bool IsInstalled(int langID)
         {
-            return App.setting.LoadedHunspell.ContainsKey(langID.ToString());
+            if (langID < 0 || langID >= TesseractHelper.LangList.Length) return false;
+
+            string tessTag = LanguageList.GetTesseractTagFromID(langID);
+
+            if (LangList.TryGetValue(tessTag, out string? fileName))
+            {
+                string nameTag = fileName.Contains('/') ? fileName.Split('/')[1] : fileName;
+                string affPath = Path.Combine(FilePath, $"{nameTag}.aff");
+                string dicPath = Path.Combine(FilePath, $"{nameTag}.dic");
+
+                return File.Exists(affPath) && File.Exists(dicPath);
+            }
+
+            return false;
         }
 
         public static async Task<bool> InstallModel(int langID)

@@ -2,7 +2,6 @@
 using ScreenLookup.src.utils;
 using System.Windows;
 using System.Windows.Controls;
-using static ScreenLookup.src.utils.OcrHelper;
 
 namespace ScreenLookup.src.pages
 {
@@ -46,7 +45,7 @@ namespace ScreenLookup.src.pages
         #region Content Loading Methods
         private void LoadOcrEngineModes()
         {
-            ocrEngineMode.ItemsSource = Enum.GetValues<OcrEngine>();
+            ocrEngineMode.ItemsSource = Enum.GetValues<OcrHelper.OcrEngine>();
         }
 
         private void LoadSourceAccuracyContent()
@@ -77,7 +76,7 @@ namespace ScreenLookup.src.pages
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = DownloadHelper.IsInstalled(langAcc, langID);
 
-                if (App.setting.OcrEngineMode == OcrEngine.PaddleOCR) // If Paddle mode is active
+                if (App.setting.OcrEngineMode == OcrHelper.OcrEngine.PaddleOCR) // If Paddle mode is active
                 {
                     if (!PaddleHelper.LangList.Contains(tesseractTag)) // double check to ensure it exists in PaddleHelper.LangList (redundant since we loop it directly, but safe)
                         continue;
@@ -162,7 +161,6 @@ namespace ScreenLookup.src.pages
         {
             int langID = App.setting.SourceLanguage;
             SourceAccuracy accID = App.setting.SourceLanguageAccuracy;
-            bool isSuccess = false;
 
             if (isLoadingTesseract || string.IsNullOrWhiteSpace(TesseractHelper.LangList[langID]))
                 return;
@@ -170,26 +168,12 @@ namespace ScreenLookup.src.pages
             isLoadingTesseract = true;
             ButtonDownloadTesseractChanged();
 
-            switch (App.setting.OcrEngineMode)
-            {
-                case OcrEngine.TesseraceOCR:
-                    isSuccess = await TesseractHelper.InstallModelAsync(accID, langID);
-                    if (isSuccess)
-                        TesseractHelper.SaveInstalled(accID, langID);
-
-                    break;
-                case OcrEngine.PaddleOCR:
-                    isSuccess = await PaddleHelper.InstallModelAsync(accID);
-                    if (isSuccess)
-                        PaddleHelper.SaveInstalled(accID);
-
-                    break;
-                default:
-                    break;
-            }
-
+            bool isSuccess = await OcrHelper.InstallModel(accID, langID);
             if (isSuccess)
+            {
+                App.captureWindow.LoadInstalledLanguage();
                 SnackbarHost.Show("Source Language", $"\"{accID.GetDisplayName()} - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
+            }
             else
                 SnackbarHost.Show("Source Language", $"Unable to download \"{accID.GetDisplayName()} - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
 
@@ -247,7 +231,7 @@ namespace ScreenLookup.src.pages
             if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
             {
                 if (comboBox.SelectedIndex >= 0)
-                    App.setting.OcrEngineMode = (OcrEngine)comboBox.SelectedIndex;
+                    App.setting.OcrEngineMode = (OcrHelper.OcrEngine)comboBox.SelectedIndex;
 
                 ButtonDownloadTesseractChanged();
                 LoadSourceLanguageContent();

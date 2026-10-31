@@ -116,6 +116,16 @@ namespace ScreenLookup.src.utils
             }
         }
 
+        public static async Task<bool> InstallModel(SourceAccuracy accID, int langID)
+        {
+            return App.setting.OcrEngineMode switch
+            {
+                OcrEngine.TesseraceOCR => await TesseractHelper.InstallModel(accID, langID).ConfigureAwait(false),
+                OcrEngine.PaddleOCR => await PaddleHelper.InstallModel(accID).ConfigureAwait(false),
+                _ => false,
+            };
+        }
+
         public static void Dispose()
         {
             Engine?.Dispose();

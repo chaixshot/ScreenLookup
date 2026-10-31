@@ -45,27 +45,15 @@ namespace ScreenLookup.src.utils
         public static bool IsInstalled(SourceAccuracy accID, int langID)
         {
             if (langID < 0 || langID >= LangList.Length) return false;
-            if (App.setting.LoadedTesseract.ContainsKey($"{accID},{langID}"))
-                return true;
-            else
-            {
-                string tessdataPath = GetTessdataPath(accID);
-                string rawTag = LangList[langID];
-                string modelName = GetTesseractModelName(rawTag);
 
-                return File.Exists(Path.Combine(tessdataPath, $"{modelName}.traineddata"));
-            }
+            string tessdataPath = GetTessdataPath(accID);
+            string rawTag = LangList[langID];
+            string modelName = GetTesseractModelName(rawTag);
+
+            return File.Exists(Path.Combine(tessdataPath, $"{modelName}.traineddata"));
         }
 
-        public static void SaveInstalled(SourceAccuracy accID, int langID)
-        {
-            App.setting.LoadedTesseract[$"{accID},{langID}"] = true;
-            App.setting.Save();
-
-            App.captureWindow.LoadInstalledLanguage();
-        }
-
-        public static async Task<bool> InstallModelAsync(SourceAccuracy accID, int langID)
+        public static async Task<bool> InstallModel(SourceAccuracy accID, int langID)
         {
             if (langID < 0 || langID >= LangList.Length) return false;
             if (IsInstalled(accID, langID)) return true;

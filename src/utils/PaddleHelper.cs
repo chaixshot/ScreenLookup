@@ -19,31 +19,18 @@ namespace ScreenLookup.src.utils
 
         public static bool IsInstalled(SourceAccuracy accID)
         {
-            if (App.setting.LoadedPaddle.ContainsKey($"{accID}"))
-                return true;
-            else
-            {
-                string modelDir = GetModelPath(accID);
-                string detDir = Path.Combine(modelDir, "det");
-                string recDir = Path.Combine(modelDir, "rec");
+            string modelDir = GetModelPath(accID);
+            string detDir = Path.Combine(modelDir, "det");
+            string recDir = Path.Combine(modelDir, "rec");
 
-                // Check if both det and rec subfolders exist with valid model configuration/weights
-                bool hasDet = Directory.Exists(detDir) &&
-                                (File.Exists(Path.Combine(detDir, "inference.json")) || File.Exists(Path.Combine(detDir, "inference.pdmodel")) || File.Exists(Path.Combine(detDir, "model.pdmodel")));
+            // Check if both det and rec subfolders exist with valid model configuration/weights
+            bool hasDet = Directory.Exists(detDir) &&
+                            (File.Exists(Path.Combine(detDir, "inference.json")) || File.Exists(Path.Combine(detDir, "inference.pdmodel")) || File.Exists(Path.Combine(detDir, "model.pdmodel")));
 
-                bool hasRec = Directory.Exists(recDir) &&
-                                (File.Exists(Path.Combine(recDir, "inference.json")) || File.Exists(Path.Combine(recDir, "inference.pdmodel")) || File.Exists(Path.Combine(recDir, "model.pdmodel")));
+            bool hasRec = Directory.Exists(recDir) &&
+                            (File.Exists(Path.Combine(recDir, "inference.json")) || File.Exists(Path.Combine(recDir, "inference.pdmodel")) || File.Exists(Path.Combine(recDir, "model.pdmodel")));
 
-                return Directory.Exists(modelDir) && hasDet && hasRec;
-            }
-        }
-
-        public static void SaveInstalled(SourceAccuracy accID)
-        {
-            App.setting.LoadedPaddle[$"{accID}"] = true;
-            App.setting.Save();
-
-            App.captureWindow.LoadInstalledLanguage();
+            return Directory.Exists(modelDir) && hasDet && hasRec;
         }
 
         public static string GetModelPath(SourceAccuracy accID)
@@ -98,7 +85,7 @@ namespace ScreenLookup.src.utils
             return (modelConfig, modelParameter);
         }
 
-        public static async Task<bool> InstallModelAsync(SourceAccuracy accID)
+        public static async Task<bool> InstallModel(SourceAccuracy accID)
         {
             if (IsInstalled(accID)) return true;
 
