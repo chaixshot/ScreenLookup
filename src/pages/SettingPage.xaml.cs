@@ -211,42 +211,15 @@ namespace ScreenLookup.src.pages
 
             isLoadingHunspell = true;
             ButtonDownloadHunspellChanged();
-            SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
 
-            foreach (string extension in new[] { "aff", "dic" })
+            bool isSuccess = await HunspellHelper.InstallModel(langID);
+            if (isSuccess)
             {
-                string nameTag = fileName.Split('/')[1];
-                string zipPath = Path.Combine(App.tempFolder, $"{nameTag}.{extension}.zip");
-                bool isFileExist = File.Exists(Path.Combine(HunspellHelper.FilePath, $"{nameTag}.{extension}"));
-                bool isDownloaded = false;
-
-                if (!isFileExist)
-                {
-                    DownloadHelper fileDownloader = new();
-                    isDownloaded = await fileDownloader.DownloadFileAsync($"https://translator.gres.biz/resources/dictionaries/{fileName}.{extension}.zip", zipPath);
-                }
-
-                if (isDownloaded)
-                {
-                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, App.tempFolder, null, true);
-                    FileInfo zipFile = new(zipPath);
-                    zipFile.Delete();
-
-                    await DownloadHelper.MoveFileToFolder(Path.Combine(App.tempFolder, $"{nameTag}.{extension}"), HunspellHelper.FilePath);
-                }
-                else if (!isFileExist)
-                {
-                    SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
-                    isLoadingHunspell = false;
-                    ButtonDownloadHunspellChanged();
-                    return;
-                }
+                SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
             }
 
             isLoadingHunspell = false;
-            HunspellHelper.SaveInstalled(langID);
             ButtonDownloadHunspellChanged();
-            SnackbarHost.Show("Hunspell", $"\"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\" download completed successfully", SnackbarType.Success);
         }
 
         private void HunSpell_Click(object sender, RoutedEventArgs e)

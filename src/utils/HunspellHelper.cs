@@ -72,10 +72,50 @@ namespace ScreenLookup.src.utils
             return App.setting.LoadedHunspell.ContainsKey(langID.ToString());
         }
 
-        public static void SaveInstalled(int langID)
+        public static async Task<bool> InstallModel(int langID)
         {
-            App.setting.LoadedHunspell.Add(langID.ToString(), true);
-            App.setting.Save();
+            if (langID < 0 || langID >= TesseractHelper.LangList.Length) return false;
+            if (IsInstalled(langID)) return true;
+
+            string tessTag = LanguageList.GetTesseractTagFromID(langID);
+
+            if (!LangList.TryGetValue(tessTag, out string? fileName))
+            {
+                SnackbarHost.Show("Hunspell", $"\"{LanguageList.GetDisplayNameFromID(langID, true)}\" doesn't support Hunspell", SnackbarType.Error);
+                return false;
+            }
+
+            SnackbarHost.Show("Hunspell", $"Downloading Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}...", SnackbarType.Info, timeout: 99999, closeButton: false);
+
+            foreach (string extension in new[] { "aff", "dic" })
+            {
+                string nameTag = fileName.Contains('/') ? fileName.Split('/')[1] : fileName;
+                string zipPath = Path.Combine(App.tempFolder, $"{nameTag}.{extension}.zip");
+                bool isFileExist = File.Exists(Path.Combine(FilePath, $"{nameTag}.{extension}"));
+                bool isDownloaded = false;
+
+                if (!isFileExist)
+                {
+                    DownloadHelper fileDownloader = new();
+                    isDownloaded = await fileDownloader.DownloadFileAsync($"https://translator.gres.biz/resources/dictionaries/{fileName}.{extension}.zip", zipPath);
+                }
+
+                if (isDownloaded)
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, App.tempFolder, null, true);
+                    FileInfo zipFile = new(zipPath);
+                    try { if (zipFile.Exists) zipFile.Delete(); } catch { }
+
+                    await DownloadHelper.MoveFileToFolder(Path.Combine(App.tempFolder, $"{nameTag}.{extension}"), FilePath);
+                }
+                else if (!isFileExist)
+                {
+                    SnackbarHost.Show("Hunspell", $"Unable to download \"Hunspell - {LanguageList.GetDisplayNameFromID(langID, true)}\"", SnackbarType.Error);
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static void CreateHunspellEngine(int langID)
