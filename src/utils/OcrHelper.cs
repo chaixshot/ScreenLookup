@@ -107,6 +107,7 @@ namespace ScreenLookup.src.utils
                 }).ConfigureAwait(false);
 
                 Paragraph = result != null ? GetOcrText(result) : string.Empty;
+                Paragraph = HunspellHelper.CorrectionParagraph(Paragraph);
 
                 return result;
             }

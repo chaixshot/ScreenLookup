@@ -121,14 +121,9 @@ namespace ScreenLookup.src.utils
                     {
                         foreach (TesseractOCR.Layout.Word word in textLine.Words)
                         {
-                            string text = word.Text;
+                            string text = HunspellHelper.CorrectionWord(word.Text);
                             if (!string.IsNullOrWhiteSpace(text))
-                            {
-                                if (App.setting.HunSpell)
-                                    text = HunspellHelper.CorrectionWord(text);
-
                                 items.Add(new CaptureWordsSimplifiedEntry { Word = text, Stop = 0 });
-                            }
                         }
                         items.Add(new CaptureWordsSimplifiedEntry { Word = string.Empty, Stop = 1 });
                     }
@@ -187,11 +182,8 @@ namespace ScreenLookup.src.utils
                 {
                     foreach (XmlElement data in allStrings)
                     {
-                        string word = data.GetAttribute("CONTENT");
+                        string word = HunspellHelper.CorrectionWord(data.GetAttribute("CONTENT"));
                         if (string.IsNullOrWhiteSpace(word)) continue;
-
-                        if (App.setting.HunSpell)
-                            word = HunspellHelper.CorrectionWord(word);
 
                         items.Add(new CaptureAltoEntry
                         {
@@ -264,11 +256,8 @@ namespace ScreenLookup.src.utils
                     for (int i = 0; i < lineStrings.Count; i++)
                     {
                         XmlElement data = (XmlElement)lineStrings[i];
-                        string word = data.GetAttribute("CONTENT");
+                        string word = HunspellHelper.CorrectionWord(data.GetAttribute("CONTENT"));
                         if (string.IsNullOrWhiteSpace(word)) continue;
-
-                        if (App.setting.HunSpell)
-                            word = HunspellHelper.CorrectionWord(word);
 
                         int strX = int.TryParse(data.GetAttribute("HPOS"), out int sx) ? sx : lineX;
                         int strY = int.TryParse(data.GetAttribute("VPOS"), out int sy) ? sy : lineY;

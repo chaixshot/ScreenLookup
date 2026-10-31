@@ -1,11 +1,11 @@
-using HunspellSharp;
+using WeCantSpell.Hunspell;
 
 namespace ScreenLookup.src.utils
 {
     internal static class HunspellHelper
     {
         public static readonly string FilePath = Path.Combine(App.appDataFolder, "hunspell");
-        public static Hunspell? HunspellEngine { get; private set; }
+        public static WordList? HunspellEngine { get; private set; }
 
         public static readonly Dictionary<string, string> LangList = new()
         {
@@ -133,19 +133,16 @@ namespace ScreenLookup.src.utils
         {
             string tessTag = LanguageList.GetTesseractTagFromID(langID);
 
-            HunspellEngine?.Dispose();
             HunspellEngine = null;
 
             if (LangList.TryGetValue(tessTag, out string? fileName))
             {
                 string nameTag = fileName.Split('/')[1];
-                string affPath = Path.Combine(FilePath, $"{nameTag}.aff");
                 string dicPath = Path.Combine(FilePath, $"{nameTag}.dic");
+                string affPath = Path.Combine(FilePath, $"{nameTag}.aff");
 
                 if (File.Exists(affPath) && File.Exists(dicPath))
-                {
-                    HunspellEngine = new Hunspell(affPath, dicPath);
-                }
+                    HunspellEngine = WordList.CreateFromFiles(dicPath, affPath);
             }
             else
             {
@@ -155,20 +152,29 @@ namespace ScreenLookup.src.utils
 
         public static void RemoveHunspellEngine()
         {
-            HunspellEngine?.Dispose();
             HunspellEngine = null;
         }
 
-        public static string CorrectionWord(string word)
+        public static string CorrectionWord(string text)
         {
-            if (HunspellEngine != null && !HunspellEngine.Spell(word))
+            if (!string.IsNullOrEmpty(text) && HunspellEngine?.Check(text) == false)
             {
-                List<string> suggestions = HunspellEngine.Suggest(word);
-                if (suggestions.Count != 0)
-                    word = suggestions[0];
+                IEnumerable<string> suggestions = HunspellEngine.Suggest(text);
+                string? firstSuggestion = suggestions.FirstOrDefault();
+
+                if (firstSuggestion != null)
+                    return firstSuggestion;
             }
 
-            return word;
+            return text;
+        }
+
+        public static string CorrectionParagraph(string text)
+        {
+            if (string.IsNullOrEmpty(text) || HunspellEngine == null)
+                return text;
+
+            return System.Text.RegularExpressions.Regex.Replace(text, @"\b\p{L}+\b", match => CorrectionWord(match.Value));
         }
     }
 }

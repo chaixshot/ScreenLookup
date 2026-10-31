@@ -188,10 +188,7 @@ namespace ScreenLookup.src.utils
 
                 foreach (string rawWord in words)
                 {
-                    string word = rawWord;
-                    if (App.setting.HunSpell)
-                        word = HunspellHelper.CorrectionWord(word);
-
+                    string word = HunspellHelper.CorrectionWord(rawWord);
                     items.Add(new CaptureWordsSimplifiedEntry { Word = word, Stop = 0 });
                 }
                 items.Add(new CaptureWordsSimplifiedEntry { Word = string.Empty, Stop = 1 });
@@ -621,10 +618,7 @@ namespace ScreenLookup.src.utils
                     {
                         var span = wordSpans[i];
                         string rawWord = span.word;
-                        string word = rawWord;
-                        if (App.setting.HunSpell)
-                            word = HunspellHelper.CorrectionWord(word);
-
+                        string word = HunspellHelper.CorrectionWord(rawWord);
                         double startFrac = charStartPos[span.startIdx] / totalCharWidth;
                         double endFrac = charStartPos[span.startIdx + span.len] / totalCharWidth;
 
