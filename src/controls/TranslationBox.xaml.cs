@@ -11,18 +11,32 @@ namespace ScreenLookup.src.controls
     public partial class TranslationBox : UserControl
     {
         private string Original = string.Empty;
-        public string Translated = string.Empty;
+        public string Translated { get; private set; } = string.Empty;
+
+        public Action<string>? TranslationCallBack { get; set; }
 
         private int SourceLanguage;
         private int TargetLanguage;
         private bool IsWord;
 
-        private static CancellationTokenSource TranslatesCancelToken;
+        private CancellationTokenSource _cts = new();
 
         public double ButtonWidth
         {
             get => (double)GetValue(ButtonWidthProperty);
             set => SetValue(ButtonWidthProperty, value);
+        }
+
+        public Orientation Orientation
+        {
+            get => (Orientation)GetValue(OrientationProperty);
+            set => SetValue(OrientationProperty, value);
+        }
+
+        public Thickness OrientationMargin
+        {
+            get => (Thickness)GetValue(OrientationMarginProperty);
+            private set => SetValue(OrientationMarginPropertyKey, value);
         }
 
         public static readonly DependencyProperty ButtonWidthProperty =
@@ -33,79 +47,121 @@ namespace ScreenLookup.src.controls
                 new PropertyMetadata(App.setting.ButtonWidth)
             );
 
+        public static readonly DependencyProperty OrientationProperty =
+            DependencyProperty.Register(
+                nameof(Orientation),
+                typeof(Orientation),
+                typeof(TranslationBox),
+                new PropertyMetadata(Orientation.Horizontal, OnOrientationChanged)
+            );
+
+        private static readonly DependencyPropertyKey OrientationMarginPropertyKey =
+            DependencyProperty.RegisterReadOnly(
+                nameof(OrientationMargin),
+                typeof(Thickness),
+                typeof(TranslationBox),
+                new PropertyMetadata(new Thickness(2, 0, 0, 0))
+            );
+
+        public static readonly DependencyProperty OrientationMarginProperty =
+            OrientationMarginPropertyKey.DependencyProperty;
+
+        private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is TranslationBox box)
+            {
+                var orientation = (Orientation)e.NewValue;
+                box.OrientationMargin = orientation == Orientation.Horizontal
+                    ? new Thickness(2, 0, 0, 0)
+                    : new Thickness(0, 2, 0, 0);
+            }
+        }
+
         public TranslationBox()
         {
             InitializeComponent();
-            ResetDefaultState();
+            RestoreDefault();
 
             Unloaded += (s, e) =>
             {
-                TranslatesCancelToken?.Cancel();
+                _cts?.Cancel();
             };
         }
 
-        public void Clear()
+        private void InitializeTranslation(bool isWord, string text, int sourceLang, int targetLang)
         {
-            ResetDefaultState();
-        }
-
-        public void SetParagraph(string paragraph, int sourceLang, int targetLang)
-        {
-            Original = paragraph;
-            SourceLanguage = sourceLang;
-            TargetLanguage = targetLang;
-
-            LoadingText.Visibility = Visibility.Collapsed;
-            Refresh.Visibility = Visibility.Visible;
-        }
-
-        public void SetOriginal(string word, int sourceLang, int targetLang)
-        {
-            Original = word;
-            SourceLanguage = sourceLang;
-            TargetLanguage = targetLang;
-            IsWord = true;
-
-            LoadingText.Visibility = Visibility.Collapsed;
-            Refresh.Visibility = Visibility.Collapsed;
-            TranslatedText.Text = word;
-            TranslatedText.Visibility = Visibility.Visible;
-            Translated = word;
-            this.Tag = word;
-        }
-
-        public async Task Translate(bool isWord, string text, int sourceLang, int targetLang, CancellationTokenSource token)
-        {
-            ResetDefaultState();
-
+            IsWord = isWord;
             Original = text;
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
-            IsWord = isWord;
-            TranslatesCancelToken = token;
+        }
+
+
+        private void SetUIState(bool isLoading, bool showResult, bool showRefresh)
+        {
+            LoadingText.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            TranslatedBlock.Visibility = showResult ? Visibility.Visible : Visibility.Collapsed;
+            Refresh.Visibility = showRefresh ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void SetOriginal(bool isWord, string text, int sourceLang, int targetLang)
+        {
+            InitializeTranslation(isWord, text, sourceLang, targetLang);
+            SetUIState(isLoading: false, showResult: false, showRefresh: true);
+        }
+
+        public void SetTranslated(bool isWord, string text, int sourceLang, int targetLang)
+        {
+            InitializeTranslation(isWord, text, sourceLang, targetLang);
+
+            TranslatedBlock.Text = text;
+            Translated = text;
+
+            SetUIState(isLoading: false, showResult: true, showRefresh: false);
+        }
+
+        public async Task<string> PerformTranslation(CancellationToken token)
+        {
+            SetUIState(isLoading: true, showResult: false, showRefresh: false);
 
             if (string.IsNullOrEmpty(Original))
-                return;
-
-            string mainText = await Translation.GetTranslated(IsWord, Original, sourceLang, targetLang, token.Token);
-
-            if (token.IsCancellationRequested)
-                return;
-
-            LoadingText.Visibility = Visibility.Collapsed;
-
-            if (string.IsNullOrEmpty(mainText))
             {
-                Refresh.Visibility = Visibility.Visible;
-                return;
+                SetUIState(isLoading: false, showResult: false, showRefresh: true);
+                return string.Empty;
             }
 
-            // Display Main Translation
-            TranslatedText.Text = mainText;
-            TranslatedText.Visibility = Visibility.Visible;
-            Refresh.Visibility = Visibility.Collapsed;
-            Translated = mainText;
-            this.Tag = mainText;
+            try
+            {
+                string result = await Translation.GetTranslated(IsWord, Original, SourceLanguage, TargetLanguage, token);
+
+                if (token.IsCancellationRequested)
+                    return string.Empty;
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    SetUIState(isLoading: false, showResult: false, showRefresh: true);
+                    return string.Empty;
+                }
+
+                // Display Main Translation
+                TranslatedBlock.Text = result;
+                Translated = result;
+
+                SetUIState(isLoading: false, showResult: true, showRefresh: false);
+                TranslationCallBack?.Invoke(result);
+
+                return result;
+            }
+            catch (OperationCanceledException)
+            {
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                SnackbarHost.Show(title: "TranslationBox", message: ex.Message, type: SnackbarType.Error);
+                SetUIState(isLoading: false, showResult: false, showRefresh: true);
+                return string.Empty;
+            }
         }
 
         public async void LoadExtraMeanings()
@@ -162,10 +218,10 @@ namespace ScreenLookup.src.controls
             });
         }
 
-        public void ResetDefaultState()
+        public void RestoreDefault()
         {
-            TranslatedText.Text = string.Empty;
-            TranslatedText.Visibility = Visibility.Collapsed;
+            TranslatedBlock.Text = string.Empty;
+            TranslatedBlock.Visibility = Visibility.Collapsed;
             LoadingText.Visibility = Visibility.Visible;
             Refresh.Visibility = Visibility.Collapsed;
 
@@ -175,8 +231,6 @@ namespace ScreenLookup.src.controls
             ExtraMeaningsList.ItemsSource = null;
             ExtraMeaningsList.Visibility = Visibility.Collapsed;
 
-            Original = string.Empty;
-            Translated = string.Empty;
             UpdatePhonetic(string.Empty);
 
             translatedScrollViewer.ScrollToTop();
@@ -184,10 +238,15 @@ namespace ScreenLookup.src.controls
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            TranslatesCancelToken?.Cancel();
-            TranslatesCancelToken = new();
+            Refresh.Visibility = Visibility.Collapsed;
 
-            await Translate(IsWord, Original, SourceLanguage, TargetLanguage, TranslatesCancelToken);
+            _cts?.Cancel();
+            _cts = new();
+
+            await PerformTranslation(_cts.Token);
+
+            if (string.IsNullOrEmpty(Translated))
+                Refresh.Visibility = Visibility.Visible;
         }
 
         private void SpeakButton_Click(object sender, RoutedEventArgs e)

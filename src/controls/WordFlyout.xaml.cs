@@ -28,7 +28,7 @@ namespace ScreenLookup.src.controls
         public double width = double.NaN;
         public double height = double.NaN;
         public bool isOpen = false;
-        private static CancellationTokenSource TranslatesCancelToken;
+        private static CancellationTokenSource _cts = new();
 
         public WordFlyout()
         {
@@ -194,60 +194,71 @@ namespace ScreenLookup.src.controls
         {
             ThreadPool.QueueUserWorkItem(_ =>
             {
-                Dispatcher.BeginInvoke(new Action(async () =>
+                Dispatcher.BeginInvoke(new Action(() =>
                 {
                     ResetDefaultState();
 
                     TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
                     SavedWordButtonStateChange(OriginalWord);
 
-                    translationOriginalWord.ResetDefaultState();
-                    translationWord.ResetDefaultState();
-                    translationMessage.ResetDefaultState();
+                    translationOriginalWord.RestoreDefault();
+                    translationWord.RestoreDefault();
+                    translationMessage.RestoreDefault();
 
-                    TranslatesCancelToken?.Cancel();
-                    TranslatesCancelToken = new();
+                    _cts?.Cancel();
+                    _cts = new();
 
                     // Original Word
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
-                        await Dispatcher.InvokeAsync(() => translationOriginalWord.SetOriginal(OriginalWord, SourceLanguage, TargetLanguage));
-                    }, TranslatesCancelToken.Token);
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            translationOriginalWord.SetTranslated(true, OriginalWord, SourceLanguage, TargetLanguage);
+                        });
+                    }, _cts.Token);
 
                     // Translation Word
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
-                        await Dispatcher.InvokeAsync(() => translationWord.Translate(isWord: true, OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken));
-                    }, TranslatesCancelToken.Token);
+                        await Dispatcher.InvokeAsync(async () =>
+                        {
+                            translationWord.SetTranslated(true, OriginalWord, SourceLanguage, TargetLanguage);
+                            await translationWord.PerformTranslation(_cts.Token);
+                        });
+                    }, _cts.Token);
 
                     // Word extra details
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
                         await Dispatcher.InvokeAsync(async () =>
                         {
                             translationOriginalWord.LoadPhonetic();
                             translationWord.LoadExtraMeanings();
 
-                            var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, TranslatesCancelToken);
-                            if (TranslatesCancelToken.IsCancellationRequested) return;
+                            var (extraMeanings, phonetic) = await Translation.GetExtraDetailsAsync(OriginalWord, SourceLanguage, TargetLanguage, _cts);
+                            if (_cts.IsCancellationRequested) return;
 
                             translationOriginalWord.UpdatePhonetic(phonetic);
                             translationWord.UpdateExtraMeanings(extraMeanings);
                         });
-                    }, TranslatesCancelToken.Token);
+                    }, _cts.Token);
 
                     // Message
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
-                        await Dispatcher.InvokeAsync(() => translationMessage.Translate(isWord: false, OriginalMessage, SourceLanguage, TargetLanguage, TranslatesCancelToken));
-                    }, TranslatesCancelToken.Token);
+                        await Dispatcher.InvokeAsync(async () =>
+                        {
+                            translationMessage.SetOriginal(false, OriginalMessage, SourceLanguage, TargetLanguage);
+                            await translationMessage.PerformTranslation(_cts.Token);
+                        });
+                    }, _cts.Token);
                 }));
             });
         }
 
         private void OnClose(Flyout sender, RoutedEventArgs args)
         {
-            TranslatesCancelToken?.Cancel();
+            _cts?.Cancel();
             TextToSpeech.StopTTS();
         }
 
@@ -269,9 +280,9 @@ namespace ScreenLookup.src.controls
 
         public void ClearCache()
         {
-            translationOriginalWord.Clear();
-            translationWord.Clear();
-            translationMessage.Clear();
+            translationOriginalWord.RestoreDefault();
+            translationWord.RestoreDefault();
+            translationMessage.RestoreDefault();
         }
 
         private async void SavedWordButtonStateChange(string word, bool? isExist = null)

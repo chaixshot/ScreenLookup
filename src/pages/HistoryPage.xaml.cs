@@ -1,4 +1,5 @@
-﻿using ScreenLookup.src.models;
+﻿using ScreenLookup.src.controls;
+using ScreenLookup.src.models;
 using ScreenLookup.src.utils;
 using ScreenLookup.src.utils.Database;
 using System.ComponentModel;
@@ -30,7 +31,7 @@ namespace ScreenLookup.src.pages
         public string SearchText { get; set; } = string.Empty;
         public int SearchSourceLanguage { get; set; } = -1;
 
-        private static CancellationTokenSource TranslatesCancelToken;
+        private static CancellationTokenSource _cts = new();
 
         private readonly Dictionary<string, string> translatedCache = [];
         private List<HistoryLoggerPageEntry> _historyItems = [];
@@ -63,7 +64,7 @@ namespace ScreenLookup.src.pages
                     LoadSourceLanguageItems();
                 }
 
-                TranslatesCancelToken = new();
+                _cts = new();
             };
 
             Unloaded += (s, e) =>
@@ -72,8 +73,8 @@ namespace ScreenLookup.src.pages
                 translatedCache.Clear();
                 previousExpandedCell = null;
 
-                TranslatesCancelToken?.Cancel();
-                TranslatesCancelToken?.Dispose();
+                _cts?.Cancel();
+                _cts?.Dispose();
             };
 
             SizeChanged += (s, e) =>
@@ -112,6 +113,61 @@ namespace ScreenLookup.src.pages
             maxPage = data.MaxPage > 0 ? data.MaxPage : 1;
             HistoryItems = data.Entries;
             PageNumber.Text = $"{currentPage}/{maxPage}";
+
+            SetupTranslationBox();
+        }
+
+        private void SetupTranslationBox()
+        {
+            _cts?.Cancel();
+            var token = _cts = new();
+
+            dataGrid.UpdateLayout();
+
+            foreach (var row in FindVisualChildren<DataGridRow>(dataGrid))
+            {
+                if (token.IsCancellationRequested) break;
+                if (row.DataContext is not HistoryLoggerPageEntry entry) continue;
+
+                var box = FindVisualChild<TranslationBox>(row);
+                if (box == null) continue;
+
+                int src = int.TryParse(entry.SourceLanguage, out int s) ? s : 0;
+                int tgt = int.TryParse(entry.TargetLanguage, out int t) ? t : 0;
+
+                if (string.IsNullOrEmpty(entry.Translated))
+                    box.SetOriginal(false, entry.Original, src, tgt);
+                else
+                    box.SetTranslated(false, entry.Translated, src, tgt);
+
+                box.TranslationCallBack = (result) =>
+                {
+                    if (int.TryParse(entry.Id, out int id))
+                    {
+                        HistoryLogger.Update(id, result);
+                    }
+                    entry.Translated = result;
+                    entry.ReTranslate = Visibility.Collapsed;
+                };
+            }
+        }
+
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) yield break;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t) yield return t;
+                foreach (var grandchild in FindVisualChildren<T>(child)) yield return grandchild;
+            }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            foreach (var child in FindVisualChildren<T>(parent))
+                return child;
+            return null;
         }
 
         private void ScrollTop()
@@ -323,7 +379,7 @@ namespace ScreenLookup.src.pages
                 {
                     if (item.Id == id)
                     {
-                        string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage), TranslatesCancelToken.Token);
+                        string translatedText = await Translation.GetTranslated(isWord: false, item.Original, int.Parse(item.SourceLanguage), int.Parse(item.TargetLanguage), _cts.Token);
 
                         if (!string.IsNullOrEmpty(translatedText))
                         {
@@ -332,9 +388,7 @@ namespace ScreenLookup.src.pages
                             item.ReTranslate = Visibility.Collapsed;
                         }
                         else
-                        {
                             item.ReTranslate = Visibility.Visible;
-                        }
 
                         break;
                     }

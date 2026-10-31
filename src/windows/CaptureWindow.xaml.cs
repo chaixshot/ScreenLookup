@@ -35,8 +35,8 @@ namespace ScreenLookup.src.windows
         private Bitmap? CapturedImage;
         private Bitmap? CapturedImageEditable;
 
-        private static CancellationTokenSource ProcessImageCancelToken = new();
-        private static CancellationTokenSource TranslatesCancelToken = new();
+        private static CancellationTokenSource _ctsProcessImage = new();
+        private static CancellationTokenSource _ctsTranslates = new();
 
         private readonly ImageEditorControl imageEditor = new();
 
@@ -232,7 +232,7 @@ namespace ScreenLookup.src.windows
 
                     await Dispatcher.InvokeAsync(async () =>
                     {
-                        if (ProcessImageCancelToken.IsCancellationRequested) return;
+                        if (_ctsProcessImage.IsCancellationRequested) return;
 
                         if (!string.IsNullOrWhiteSpace(OcrHelper.Paragraph))
                             currentHistoryID = await HistoryLogger.Add(OcrHelper.Paragraph, captureWords, string.Empty, App.setting.SourceLanguage, App.setting.TargetLanguage).ConfigureAwait(false);
@@ -247,14 +247,14 @@ namespace ScreenLookup.src.windows
                             if (App.setting.LookupOnImage)
                             {
                                 AltoText.ItemsSource = OcrHelper.AltoTextProcess(ocrResult, image);
+                                translationImage.SetOriginal(false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage);
+                                translationImage.TranslationCallBack = (result) =>
+                                {
+                                    HistoryLogger.Update(currentHistoryID, result);
+                                };
 
                                 if (App.setting.ShowTranslation)
-                                {
-                                    if (translationExpander.IsExpanded)
-                                        TranlsateImageExpander();
-                                    else
-                                        translationExpander.IsExpanded = true;
-                                }
+                                    translationExpander.IsExpanded = true;
                             }
                             else
                             {
@@ -262,12 +262,16 @@ namespace ScreenLookup.src.windows
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
                                 originalCard.Visibility = Visibility.Visible;
                                 translatedCard.Visibility = Visibility.Visible;
-                                translationMessage.SetParagraph(OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage);
+                                translationMessage.SetOriginal(false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage);
+                                translationMessage.TranslationCallBack = (result) =>
+                                {
+                                    HistoryLogger.Update(currentHistoryID, result);
+                                };
 
                                 if (App.setting.ShowTranslation)
                                 {
-                                    await translationMessage.Translate(isWord: false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
-                                    HistoryLogger.Update(currentHistoryID, translationMessage.Translated);
+                                    translationMessage.RestoreDefault();
+                                    await translationMessage.PerformTranslation(_ctsTranslates.Token);
                                 }
 
                                 SetWindowSize();
@@ -293,7 +297,7 @@ namespace ScreenLookup.src.windows
                             TranlsateImageExpander();
                     });
                 }
-            }, ProcessImageCancelToken.Token);
+            }, _ctsProcessImage.Token);
         }
 
         private static Bitmap SetBitmapDimension(Bitmap bmp, bool limit = false)
@@ -380,9 +384,8 @@ namespace ScreenLookup.src.windows
             double translationHeight = expandeHeight - expanderContent.Padding.Top - expanderContent.Padding.Bottom;
             translationImage.Height = translationHeight > 0 ? translationHeight : expandeHeight;
 
-            await translationImage.Translate(isWord: false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage, TranslatesCancelToken);
-            translationMessage.Translated = translationImage.Translated;
-            HistoryLogger.Update(currentHistoryID, translationImage.Translated);
+            translationImage.RestoreDefault();
+            await translationImage.PerformTranslation(_ctsTranslates.Token);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
@@ -415,8 +418,8 @@ namespace ScreenLookup.src.windows
             }
             else
             {
-                ProcessImageCancelToken = new CancellationTokenSource();
-                TranslatesCancelToken = new CancellationTokenSource();
+                _ctsProcessImage = new CancellationTokenSource();
+                _ctsTranslates = new CancellationTokenSource();
 
                 configMenu.Visibility = Visibility.Collapsed;
 
@@ -454,8 +457,8 @@ namespace ScreenLookup.src.windows
             flayOut.IsOpen = false;
             TextToSpeech.StopTTS();
 
-            ProcessImageCancelToken?.Cancel();
-            TranslatesCancelToken?.Cancel();
+            _ctsProcessImage?.Cancel();
+            _ctsTranslates?.Cancel();
 
             this.Hide();
         }
@@ -488,8 +491,8 @@ namespace ScreenLookup.src.windows
             CloseTranslatedExpanded();
 
             flayOut.ClearCache();
-            translationImage.Clear();
-            translationMessage.Clear();
+            translationImage.RestoreDefault();
+            translationMessage.RestoreDefault();
             translatedCache.Clear();
 
             imageEditor.Reset();

@@ -32,7 +32,7 @@ namespace ScreenLookup.src.pages
         public int SearchSourceLanguage { get; set; } = -1;
         public string OrderBy { get; set; } = "Score";
 
-        private static CancellationTokenSource TranslatesCancelToken;
+        private static CancellationTokenSource _cts = new();
 
         private List<SavedWordEntry> _savedItems = [];
         public List<SavedWordEntry> SavedItems
@@ -66,15 +66,15 @@ namespace ScreenLookup.src.pages
                     LoadSourceLanguageItems();
                 }
 
-                TranslatesCancelToken = new();
+                _cts = new();
             };
 
             Unloaded += (s, e) =>
             {
                 TextToSpeech.StopTTS();
 
-                TranslatesCancelToken?.Cancel();
-                TranslatesCancelToken?.Dispose();
+                _cts?.Cancel();
+                _cts?.Dispose();
             };
 
             SizeChanged += (s, e) =>
@@ -112,8 +112,8 @@ namespace ScreenLookup.src.pages
 
         private void SetupTranslationBox()
         {
-            TranslatesCancelToken?.Cancel();
-            var token = TranslatesCancelToken = new();
+            _cts?.Cancel();
+            var token = _cts = new();
 
             dataGrid.UpdateLayout();
 
@@ -128,8 +128,8 @@ namespace ScreenLookup.src.pages
                 int src = int.TryParse(entry.SourceLanguage, out int s) ? s : 0;
                 int tgt = int.TryParse(entry.TargetLanguage, out int t) ? t : 0;
 
-                boxes[0].SetOriginal(entry.Original, src, src);
-                boxes[1].SetOriginal(entry.Translated, tgt, tgt);
+                boxes[0].SetTranslated(true, entry.Original, src, src);
+                boxes[1].SetTranslated(true, entry.Translated, tgt, tgt);
 
                 Task.Run(async () =>
                 {
