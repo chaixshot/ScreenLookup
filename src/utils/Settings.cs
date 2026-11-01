@@ -147,8 +147,9 @@ namespace ScreenLookup.src.utils
 
             try
             {
-                await Task.Delay(500, token);
-                File.WriteAllText(settingFile.FullName, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+                await Task.Delay(500, token).ConfigureAwait(false);
+                string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(settingFile.FullName, json, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)

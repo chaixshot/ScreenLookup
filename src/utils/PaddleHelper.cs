@@ -4,6 +4,17 @@ using System.Drawing;
 
 namespace ScreenLookup.src.utils
 {
+    internal readonly record struct TextBlockLayoutInfo(
+        TextBlock Block,
+        int Index,
+        double MinX,
+        double MaxX,
+        double MinY,
+        double MaxY,
+        double Height,
+        double Width,
+        string Text);
+
     public static class PaddleHelper
     {
         public static readonly string[] LangList = [
@@ -278,18 +289,17 @@ namespace ScreenLookup.src.utils
                         width = Math.Max(1.0, maxX - minX);
                     }
 
-                    return new
-                    {
-                        Block = b,
-                        Index = index,
-                        MinX = minX,
-                        MaxX = maxX,
-                        MinY = minY,
-                        MaxY = maxY,
-                        Height = height,
-                        Width = width,
-                        Text = b.Text.Trim()
-                    };
+                    return new TextBlockLayoutInfo(
+                        b,
+                        index,
+                        minX,
+                        maxX,
+                        minY,
+                        maxY,
+                        height,
+                        width,
+                        b.Text.Trim()
+                    );
                 })
                 .OrderBy(b => b.MinY)
                 .ThenBy(b => b.Index)
@@ -298,15 +308,15 @@ namespace ScreenLookup.src.utils
             if (blocks.Count == 0) return (result.Text ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
 
             // Group blocks into visual lines based on Y overlap
-            List<List<dynamic>> visualLines = [];
+            List<List<TextBlockLayoutInfo>> visualLines = [];
 
             foreach (var b in blocks)
             {
                 bool placed = false;
                 foreach (var line in visualLines)
                 {
-                    double avgMinY = line.Average(item => (double)item.MinY);
-                    double avgHeight = line.Average(item => (double)item.Height);
+                    double avgMinY = line.Average(item => item.MinY);
+                    double avgHeight = line.Average(item => item.Height);
 
                     if (Math.Abs(b.MinY - avgMinY) < avgHeight * 0.5)
                     {
@@ -322,22 +332,22 @@ namespace ScreenLookup.src.utils
                 }
             }
 
-            visualLines = visualLines.OrderBy(line => line.Average(item => (double)item.MinY)).ToList();
+            visualLines = visualLines.OrderBy(line => line.Average(item => item.MinY)).ToList();
 
             System.Text.StringBuilder pageTextBuilder = new();
 
             for (int l = 0; l < visualLines.Count; l++)
             {
                 var lineBlocks = visualLines[l]
-                    .OrderBy(b => (double)b.MinX)
+                    .OrderBy(b => b.MinX)
                     .ToList();
 
                 if (l > 0)
                 {
                     var prevLine = visualLines[l - 1];
-                    double prevMaxY = prevLine.Max(b => (double)b.MaxY);
-                    double currentMinY = lineBlocks.Min(b => (double)b.MinY);
-                    double avgHeight = lineBlocks.Average(b => (double)b.Height);
+                    double prevMaxY = prevLine.Max(b => b.MaxY);
+                    double currentMinY = lineBlocks.Min(b => b.MinY);
+                    double avgHeight = lineBlocks.Average(b => b.Height);
 
                     double verticalGap = currentMinY - prevMaxY;
                     if (verticalGap > avgHeight * 0.3)

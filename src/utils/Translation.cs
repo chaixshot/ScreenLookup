@@ -1,4 +1,5 @@
-﻿using Porter2Stemmer;
+﻿using GTranslate.Translators;
+using Porter2Stemmer;
 using ScreenLookup.src.llmAPI;
 using ScreenLookup.src.models;
 using ScreenLookup.src.utils.Database;
@@ -85,7 +86,7 @@ namespace ScreenLookup.src.utils
     internal static class Translation
     {
         #region Fields & Initialization
-        public static dynamic? TranslationProvider;
+        private static ITranslator? GTranslateEngine;
         private static readonly HttpClient ExtraMeaningsHttpClient = CreateHttpClient();
         private static readonly Dictionary<string, string> TranslatedCache = [];
         private static readonly List<ProviderService> SupportExtraDetail = [
@@ -116,8 +117,7 @@ namespace ScreenLookup.src.utils
         /// </summary>
         public static void ChangeTranslationProvider(ProviderService providerID)
         {
-            TranslationProvider?.Dispose();
-            TranslationProvider = LanguageList.GetTranslatorService(providerID);
+            GTranslateEngine = LanguageList.GetTranslatorService(providerID);
         }
         #endregion
 
@@ -168,9 +168,9 @@ namespace ScreenLookup.src.utils
                             default:
                                 {
                                     Func<int, string>[] tagGetters = [
-                                        LanguageList.GetTesseractTagFromID,
+                                        LanguageList.GetLanguageISO6393FromID,
                                         LanguageList.GetLanguageISO6391FromID,
-                                        LanguageList.GetLanguageISO6393FromID
+                                        LanguageList.GetTesseractTagFromID,
                                     ];
 
                                     for (int i = 0; i < tagGetters.Length; i++)
@@ -180,14 +180,18 @@ namespace ScreenLookup.src.utils
                                         string targetTag = tagGetters[i](targetLang);
                                         string sourceTag = tagGetters[i](sourceLang);
 
-                                        if (TranslationProvider != null)
+                                        if (GTranslateEngine != null)
                                         {
-                                            var translateResult = await TranslationProvider.TranslateAsync(text, targetTag, sourceTag, token);
-                                            if (!string.IsNullOrEmpty(translateResult.Translation))
+                                            try
                                             {
-                                                resultText = translateResult.Translation;
-                                                break;
+                                                var translateResult = await GTranslateEngine.TranslateAsync(text, targetTag, sourceTag, token);
+                                                if (!string.IsNullOrEmpty(translateResult.Translation))
+                                                {
+                                                    resultText = translateResult.Translation;
+                                                    break;
+                                                }
                                             }
+                                            catch { }
                                         }
                                     }
                                     break;

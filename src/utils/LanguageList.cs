@@ -166,7 +166,7 @@ namespace ScreenLookup.src.utils
             return GetDisplayNameFromTesseractTag(tessTag, isNative);
         }
 
-        public static dynamic GetTranslatorService(ProviderService providerID)
+        public static ITranslator GetTranslatorService(ProviderService providerID)
         {
             return providerID switch
             {

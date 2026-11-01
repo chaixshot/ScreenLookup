@@ -13,7 +13,7 @@ namespace ScreenLookup.src.utils
         private static CancellationTokenSource? _playTTSCancelToken;
         private static readonly Dictionary<string, Stream> AudioStreamCache = [];
         private static readonly Dictionary<string, CancellationTokenSource> AudioStreamCTS = [];
-        public static dynamic? TextToSpeechProvider;
+        private static dynamic? TextToSpeechEngine;
 
         static TextToSpeech()
         {
@@ -22,8 +22,8 @@ namespace ScreenLookup.src.utils
 
         public static void ChangeTextToSpeechProvider(ProviderService providerID)
         {
-            TextToSpeechProvider?.Dispose();
-            TextToSpeechProvider = LanguageList.GetTranslatorService(providerID);
+            TextToSpeechEngine?.Dispose();
+            TextToSpeechEngine = LanguageList.GetTranslatorService(providerID);
         }
         #endregion
 
@@ -123,7 +123,7 @@ namespace ScreenLookup.src.utils
                         Stream stream;
                         try
                         {
-                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6393FromID(langID), cancellationToken: token);
+                            stream = await TextToSpeechEngine?.TextToSpeechAsync(text, LanguageList.GetLanguageISO6393FromID(langID), cancellationToken: token);
                         }
                         catch (OperationCanceledException)
                         {
@@ -131,7 +131,7 @@ namespace ScreenLookup.src.utils
                         }
                         catch
                         {
-                            stream = await TextToSpeechProvider!.TextToSpeechAsync(text, LanguageList.GetLanguageISO6391FromID(langID), cancellationToken: token);
+                            stream = await TextToSpeechEngine?.TextToSpeechAsync(text, LanguageList.GetLanguageISO6391FromID(langID), cancellationToken: token);
                         }
 
                         MemoryStream memStream = new();
