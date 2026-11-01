@@ -86,7 +86,7 @@ namespace ScreenLookup.src.pages
             {
                 if (e.Key == Key.Escape && flayOut.IsOpen)
                 {
-                    flayOut.IsOpen = false;
+                    flayOut.Hide();
                 }
             };
         }

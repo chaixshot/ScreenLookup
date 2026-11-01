@@ -86,7 +86,7 @@ namespace ScreenLookup.src.pages
             {
                 if (e.Key == Key.Escape && flayOut.IsOpen)
                 {
-                    flayOut.IsOpen = false;
+                    flayOut.Hide();
                 }
             };
         }
@@ -158,8 +158,8 @@ namespace ScreenLookup.src.pages
 
         private void ScrollTop()
         {
-            if (flayOut?.IsOpen == true)
-                flayOut.IsOpen = false;
+            if (flayOut.IsOpen)
+                flayOut.Hide();
 
             if (dataGrid != null && VisualTreeHelper.GetChild(dataGrid, 0) is Decorator border)
             {

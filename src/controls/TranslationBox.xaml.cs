@@ -222,8 +222,8 @@ namespace ScreenLookup.src.controls
         {
             TranslatedBlock.Text = string.Empty;
             TranslatedBlock.Visibility = Visibility.Collapsed;
-            LoadingText.Visibility = Visibility.Visible;
-            Refresh.Visibility = Visibility.Collapsed;
+            LoadingText.Visibility = Visibility.Collapsed;
+            Refresh.Visibility = Visibility.Visible;
 
             PhoneticTextElement.Text = string.Empty;
             PhoneticTextElement.Visibility = Visibility.Collapsed;
@@ -231,9 +231,18 @@ namespace ScreenLookup.src.controls
             ExtraMeaningsList.ItemsSource = null;
             ExtraMeaningsList.Visibility = Visibility.Collapsed;
 
-            UpdatePhonetic(string.Empty);
+            LoadingPhonetic.Visibility = Visibility.Collapsed;
+            LoadingExtraMeanings.Visibility = Visibility.Collapsed;
 
             translatedScrollViewer.ScrollToTop();
+        }
+
+        public async Task RestoreDefaultAsync()
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                RestoreDefault();
+            }).Task;
         }
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)

@@ -63,7 +63,7 @@ namespace ScreenLookup.src.windows
                 if (e.Key == Key.Escape)
                 {
                     if (flayOut.IsOpen)
-                        flayOut.IsOpen = false;
+                        flayOut.Hide();
                     else if (translationExpander.IsExpanded)
                         CloseTranslatedExpanded();
                     else
@@ -270,7 +270,7 @@ namespace ScreenLookup.src.windows
 
                                 if (App.setting.ShowTranslation)
                                 {
-                                    translationMessage.RestoreDefault();
+                                    await translationMessage.RestoreDefaultAsync();
                                     await translationMessage.PerformTranslation(_ctsTranslates.Token);
                                 }
 
@@ -384,7 +384,7 @@ namespace ScreenLookup.src.windows
             double translationHeight = expandeHeight - expanderContent.Padding.Top - expanderContent.Padding.Bottom;
             translationImage.Height = translationHeight > 0 ? translationHeight : expandeHeight;
 
-            translationImage.RestoreDefault();
+            await translationImage.RestoreDefaultAsync();
             await translationImage.PerformTranslation(_ctsTranslates.Token);
         }
 
@@ -454,7 +454,7 @@ namespace ScreenLookup.src.windows
             ConfigDispatcher?.Continue = false;
             ConfigDispatcher = null;
 
-            flayOut.IsOpen = false;
+            flayOut.Hide();
             TextToSpeech.StopTTS();
 
             _ctsProcessImage?.Cancel();
@@ -490,7 +490,6 @@ namespace ScreenLookup.src.windows
 
             CloseTranslatedExpanded();
 
-            flayOut.ClearCache();
             translationImage.RestoreDefault();
             translationMessage.RestoreDefault();
             translatedCache.Clear();

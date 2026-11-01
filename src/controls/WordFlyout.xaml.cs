@@ -27,7 +27,7 @@ namespace ScreenLookup.src.controls
         public int wordOccurrenceIndex = -1;
         public double width = double.NaN;
         public double height = double.NaN;
-        public bool isOpen = false;
+        public bool IsOpen = false;
         private static CancellationTokenSource _cts = new();
 
         public WordFlyout()
@@ -35,13 +35,9 @@ namespace ScreenLookup.src.controls
             DataContext = this;
             InitializeComponent();
 
+            ResetDefaultState();
             flayOut.Opened += OnOpen;
             flayOut.Closed += OnClose;
-
-            Unloaded += (s, e) =>
-            {
-                ClearCache();
-            };
         }
 
         #region
@@ -107,16 +103,6 @@ namespace ScreenLookup.src.controls
             }
         }
 
-        public bool IsOpen
-        {
-            get { return isOpen; }
-            set
-            {
-                isOpen = value;
-                OnPropertyChanged();
-            }
-        }
-
         public double FontSizeS
         {
             get { return App.setting.FontSizeS; }
@@ -150,9 +136,15 @@ namespace ScreenLookup.src.controls
         }
         #endregion
 
-        public void Show(string word, string message, int sourceLang, int targetLang, int occurrenceIndex = -1)
+        public async Task Show(string word, string message, int sourceLang, int targetLang, int occurrenceIndex = -1)
         {
-            IsOpen = false;
+            if (IsOpen)
+            {
+                Hide();
+                while (IsOpen)
+                    await Task.Delay(100);
+            }
+
             wordOccurrenceIndex = occurrenceIndex;
 
             // Directly notify the UI that these properties have updated
@@ -187,23 +179,24 @@ namespace ScreenLookup.src.controls
             SourceLanguage = sourceLang;
             TargetLanguage = targetLang;
 
-            IsOpen = true;
+            flayOut.Show();
+        }
+
+        public void Hide()
+        {
+            flayOut.Hide();
         }
 
         private void OnOpen(Flyout sender, RoutedEventArgs args)
         {
+            IsOpen = true;
+
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    ResetDefaultState();
-
                     TextToSpeech.StartTTS(OriginalWord, SourceLanguage);
                     SavedWordButtonStateChange(OriginalWord);
-
-                    translationOriginalWord.RestoreDefault();
-                    translationWord.RestoreDefault();
-                    translationMessage.RestoreDefault();
 
                     _cts?.Cancel();
                     _cts = new();
@@ -256,10 +249,17 @@ namespace ScreenLookup.src.controls
             });
         }
 
-        private void OnClose(Flyout sender, RoutedEventArgs args)
+        private async void OnClose(Flyout sender, RoutedEventArgs args)
         {
             _cts?.Cancel();
             TextToSpeech.StopTTS();
+
+            ResetDefaultState();
+            await translationOriginalWord.RestoreDefaultAsync();
+            await translationWord.RestoreDefaultAsync();
+            await translationMessage.RestoreDefaultAsync();
+
+            IsOpen = false;
         }
 
         private void FollowMouse()
@@ -276,13 +276,6 @@ namespace ScreenLookup.src.controls
                 messageSection.Visibility = Visibility.Collapsed;
             else
                 messageSection.Visibility = Visibility.Visible;
-        }
-
-        public void ClearCache()
-        {
-            translationOriginalWord.RestoreDefault();
-            translationWord.RestoreDefault();
-            translationMessage.RestoreDefault();
         }
 
         private async void SavedWordButtonStateChange(string word, bool? isExist = null)
@@ -358,7 +351,6 @@ namespace ScreenLookup.src.controls
         }
 
         #region Button Click
-
 
         private async void Button_OriginalMessageTTS(object sender, RoutedEventArgs e)
         {

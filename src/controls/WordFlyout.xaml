@@ -12,7 +12,6 @@
     <Controls:Flyout
         x:Name="flayOut"
         Padding="0"
-        IsOpen="{Binding IsOpen, Mode=TwoWay}"
         Placement="Top">
 
         <Controls:Flyout.RenderTransform>
