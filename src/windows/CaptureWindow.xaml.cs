@@ -220,7 +220,7 @@ namespace ScreenLookup.src.windows
             OpenWindow();
             ChangeCaptureImage(CapturedImageEditable);
 
-            if (App.setting.LookupOnImage)
+            if (App.setting.LookupMethod != LookupMethod.OnLine)
             {
                 SetWindowSize();
 
@@ -280,19 +280,33 @@ namespace ScreenLookup.src.windows
                         }
                         else
                         {
-                            if (App.setting.LookupOnImage)
+                            if (App.setting.LookupMethod == LookupMethod.TranslateImage)
+                            {
+                                List<ImageTranslateEntry> translateEntries = OcrHelper.TranslateImageProcess(ocrResult, image);
+                                TranslateImageText.ItemsSource = translateEntries; // Progress Ring
+                                await OcrHelper.TranslateImageTextBlocks(translateEntries, _ctsProcessImage.Token);
+                                TranslateImageText.ItemsSource = translateEntries;
+                            }
+
+                            if (App.setting.LookupMethod == LookupMethod.OnImage)
                             {
                                 AltoText.ItemsSource = OcrHelper.AltoTextProcess(ocrResult, image);
+
+                                if (App.setting.ShowTranslation)
+                                    translationExpander.IsExpanded = true;
+                            }
+
+                            if (App.setting.LookupMethod == LookupMethod.TranslateImage || App.setting.LookupMethod == LookupMethod.OnImage)
+                            {
                                 translationImage.SetOriginal(false, OcrHelper.Paragraph, App.setting.SourceLanguage, App.setting.TargetLanguage);
                                 translationImage.TranslationCallBack = (result) =>
                                 {
                                     HistoryLogger.Update(currentHistoryID, result);
                                 };
 
-                                if (App.setting.ShowTranslation)
-                                    translationExpander.IsExpanded = true;
                             }
-                            else
+
+                            if (App.setting.LookupMethod == LookupMethod.OnLine)
                             {
                                 originalWords.ItemsSource = Convertor.ConvertCaptureWordsEntry(captureWords, App.setting.SourceLanguage, App.setting.TargetLanguage, windowWidth);
                                 originalWordsLoading.Visibility = Visibility.Collapsed;
@@ -459,7 +473,7 @@ namespace ScreenLookup.src.windows
             {
                 configMenu.Visibility = Visibility.Collapsed;
 
-                if (App.setting.LookupOnImage)
+                if (App.setting.LookupMethod != LookupMethod.OnLine)
                 {
                     captureCard.Visibility = Visibility.Visible;
                     captureCardButton.Visibility = Visibility.Visible;
@@ -513,7 +527,7 @@ namespace ScreenLookup.src.windows
             Contol_Undo.Visibility = Visibility.Collapsed;
             Control_Confirm_Overlay.Visibility = Visibility.Collapsed;
 
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
             originalWords.ItemsSource = null;
 
             captureImage.Source = null;
@@ -522,7 +536,7 @@ namespace ScreenLookup.src.windows
 
             originalScrollView.ScrollToTop();
 
-            Grid.SetRow(flayOut, App.setting.LookupOnImage ? 1 : 3);
+            Grid.SetRow(flayOut, App.setting.LookupMethod != LookupMethod.OnLine ? 1 : 3);
 
             CloseTranslatedExpanded();
 
@@ -542,7 +556,7 @@ namespace ScreenLookup.src.windows
             double screenWidth = System.Windows.SystemParameters.WorkArea.Width;
             double screenHeight = System.Windows.SystemParameters.WorkArea.Height;
 
-            if (!App.setting.LookupOnImage)
+            if (App.setting.LookupMethod == LookupMethod.OnLine)
             {
                 captureImage.Width = Math.Min(captureImage.Width, screenWidth);
                 captureImage.Height = Math.Min(captureImage.Height, screenHeight / 2);
@@ -736,7 +750,7 @@ namespace ScreenLookup.src.windows
         {
             if (CapturedImage == null) return;
 
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
             Contol_Undo.Visibility = Visibility.Hidden;
             Control_Confirm_Overlay.Visibility = Visibility.Visible;
 
@@ -749,7 +763,7 @@ namespace ScreenLookup.src.windows
             if (CapturedImageEditable == null) return;
 
             imageEditor.SubmitCurrent();
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
 
             if (CapturedImageEditable == CapturedImage)
                 Contol_Undo.Visibility = Visibility.Collapsed;
@@ -809,7 +823,7 @@ namespace ScreenLookup.src.windows
                 imageEditor.RotationTarget.StartValue = imageEditor.RotationTarget.Value;
                 element.CaptureMouse();
 
-                AltoText.ItemsSource = null;
+                ClearImageOverlays();
                 Contol_Undo.Visibility = Visibility.Visible;
                 Control_Confirm_Overlay.Visibility = Visibility.Visible;
             }
@@ -850,7 +864,7 @@ namespace ScreenLookup.src.windows
             if (e is MouseButtonEventArgs mbe)
                 mbe.Handled = true;
 
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
             Contol_Undo.Visibility = Visibility.Visible;
             Control_Confirm_Overlay.Visibility = Visibility.Visible;
 
@@ -863,7 +877,7 @@ namespace ScreenLookup.src.windows
             if (e is MouseButtonEventArgs mbe)
                 mbe.Handled = true;
 
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
             Contol_Undo.Visibility = Visibility.Visible;
             Control_Confirm_Overlay.Visibility = Visibility.Visible;
 
@@ -883,7 +897,7 @@ namespace ScreenLookup.src.windows
                 imageEditor.ScaleTarget.StartValue = imageEditor.ScaleTarget.Value;
                 element.CaptureMouse();
 
-                AltoText.ItemsSource = null;
+                ClearImageOverlays();
                 Contol_Undo.Visibility = Visibility.Visible;
                 Control_Confirm_Overlay.Visibility = Visibility.Visible;
             }
@@ -922,7 +936,7 @@ namespace ScreenLookup.src.windows
             if (e is MouseButtonEventArgs mbe)
                 mbe.Handled = true;
 
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
             Contol_Undo.Visibility = Visibility.Visible;
             Control_Confirm_Overlay.Visibility = Visibility.Visible;
 
@@ -935,7 +949,7 @@ namespace ScreenLookup.src.windows
             if (e is MouseButtonEventArgs mbe)
                 mbe.Handled = true;
 
-            AltoText.ItemsSource = null;
+            ClearImageOverlays();
             Contol_Undo.Visibility = Visibility.Visible;
             Control_Confirm_Overlay.Visibility = Visibility.Visible;
 

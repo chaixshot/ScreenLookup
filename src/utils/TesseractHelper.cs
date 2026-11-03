@@ -325,5 +325,172 @@ namespace ScreenLookup.src.utils
             }
             return items;
         }
+
+        public static List<ImageTranslateEntry> TranslateImageProcess(TesseractOCR.Page page, Bitmap? image = null)
+        {
+            XmlDocument xmlDoc = new();
+            xmlDoc.LoadXml(page.AltoText);
+            List<ImageTranslateEntry> items = [];
+
+            var textBlocks = xmlDoc.GetElementsByTagName("TextBlock");
+            foreach (XmlElement textBlock in textBlocks)
+            {
+                int fineTune = 5;
+
+                var textLines = textBlock.GetElementsByTagName("TextLine");
+                if (textLines.Count > 0)
+                {
+                    foreach (XmlElement textLine in textLines)
+                    {
+                        int lx = int.TryParse(textLine.GetAttribute("HPOS"), out int px) ? px : 0;
+                        int ly = int.TryParse(textLine.GetAttribute("VPOS"), out int py) ? py : 0;
+                        int lw = int.TryParse(textLine.GetAttribute("WIDTH"), out int pw) ? pw : 0;
+                        int lh = int.TryParse(textLine.GetAttribute("HEIGHT"), out int ph) ? ph : 0;
+
+                        var lineStrings = textLine.GetElementsByTagName("String");
+                        if (lineStrings.Count == 0) continue;
+
+                        System.Text.StringBuilder lineTextBuilder = new();
+                        string prevContent = string.Empty;
+
+                        foreach (XmlElement data in lineStrings)
+                        {
+                            string content = data.GetAttribute("CONTENT");
+                            if (string.IsNullOrEmpty(content)) continue;
+
+                            if (lineTextBuilder.Length > 0 && !string.IsNullOrEmpty(prevContent))
+                            {
+                                char lastChar = prevContent[^1];
+                                char firstChar = content[0];
+                                if (!AppUtilities.IsCjk(lastChar) || !AppUtilities.IsCjk(firstChar))
+                                    lineTextBuilder.Append(' ');
+                            }
+                            lineTextBuilder.Append(content);
+                            prevContent = content;
+                        }
+
+                        string lineText = lineTextBuilder.ToString();
+                        if (string.IsNullOrWhiteSpace(lineText)) continue;
+
+                        double lineAngle = 0;
+                        string rotAttr = textLine.GetAttribute("ROTATION");
+                        if (string.IsNullOrEmpty(rotAttr))
+                            rotAttr = textBlock.GetAttribute("ROTATION");
+
+                        if (!string.IsNullOrEmpty(rotAttr) && double.TryParse(rotAttr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsedRot))
+                        {
+                            lineAngle = parsedRot;
+                        }
+                        else if (lineStrings.Count >= 2)
+                        {
+                            XmlElement firstString = (XmlElement)lineStrings[0];
+                            XmlElement lastString = (XmlElement)lineStrings[lineStrings.Count - 1];
+
+                            if (int.TryParse(firstString.GetAttribute("HPOS"), out int x1) &&
+                                int.TryParse(firstString.GetAttribute("VPOS"), out int y1) &&
+                                int.TryParse(lastString.GetAttribute("HPOS"), out int x2) &&
+                                int.TryParse(lastString.GetAttribute("VPOS"), out int y2))
+                            {
+                                double dx = x2 - x1;
+                                double dy = y2 - y1;
+                                if (Math.Abs(dx) > 10)
+                                {
+                                    double calculatedAngle = Math.Atan2(dy, dx) * (180.0 / Math.PI);
+                                    if (Math.Abs(calculatedAngle) > 0.5 && Math.Abs(calculatedAngle) < 45.0)
+                                    {
+                                        lineAngle = calculatedAngle;
+                                    }
+                                }
+                            }
+                        }
+
+                        int finalX = Math.Max(0, lx) - fineTune;
+                        int finalY = Math.Max(0, ly) - fineTune;
+                        int finalW = Math.Max(4, lw) + fineTune;
+                        int finalH = Math.Max(8, lh) + fineTune;
+
+                        var colors = OcrHelper.GetZoneAverageColors(image, finalX, finalY, finalW, finalH);
+
+                        ImageTranslateEntry entry = new()
+                        {
+                            OriginalText = lineText,
+                            X = finalX,
+                            Y = finalY,
+                            Width = finalW,
+                            Height = finalH,
+                            Angle = lineAngle,
+                            Transform = new System.Windows.Media.RotateTransform(lineAngle),
+                            SourceLanguage = App.setting.SourceLanguage,
+                            TargetLanguage = App.setting.TargetLanguage,
+                            FontFace = new System.Windows.Media.FontFamily(App.setting.FontFace),
+                            BackgroundColor = colors?.Background,
+                            ForegroundColor = colors?.Foreground,
+                        };
+                        entry.CalculateFontSize();
+                        items.Add(entry);
+                    }
+                }
+                else
+                {
+                    int x = int.TryParse(textBlock.GetAttribute("HPOS"), out int px) ? px : 0;
+                    int y = int.TryParse(textBlock.GetAttribute("VPOS"), out int py) ? py : 0;
+                    int width = int.TryParse(textBlock.GetAttribute("WIDTH"), out int pw) ? pw : 0;
+                    int height = int.TryParse(textBlock.GetAttribute("HEIGHT"), out int ph) ? ph : 0;
+
+                    var allStrings = textBlock.GetElementsByTagName("String");
+                    System.Text.StringBuilder fullTextBuilder = new();
+                    string prevContent = string.Empty;
+
+                    foreach (XmlElement data in allStrings)
+                    {
+                        string content = data.GetAttribute("CONTENT");
+                        if (string.IsNullOrEmpty(content)) continue;
+
+                        if (fullTextBuilder.Length > 0 && !string.IsNullOrEmpty(prevContent))
+                        {
+                            char lastChar = prevContent[^1];
+                            char firstChar = content[0];
+                            if (!AppUtilities.IsCjk(lastChar) || !AppUtilities.IsCjk(firstChar))
+                                fullTextBuilder.Append(' ');
+                        }
+                        fullTextBuilder.Append(content);
+                        prevContent = content;
+                    }
+                    string fullTextBlock = fullTextBuilder.ToString();
+                    if (string.IsNullOrWhiteSpace(fullTextBlock)) continue;
+
+                    double lineAngle = 0;
+                    string rotAttr = textBlock.GetAttribute("ROTATION");
+                    if (!string.IsNullOrEmpty(rotAttr) && double.TryParse(rotAttr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsedRot))
+                        lineAngle = parsedRot;
+
+                    int finalX = Math.Max(0, x) - fineTune;
+                    int finalY = Math.Max(0, y) - fineTune;
+                    int finalW = Math.Max(4, width) + fineTune;
+                    int finalH = Math.Max(8, height) + fineTune;
+
+                    var colors = OcrHelper.GetZoneAverageColors(image, finalX, finalY, finalW, finalH);
+
+                    ImageTranslateEntry entry = new()
+                    {
+                        OriginalText = fullTextBlock,
+                        X = finalX,
+                        Y = finalY,
+                        Width = finalW,
+                        Height = finalH,
+                        Angle = lineAngle,
+                        Transform = new System.Windows.Media.RotateTransform(lineAngle),
+                        SourceLanguage = App.setting.SourceLanguage,
+                        TargetLanguage = App.setting.TargetLanguage,
+                        FontFace = new System.Windows.Media.FontFamily(App.setting.FontFace),
+                        BackgroundColor = colors?.Background,
+                        ForegroundColor = colors?.Foreground,
+                    };
+                    entry.CalculateFontSize();
+                    items.Add(entry);
+                }
+            }
+            return items;
+        }
     }
 }
