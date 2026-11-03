@@ -22,6 +22,7 @@ namespace ScreenLookup.src.pages
             InitializeComponent();
 
             LoadOcrEngineModes();
+            LoadLookupMethods();
             LoadSourceAccuracyContent();
             LoadSourceLanguageContent();
             LoadTargetLanguageContent();
@@ -46,6 +47,20 @@ namespace ScreenLookup.src.pages
         private void LoadOcrEngineModes()
         {
             ocrEngineMode.ItemsSource = Enum.GetValues<OcrHelper.OcrEngine>();
+        }
+
+        private void LoadLookupMethods()
+        {
+            lookupMethod.Items.Clear();
+            foreach (LookupMethod method in Enum.GetValues<LookupMethod>())
+            {
+                lookupMethod.Items.Add(new ComboBoxItem
+                {
+                    Content = method.GetDisplayName(),
+                    Tag = method
+                });
+            }
+            lookupMethod.SelectedIndex = (int)App.setting.LookupMethod;
         }
 
         private void LoadSourceAccuracyContent()
@@ -231,6 +246,15 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region ComboBox & Control Handlers
+        private void LookupMethod_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is LookupMethod method)
+                    App.setting.LookupMethod = method;
+            }
+        }
+
         private void OcrEngineMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)

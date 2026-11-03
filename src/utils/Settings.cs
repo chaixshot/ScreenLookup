@@ -9,6 +9,24 @@ using System.Windows.Input;
 
 namespace ScreenLookup.src.utils
 {
+    public enum LookupMethod
+    {
+        OnLine,
+        OnImage,
+        TranslateImage
+    }
+
+    public static class LookupMethodExtensions
+    {
+        public static string GetDisplayName(this LookupMethod method) => method switch
+        {
+            LookupMethod.OnLine => "On Line",
+            LookupMethod.OnImage => "On Image",
+            LookupMethod.TranslateImage => "Translate Image",
+            _ => method.ToString()
+        };
+    }
+
     public class Settings : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -37,7 +55,7 @@ namespace ScreenLookup.src.utils
             Modifiers = { ModifierKeys.Alt },
             NonModifierKey = Key.Z,
         };
-        private bool lookupOnImage = true;
+        private LookupMethod lookupMethod = LookupMethod.OnImage;
         private bool showImage = true;
         private bool showAuxiliary = true;
         private bool showHighlight = true;
@@ -110,7 +128,7 @@ namespace ScreenLookup.src.utils
                     TTSProvider = settings.TTSProvider;
 
                     ShortcutKey = settings.ShortcutKey;
-                    LookupOnImage = settings.LookupOnImage;
+                    LookupMethod = settings.LookupMethod;
                     ShowImage = settings.ShowImage;
                     ShowAuxiliary = settings.ShowAuxiliary;
                     ShowHighlight = settings.ShowHighlight;
@@ -330,12 +348,12 @@ namespace ScreenLookup.src.utils
             }
         }
 
-        public bool LookupOnImage
+        public LookupMethod LookupMethod
         {
-            get => lookupOnImage;
+            get => lookupMethod;
             set
             {
-                lookupOnImage = value;
+                lookupMethod = value;
                 OnPropertyChanged();
             }
         }

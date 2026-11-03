@@ -766,5 +766,157 @@ namespace ScreenLookup.src.utils
 
             return items;
         }
+
+        public static List<ImageTranslateEntry> TranslateImageProcess(OCRResult? result, Bitmap image)
+        {
+            List<ImageTranslateEntry> items = [];
+            if (result?.TextBlocks == null || result.TextBlocks.Count == 0) return items;
+
+            int fineTune = 3;
+
+            foreach (var block in result.TextBlocks)
+            {
+                if (string.IsNullOrWhiteSpace(block.Text) || block.BoxPoints == null || block.BoxPoints.Count < 4)
+                    continue;
+
+                double minX = block.BoxPoints.Min(p => p.X);
+                double maxX = block.BoxPoints.Max(p => p.X);
+                double minY = block.BoxPoints.Min(p => p.Y);
+                double maxY = block.BoxPoints.Max(p => p.Y);
+
+                double x = minX;
+                double y = minY;
+                double width = maxX - minX;
+                double height = maxY - minY;
+
+                double angleDeg = 0;
+                double cx = block.BoxPoints.Take(4).Average(p => p.X);
+                double cy = block.BoxPoints.Take(4).Average(p => p.Y);
+
+                var polarOrdered = block.BoxPoints.Take(4)
+                    .Select(p => new { Point = p, Angle = Math.Atan2(p.Y - cy, p.X - cx) })
+                    .OrderBy(p => p.Angle)
+                    .Select(p => p.Point)
+                    .ToList();
+
+                int tlIndex = 0;
+                double minScore = double.MaxValue;
+                for (int i = 0; i < 4; i++)
+                {
+                    double score = polarOrdered[i].X + polarOrdered[i].Y;
+                    if (score < minScore)
+                    {
+                        minScore = score;
+                        tlIndex = i;
+                    }
+                }
+
+                PointF pTL = new(polarOrdered[tlIndex].X, polarOrdered[tlIndex].Y);
+                PointF pTR = new(polarOrdered[(tlIndex + 1) % 4].X, polarOrdered[(tlIndex + 1) % 4].Y);
+                PointF pBR = new(polarOrdered[(tlIndex + 2) % 4].X, polarOrdered[(tlIndex + 2) % 4].Y);
+                PointF pBL = new(polarOrdered[(tlIndex + 3) % 4].X, polarOrdered[(tlIndex + 3) % 4].Y);
+
+                int finalX = (int)Math.Max(0, x) - fineTune;
+                int finalY = (int)Math.Max(0, y) - fineTune;
+                int finalW = (int)Math.Max(4, width) + fineTune;
+                int finalH = (int)Math.Max(8, height) + fineTune;
+
+                var blockColors = OcrHelper.GetZoneAverageColors(image, finalX, finalY, finalW, finalH);
+
+                // Split text block into separate lines so each line gets its precise 3D perspective quad slice
+                string[] rawLines = block.Text.Split(["\n"], StringSplitOptions.RemoveEmptyEntries);
+                List<string> textLines = rawLines.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+                if (textLines.Count == 0) textLines.Add(block.Text);
+
+                int lineCount = textLines.Count;
+
+                for (int lineIdx = 0; lineIdx < lineCount; lineIdx++)
+                {
+                    string lineText = textLines[lineIdx];
+
+                    double t0 = (double)lineIdx / lineCount;
+                    double t1 = (double)(lineIdx + 1) / lineCount;
+
+                    PointF lineP_TL = new(
+                        (float)(pTL.X + t0 * (pBL.X - pTL.X)),
+                        (float)(pTL.Y + t0 * (pBL.Y - pTL.Y))
+                    );
+
+                    PointF lineP_TR = new(
+                        (float)(pTR.X + t0 * (pBR.X - pTR.X)),
+                        (float)(pTR.Y + t0 * (pBR.Y - pTR.Y))
+                    );
+
+                    PointF lineP_BL = new(
+                        (float)(pTL.X + t1 * (pBL.X - pTL.X)),
+                        (float)(pTL.Y + t1 * (pBL.Y - pTL.Y))
+                    );
+
+                    float lineTopVx = lineP_TR.X - lineP_TL.X;
+                    float lineTopVy = lineP_TR.Y - lineP_TL.Y;
+                    double lineTopLen = Math.Sqrt(lineTopVx * lineTopVx + lineTopVy * lineTopVy);
+
+                    float lineLeftVx = lineP_BL.X - lineP_TL.X;
+                    float lineLeftVy = lineP_BL.Y - lineP_TL.Y;
+                    double lineLeftLen = Math.Sqrt(lineLeftVx * lineLeftVx + lineLeftVy * lineLeftVy);
+
+                    double lineAngleDeg = 0;
+                    double calcAngle = Math.Atan2(lineTopVy, lineTopVx) * (180.0 / Math.PI);
+                    if (Math.Abs(calcAngle) > 0.5 && Math.Abs(calcAngle) < 45.0)
+                        lineAngleDeg = calcAngle;
+
+                    System.Windows.Media.Transform itemTransform;
+                    double entryX, entryY, entryW, entryH;
+
+                    if (lineTopLen >= 4.0 && lineLeftLen >= 4.0)
+                    {
+                        double m11 = lineTopVx / lineTopLen;
+                        double m12 = lineTopVy / lineTopLen;
+                        double m21 = lineLeftVx / lineLeftLen;
+                        double m22 = lineLeftVy / lineLeftLen;
+
+                        itemTransform = new System.Windows.Media.MatrixTransform(m11, m12, m21, m22, 0, 0);
+
+                        double uTopX = lineTopVx / lineTopLen;
+                        double uTopY = lineTopVy / lineTopLen;
+                        double uLeftX = lineLeftVx / lineLeftLen;
+                        double uLeftY = lineLeftVy / lineLeftLen;
+
+                        entryX = lineP_TL.X - (fineTune * uTopX) - (fineTune * uLeftX);
+                        entryY = lineP_TL.Y - (fineTune * uTopY) - (fineTune * uLeftY);
+                        entryW = lineTopLen + (fineTune * 2);
+                        entryH = lineLeftLen + (fineTune * 2);
+                    }
+                    else
+                    {
+                        itemTransform = new System.Windows.Media.RotateTransform(lineAngleDeg);
+                        entryX = finalX;
+                        entryY = finalY + (lineIdx * ((double)finalH / lineCount));
+                        entryW = finalW;
+                        entryH = (double)finalH / lineCount;
+                    }
+
+                    ImageTranslateEntry entry = new()
+                    {
+                        OriginalText = lineText,
+                        X = entryX,
+                        Y = entryY,
+                        Width = entryW,
+                        Height = entryH,
+                        Angle = lineAngleDeg,
+                        Transform = itemTransform,
+                        SourceLanguage = App.setting.SourceLanguage,
+                        TargetLanguage = App.setting.TargetLanguage,
+                        FontFace = new System.Windows.Media.FontFamily(App.setting.FontFace),
+                        BackgroundColor = blockColors?.Background,
+                        ForegroundColor = blockColors?.Foreground,
+                    };
+                    entry.CalculateFontSize();
+                    items.Add(entry);
+                }
+            }
+
+            return items;
+        }
     }
 }

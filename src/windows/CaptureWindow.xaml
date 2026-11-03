@@ -261,6 +261,81 @@
                                 </ItemsControl.ItemContainerStyle>
                             </ItemsControl>
 
+                            <!--  Translated On Image  -->
+                            <Grid
+                                Width="{Binding Width, ElementName=captureImage}"
+                                Height="{Binding Height, ElementName=captureImage}"
+                                MinWidth="{Binding MinWidth, ElementName=captureImage}"
+                                MinHeight="{Binding MinHeight, ElementName=captureImage}"
+                                MaxWidth="{Binding MaxWidth, ElementName=captureImage}"
+                                MaxHeight="{Binding MaxHeight, ElementName=captureImage}">
+                                <Grid.Resources>
+                                    <ItemsPanelTemplate x:Key="CanvasPanel">
+                                        <Canvas />
+                                    </ItemsPanelTemplate>
+                                    <Style x:Key="OverlayItemStyle" TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                        <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                        <Setter Property="RenderTransform" Value="{Binding Transform}" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <!--  Background Layer  -->
+                                <ItemsControl
+                                    Name="TranslateImageBackgrounds"
+                                    ItemContainerStyle="{StaticResource OverlayItemStyle}"
+                                    ItemsPanel="{StaticResource CanvasPanel}"
+                                    ItemsSource="{Binding ItemsSource, ElementName=TranslateImageText}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                Width="{Binding Width}"
+                                                Height="{Binding Height}"
+                                                Background="{Binding BackgroundColor}"
+                                                ClipToBounds="True"
+                                                CornerRadius="2"
+                                                ToolTip="{Binding OriginalText}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!--  Text Layer  -->
+                                <ItemsControl
+                                    Name="TranslateImageText"
+                                    ItemContainerStyle="{StaticResource OverlayItemStyle}"
+                                    ItemsPanel="{StaticResource CanvasPanel}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid
+                                                Width="{Binding Width}"
+                                                Height="{Binding Height}"
+                                                ClipToBounds="False"
+                                                ToolTip="{Binding OriginalText}">
+                                                <Controls:TextBlock
+                                                    Padding="2,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="{Binding FontFace}"
+                                                    FontSize="{Binding FontSize}"
+                                                    Foreground="{Binding ForegroundColor}"
+                                                    Text="{Binding TranslatedText}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    Visibility="{Binding TextVisibility}" />
+
+                                                <wpfui:ProgressRing
+                                                    Width="{Binding FontSize}"
+                                                    Height="{Binding FontSize}"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{Binding ForegroundColor}"
+                                                    IsIndeterminate="True"
+                                                    Visibility="{Binding LoadingVisibility}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+
                             <!--  Confirm Overlay  -->
                             <Border
                                 x:Name="Control_Confirm_Overlay"
