@@ -56,9 +56,9 @@ namespace ScreenLookup.src.pages
         private void LoadTargetLanguageContent()
         {
             List<string> items = [];
-            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
+            for (int langID = 0; langID < LanguageList.LangList.Length - 1; langID++)
             {
-                string tesseractTag = TesseractHelper.LangList[langID];
+                string tesseractTag = LanguageList.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 items.Add(text);
             }
@@ -70,15 +70,20 @@ namespace ScreenLookup.src.pages
             SourceAccuracy langAcc = App.setting.SourceLanguageAccuracy;
             List<ComboBoxItem> items = [];
 
-            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
+            for (int langID = 0; langID < LanguageList.LangList.Length - 1; langID++)
             {
-                string tesseractTag = TesseractHelper.LangList[langID];
+                string tesseractTag = LanguageList.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = DownloadHelper.IsInstalled(langAcc, langID);
 
-                if (App.setting.OcrEngineMode == OcrHelper.OcrEngine.PaddleOCR) // If Paddle mode is active
+                if (App.setting.OcrEngineMode == OcrHelper.OcrEngine.TesseraceOCR)
                 {
-                    if (!PaddleHelper.LangList.Contains(tesseractTag)) // double check to ensure it exists in PaddleHelper.LangList (redundant since we loop it directly, but safe)
+                    if (!TesseractHelper.LangList.Contains(tesseractTag))
+                        continue;
+                }
+                else if (App.setting.OcrEngineMode == OcrHelper.OcrEngine.PaddleOCR)
+                {
+                    if (!PaddleHelper.LangList.Contains(tesseractTag))
                         continue;
                 }
 
@@ -157,12 +162,12 @@ namespace ScreenLookup.src.pages
         #endregion
 
         #region Action Handlers
-        private async void DownloadTesseractButton_Click(object sender, RoutedEventArgs e)
+        private async void DownloadModelButton_Click(object sender, RoutedEventArgs e)
         {
             int langID = App.setting.SourceLanguage;
             SourceAccuracy accID = App.setting.SourceLanguageAccuracy;
 
-            if (isLoadingTesseract || string.IsNullOrWhiteSpace(TesseractHelper.LangList[langID]))
+            if (isLoadingTesseract || string.IsNullOrWhiteSpace(LanguageList.LangList[langID]))
                 return;
 
             isLoadingTesseract = true;

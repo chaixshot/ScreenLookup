@@ -192,9 +192,9 @@ namespace ScreenLookup.src.pages
                 }
             ];
 
-            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
+            for (int langID = 0; langID < LanguageList.LangList.Length - 1; langID++)
             {
-                string tesseractTag = TesseractHelper.LangList[langID];
+                string tesseractTag = LanguageList.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
                 bool isInstalled = DownloadHelper.IsInstalled(langAcc, langID);
 

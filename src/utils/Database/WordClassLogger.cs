@@ -113,7 +113,7 @@ namespace ScreenLookup.src.utils.Database
             try
             {
                 // Find English language ID for translation source
-                int engLangID = Array.IndexOf(TesseractHelper.LangList, "eng");
+                int engLangID = Array.IndexOf(LanguageList.LangList, "eng");
                 string translatedPos = await Translation.GetTranslated(isWord: true, cleanPos, engLangID, targetLang, token);
                 if (!string.IsNullOrWhiteSpace(translatedPos))
                 {

@@ -87,17 +87,19 @@ namespace ScreenLookup.src.windows
             List<ComboBoxItem> sourceItems = [];
             List<string> targetItems = [];
 
-            for (int langID = 0; langID < TesseractHelper.LangList.Length - 1; langID++)
+            for (int langID = 0; langID < LanguageList.LangList.Length - 1; langID++)
             {
-                string tesseractTag = TesseractHelper.LangList[langID];
+                string tesseractTag = LanguageList.LangList[langID];
                 string text = $"{LanguageList.GetDisplayNameFromTesseractTag(tesseractTag, true).PadRight(46)}\t{tesseractTag}";
 
                 if (DownloadHelper.IsInstalled(App.setting.SourceLanguageAccuracy, langID))
+                {
                     sourceItems.Add(new ComboBoxItem
                     {
                         Content = $"{text}",
                         Tag = langID,
                     });
+                }
 
                 targetItems.Add(text);
             }

@@ -67,7 +67,7 @@ namespace ScreenLookup.src.utils
 
         public static bool IsInstalled(int langID)
         {
-            if (langID < 0 || langID >= TesseractHelper.LangList.Length) return false;
+            if (langID < 0 || langID >= LanguageList.LangList.Length) return false;
 
             string tessTag = LanguageList.GetTesseractTagFromID(langID);
 
@@ -85,7 +85,7 @@ namespace ScreenLookup.src.utils
 
         public static async Task<bool> InstallModel(int langID)
         {
-            if (langID < 0 || langID >= TesseractHelper.LangList.Length) return false;
+            if (langID < 0 || langID >= LanguageList.LangList.Length) return false;
             if (IsInstalled(langID)) return true;
 
             string tessTag = LanguageList.GetTesseractTagFromID(langID);
