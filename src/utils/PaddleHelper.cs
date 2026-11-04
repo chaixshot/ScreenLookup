@@ -28,7 +28,32 @@ namespace ScreenLookup.src.utils
             "tab", "tam", "tel", "tgl", "tur", "uig", "ukr", "urd", "uzb", "vie"
         ];
 
-        public static bool IsInstalled(SourceAccuracy accID)
+        public static string GetDictFileName(string langTag)
+        {
+            if (string.IsNullOrEmpty(langTag))
+                return "ppocr_keys_v1.txt";
+
+            string tag = langTag.ToLowerInvariant();
+
+            return tag switch
+            {
+                "chi_sim" or "chi_tra" => "ppocr_keys_v1.txt",
+                "jpn" => "japan_dict.txt",
+                "kor" => "korean_dict.txt",
+                "eng" or "enm" => "en_dict.txt",
+                "fra" => "french_dict.txt",
+                "deu" => "german_dict.txt",
+                "ara" or "fas" or "urd" or "uig" => "arabic_dict.txt",
+                "tam" => "ta_dict.txt",
+                "tel" => "te_dict.txt",
+                "kat" => "ka_dict.txt",
+                "hin" or "bho" or "bih" or "mag" or "mai" or "mar" or "nep" or "new" or "san" or "bgc" or "kok" => "devanagari_dict.txt",
+                "rus" or "bel" or "bul" or "ukr" or "che" or "ava" or "abq" or "kbd" or "lbe" or "lez" or "tab" or "srp" or "mon" or "aze" or "uzb" or "inh" => "cyrillic_dict.txt",
+                _ => "latin_dict.txt"
+            };
+        }
+
+        public static bool IsModelInstalled(SourceAccuracy accID, int langID)
         {
             string modelDir = GetModelPath(accID);
             string detDir = Path.Combine(modelDir, "det");
@@ -44,6 +69,15 @@ namespace ScreenLookup.src.utils
             return Directory.Exists(modelDir) && hasDet && hasRec;
         }
 
+        public static bool IsKeyInstalled(int langID)
+        {
+            string langTag = (langID >= 0 && langID < LanguageList.LangList.Length) ? LanguageList.LangList[langID] : "eng";
+            string keysPath = Path.Combine(App.appDataFolder, "paddle_dict", $"keys_{langTag}.txt");
+            bool hasKeys = File.Exists(keysPath);
+
+            return hasKeys;
+        }
+
         public static string GetModelPath(SourceAccuracy accID)
         {
             return accID switch
@@ -54,9 +88,12 @@ namespace ScreenLookup.src.utils
             };
         }
 
-        public static (OCRModelConfig Config, OCRParameter Parameter) GetModelConfig(SourceAccuracy accID)
+        public static (OCRModelConfig Config, OCRParameter Parameter) GetModelConfig(SourceAccuracy accID, int langID)
         {
             string path = GetModelPath(accID);
+
+            string langTag = (langID >= 0 && langID < LanguageList.LangList.Length) ? LanguageList.LangList[langID] : "eng";
+            string keysPath = Path.Combine(App.appDataFolder, "paddle_dict", $"keys_{langTag}.txt");
 
             OCRParameter modelParameter = new()
             {
@@ -90,18 +127,19 @@ namespace ScreenLookup.src.utils
                 det_infer = Path.Combine(path, "det"),
                 cls_infer = Path.Combine(path, "cls"),
                 rec_infer = Path.Combine(path, "rec"),
-                keys = Path.Combine(path, "ppocr_keys.txt")
+                keys = keysPath,
             };
 
             return (modelConfig, modelParameter);
         }
 
-        public static async Task<bool> InstallModel(SourceAccuracy accID)
+        public static async Task<bool> InstallModel(SourceAccuracy accID, int langID)
         {
-            if (IsInstalled(accID)) return true;
+            string langTag = (langID >= 0 && langID < LanguageList.LangList.Length) ? LanguageList.LangList[langID] : "eng";
 
             string targetDir = GetModelPath(accID);
             Directory.CreateDirectory(targetDir);
+            Directory.CreateDirectory(Path.Combine(App.appDataFolder, "paddle_dict"));
 
             string tier = accID switch
             {
@@ -110,48 +148,96 @@ namespace ScreenLookup.src.utils
                 _ => "medium"
             };
 
-            string[] modelTypes = { "det", "rec" };
             using HttpClient client = new();
 
-            foreach (string type in modelTypes)
+            if (!IsModelInstalled(accID, langID))
             {
-                string subDir = Path.Combine(targetDir, type);
-                string repoName = $"PP-OCRv6_{tier}_{type}"; // ModelScope direct raw file URLs for PP-OCRv6 components (ModelScope hosts files directly on cloud buckets accessible via static paths or API)
-                string[] filesToDownload = ["model.pdmodel", "model.pdiparams", "inference.pdmodel", "inference.pdiparams", "inference.json", "inference.yml", "dict.txt", "ppocr_keys.txt"]; // List of core files needed for Paddle inference
-                bool successAny = false;
+                string[] modelTypes = ["det", "rec"];
 
-                Directory.CreateDirectory(subDir);
-                SnackbarHost.Show("Paddle", $"Downloading model {repoName}...", SnackbarType.Info, timeout: 99999, closeButton: false);
-
-                foreach (string fileName in filesToDownload)
+                foreach (string type in modelTypes)
                 {
-                    string fileUrl = $"https://www.modelscope.cn/api/v1/models/PaddlePaddle/{repoName}/repo?FilePath={fileName}";
-                    string destPath = Path.Combine(subDir, fileName);
+                    string subDir = Path.Combine(targetDir, type);
+                    string repoName = $"PP-OCRv6_{tier}_{type}"; // ModelScope direct raw file URLs for PP-OCRv6 components (ModelScope hosts files directly on cloud buckets accessible via static paths or API)
+                    string[] filesToDownload = ["model.pdmodel", "model.pdiparams", "inference.pdmodel", "inference.pdiparams", "inference.json", "inference.yml", "dict.txt"]; // List of core files needed for Paddle inference
+                    bool successAny = false;
 
-                    try
+                    Directory.CreateDirectory(subDir);
+                    SnackbarHost.Show("Paddle", $"Downloading model \"{repoName}\"...", SnackbarType.Info, timeout: 99999, closeButton: false);
+
+                    foreach (string fileName in filesToDownload)
                     {
-                        HttpResponseMessage response = await client.GetAsync(fileUrl);
-                        if (response.IsSuccessStatusCode)
+                        string fileUrl = $"https://www.modelscope.cn/api/v1/models/PaddlePaddle/{repoName}/repo?FilePath={fileName}";
+                        string destPath = Path.Combine(subDir, fileName);
+
+                        try
                         {
-                            byte[] data = await response.Content.ReadAsByteArrayAsync();
-                            if (data.Length > 500) // Ensure it's not an LFS pointer or 404 HTML page (< 1KB error / pointer check)
+                            HttpResponseMessage response = await client.GetAsync(fileUrl);
+                            if (response.IsSuccessStatusCode)
                             {
-                                await File.WriteAllBytesAsync(destPath, data);
-                                successAny = true;
+                                byte[] data = await response.Content.ReadAsByteArrayAsync();
+                                if (data.Length > 500) // Ensure it's not an LFS pointer or 404 HTML page (< 1KB error / pointer check)
+                                {
+                                    await File.WriteAllBytesAsync(destPath, data);
+                                    successAny = true;
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            SnackbarHost.Show("PaddleHelper", $"Skipping {fileName}: {ex.Message}", type: SnackbarType.Error);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        SnackbarHost.Show("PaddleHelper", $"Skipping {fileName}: {ex.Message}", type: SnackbarType.Error);
-                    }
-                }
 
-                if (!successAny)
-                    return false;
+                    if (!successAny)
+                        return false;
+                }
             }
 
-            return true;
+            // Download dictionary key file from GitHub for the specified SourceLanguage
+            if (!IsKeyInstalled(langID))
+            {
+                string dictFileName = GetDictFileName(langTag);
+                string keysPath = Path.Combine(App.appDataFolder, "paddle_dict", $"keys_{langTag}.txt"); ;
+                string[] dictUrls = [
+                    $"https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/{dictFileName}",
+                    $"https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/{dictFileName}"
+                ];
+
+                try
+                {
+                    bool success = false;
+
+                    SnackbarHost.Show("Paddle", $"Downloading dictionary key file ({dictFileName}) for {langTag}...", SnackbarType.Info, timeout: 99999, closeButton: false);
+                    foreach (string dictUrl in dictUrls)
+                    {
+                        try
+                        {
+                            HttpResponseMessage dictResponse = await client.GetAsync(dictUrl);
+                            if (dictResponse.IsSuccessStatusCode)
+                            {
+                                byte[] dictData = await dictResponse.Content.ReadAsByteArrayAsync();
+                                if (dictData.Length > 10)
+                                {
+                                    await File.WriteAllBytesAsync(keysPath, dictData);
+                                    success = true;
+                                    break; // Exit loop once successfully downloaded
+                                }
+                            }
+                        }
+                        catch
+                        { }
+                    }
+
+                    if (!success)
+                        SnackbarHost.Show("PaddleHelper", $"Error downloading dict file: Could not find '{dictFileName}' across any of the repository paths.", type: SnackbarType.Error);
+                }
+                catch (Exception ex)
+                {
+                    SnackbarHost.Show("PaddleHelper", $"Error downloading dict file: {ex.Message}", type: SnackbarType.Error);
+                }
+            }
+
+            return IsModelInstalled(accID, langID);
         }
 
         public static Task<OCRResult?> RunOcrAsync(PaddleOCREngine engine, Bitmap image)

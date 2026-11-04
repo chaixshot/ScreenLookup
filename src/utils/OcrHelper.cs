@@ -44,11 +44,11 @@ namespace ScreenLookup.src.utils
 
                     break;
                 case OcrEngine.PaddleOCR:
-                    if (PaddleHelper.IsInstalled(App.setting.SourceLanguageAccuracy))
+                    if (PaddleHelper.IsModelInstalled(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage))
                     {
                         try
                         {
-                            var (cfg, parameter) = PaddleHelper.GetModelConfig(App.setting.SourceLanguageAccuracy);
+                            var (cfg, parameter) = PaddleHelper.GetModelConfig(App.setting.SourceLanguageAccuracy, App.setting.SourceLanguage);
                             Engine = new PaddleOCREngine(cfg, parameter);
                         }
                         catch (Exception ex)
@@ -122,7 +122,7 @@ namespace ScreenLookup.src.utils
             return App.setting.OcrEngineMode switch
             {
                 OcrEngine.TesseraceOCR => await TesseractHelper.InstallModel(accID, langID).ConfigureAwait(false),
-                OcrEngine.PaddleOCR => await PaddleHelper.InstallModel(accID).ConfigureAwait(false),
+                OcrEngine.PaddleOCR => await PaddleHelper.InstallModel(accID, langID).ConfigureAwait(false),
                 _ => false,
             };
         }

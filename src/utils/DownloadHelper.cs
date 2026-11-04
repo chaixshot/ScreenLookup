@@ -58,7 +58,7 @@
             return App.setting.OcrEngineMode switch
             {
                 OcrHelper.OcrEngine.TesseraceOCR => TesseractHelper.IsInstalled(accID, langID),
-                OcrHelper.OcrEngine.PaddleOCR => PaddleHelper.IsInstalled(accID),
+                OcrHelper.OcrEngine.PaddleOCR => PaddleHelper.IsModelInstalled(accID, langID) && PaddleHelper.IsKeyInstalled(langID),
                 _ => TesseractHelper.IsInstalled(accID, langID),
             };
         }
