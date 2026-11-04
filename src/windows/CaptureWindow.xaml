@@ -91,6 +91,24 @@
                                 SelectionChanged="TargetLanguageConfig_SelectionChanged" />
                         </Grid>
 
+                        <!--  Lookup Method  -->
+                        <Controls:Card Margin="0,0,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Controls:TextBlock VerticalAlignment="Center" Text="Lookup Method" />
+
+                                <ComboBox
+                                    x:Name="lookupMethodConfig"
+                                    Grid.Column="1"
+                                    Width="180"
+                                    SelectionChanged="LookupMethodConfig_SelectionChanged" />
+                            </Grid>
+                        </Controls:Card>
+
                         <Controls:Card Margin="0,0,0,4">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -122,6 +140,40 @@
                                     Grid.Column="1"
                                     Click="ConfigSwitch_Toggle"
                                     IsChecked="{Binding ShowImage}" />
+                            </Grid>
+                        </Controls:Card>
+
+                        <Controls:Card Margin="0,0,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Controls:TextBlock Text="Close on Lost Focus" />
+
+                                <Controls:ToggleSwitch
+                                    x:Name="closeLostFocus"
+                                    Grid.Column="1"
+                                    Click="ConfigSwitch_Toggle"
+                                    IsChecked="{Binding CloseLostFocus}" />
+                            </Grid>
+                        </Controls:Card>
+
+                        <Controls:Card Margin="0,0,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Controls:TextBlock Text="Show Translation" />
+
+                                <Controls:ToggleSwitch
+                                    x:Name="showTranslation"
+                                    Grid.Column="1"
+                                    Click="ConfigSwitch_Toggle"
+                                    IsChecked="{Binding ShowTranslation}" />
                             </Grid>
                         </Controls:Card>
 
