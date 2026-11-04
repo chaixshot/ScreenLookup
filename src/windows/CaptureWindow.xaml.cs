@@ -109,7 +109,34 @@ namespace ScreenLookup.src.windows
             targetLanguageConfig.ItemsSource = targetItems;
             targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
 
+            LoadLookupMethodConfig();
             SelectConfigLanguage();
+        }
+
+        public void LoadLookupMethodConfig()
+        {
+            lookupMethodConfig.Items.Clear();
+            foreach (LookupMethod method in Enum.GetValues<LookupMethod>())
+            {
+                lookupMethodConfig.Items.Add(new ComboBoxItem
+                {
+                    Content = method.GetDisplayName(),
+                    Tag = method
+                });
+            }
+            SelectLookupMethodConfig();
+        }
+
+        public void SelectLookupMethodConfig()
+        {
+            for (int i = 0; i < lookupMethodConfig.Items.Count; i++)
+            {
+                if (lookupMethodConfig.Items[i] is ComboBoxItem item && item.Tag is LookupMethod method && method == App.setting.LookupMethod)
+                {
+                    lookupMethodConfig.SelectedItem = item;
+                    break;
+                }
+            }
         }
         #endregion
 
@@ -573,6 +600,7 @@ namespace ScreenLookup.src.windows
             }
 
             targetLanguageConfig.SelectedIndex = App.setting.TargetLanguage;
+            SelectLookupMethodConfig();
         }
 
         private void CloseTranslatedExpanded()
@@ -910,6 +938,15 @@ namespace ScreenLookup.src.windows
         #endregion
 
         #region Quick Config Handlers
+        private void LookupMethodConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+            {
+                if (comboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is LookupMethod method)
+                    App.setting.LookupMethod = method;
+            }
+        }
+
         private void SourceLanguageConfig_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
