@@ -36,7 +36,7 @@ namespace ScreenLookup.src.windows
         private Bitmap? CapturedImageEditable;
 
         private static CancellationTokenSource _ctsProcessImage = new();
-        private static CancellationTokenSource _ctsTranslates = new();
+        private static CancellationTokenSource _ctsExpanderTranslate = new();
 
         private readonly ImageEditorControl imageEditor = new();
 
@@ -78,6 +78,7 @@ namespace ScreenLookup.src.windows
 
             translationExpander.Collapsed += async (s, e) =>
             {
+                _ctsExpanderTranslate?.Cancel();
                 TextToSpeech.StopTTS();
             };
         }
@@ -245,6 +246,9 @@ namespace ScreenLookup.src.windows
             UpdateOverlayScale();
             ProcessImageOverlay.Visibility = Visibility.Visible;
 
+            _ctsProcessImage?.Cancel();
+            _ctsProcessImage = new CancellationTokenSource();
+
             Task.Run(async () =>
             {
                 try
@@ -300,7 +304,7 @@ namespace ScreenLookup.src.windows
                                 if (App.setting.ShowTranslation)
                                 {
                                     await translationMessage.RestoreDefaultAsync();
-                                    await translationMessage.PerformTranslation(_ctsTranslates.Token);
+                                    await translationMessage.PerformTranslation(_ctsProcessImage.Token);
                                 }
 
                                 SetWindowSize();
@@ -404,6 +408,9 @@ namespace ScreenLookup.src.windows
 
         private async void TranlsateImageExpander()
         {
+            _ctsExpanderTranslate?.Cancel();
+            _ctsExpanderTranslate = new CancellationTokenSource();
+
             double expandeHeight = captureCard.ActualHeight - expanderHeader.ActualHeight - expanderContent.Padding.Top - 5;
             expanderContent.Height = expandeHeight > 0 ? expandeHeight : captureCard.ActualHeight;
 
@@ -414,7 +421,7 @@ namespace ScreenLookup.src.windows
             translationImage.Height = translationHeight > 0 ? translationHeight : expandeHeight;
 
             await translationImage.RestoreDefaultAsync();
-            await translationImage.PerformTranslation(_ctsTranslates.Token);
+            await translationImage.PerformTranslation(_ctsExpanderTranslate.Token);
         }
 
         private void ChangeCaptureImage(Bitmap bmp)
@@ -447,9 +454,6 @@ namespace ScreenLookup.src.windows
             }
             else
             {
-                _ctsProcessImage = new CancellationTokenSource();
-                _ctsTranslates = new CancellationTokenSource();
-
                 configMenu.Visibility = Visibility.Collapsed;
 
                 if (App.setting.LookupOnImage)
@@ -487,7 +491,7 @@ namespace ScreenLookup.src.windows
             TextToSpeech.StopTTS();
 
             _ctsProcessImage?.Cancel();
-            _ctsTranslates?.Cancel();
+            _ctsExpanderTranslate?.Cancel();
 
             this.Hide();
         }
@@ -980,5 +984,14 @@ namespace ScreenLookup.src.windows
             }
         }
         #endregion
+
+        private void ClearImageOverlays()
+        {
+            AltoText.ItemsSource = null;
+            TranslateImageText.ItemsSource = null;
+
+            _ctsProcessImage?.Cancel();
+            _ctsExpanderTranslate?.Cancel();
+        }
     }
 }
