@@ -6,6 +6,8 @@ namespace ScreenLookup.src.utils
 {
     public static class TesseractHelper
     {
+        private static Task<TesseractOCR.Page>? ocrResult;
+
         public static readonly string[] LangList = [
             "afr", "amh", "ara", "asm", "aze", "aze_cyrl", "bel", "ben", "bod", "bos",
             "bre", "bul", "cat", "ceb", "ces", "chi_sim", "chi_sim_vert", "chi_tra", "chi_tra_vert", "chr",
@@ -107,7 +109,11 @@ namespace ScreenLookup.src.utils
             byte[] fileBytes = ms.GetBuffer();
 
             TesseractOCR.Pix.Image img = TesseractOCR.Pix.Image.LoadFromMemory(fileBytes);
-            return Task.FromResult(engine!.Process(img));
+
+            ocrResult?.Dispose();
+            ocrResult = Task.FromResult(engine!.Process(img));
+
+            return ocrResult;
         }
 
         public static List<CaptureWordsSimplifiedEntry> CaptureWordsySimplify(TesseractOCR.Page page)
