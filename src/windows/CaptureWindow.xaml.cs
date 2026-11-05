@@ -558,6 +558,7 @@ namespace ScreenLookup.src.windows
             translatedCache.Clear();
 
             imageEditor.Reset();
+            ApplyCaptureEdit();
 
             this.Left = -10000;
             this.UpdateLayout();
@@ -767,7 +768,6 @@ namespace ScreenLookup.src.windows
             Control_Confirm_Overlay.Visibility = Visibility.Visible;
 
             imageEditor.Reset();
-
             ApplyCaptureEdit();
         }
 
