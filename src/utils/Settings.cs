@@ -584,10 +584,8 @@ namespace ScreenLookup.src.utils
         public void OnPropertyChanged([CallerMemberName] string? propName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            if (App.mainWindow?.IsLoaded == true)
-            {
+            if (App.mainWindow?.IsLoaded == true || App.captureWindow?.IsLoaded == true)
                 Save();
-            }
         }
         #endregion
     }
