@@ -156,6 +156,9 @@ namespace ScreenLookup.src.windows
                     return;
                 }
 
+                if (this.IsVisible)
+                    CloseWindow();
+
                 IsCapturing = true;
                 AppUtilities.PlaySound("ready.wav");
 
