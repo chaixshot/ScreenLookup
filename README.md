@@ -6,9 +6,9 @@ ScreenLookup is a **Screen** & **VR** tool for learning foreign language vocabul
 
 ## Features & Highlights
 
-* **Desktop Screen & VR Capture**: Perform OCR on any selected desktop area or hand gestures in SteamVR to make a capture frame.
+* **Desktop Screen & VR Capture**: Perform OCR on any selected desktop area or hand gestures in SteamVR to make a capture frame, with direct translate-on-image support.
 * **Rich Dictionary & Alternative Meanings**: Click any word to view primary translations plus parts of speech (`noun`, `verb`, `adjective`) and alternate meanings.
-* **OCR & Hunspell Correction**: High-accuracy optical character recognition with optional Hunspell dictionary spell-correction for stylized game fonts.
+* **OCR & Hunspell Correction**: High-accuracy optical character recognition supporting both **Tesseract** and **PaddleOCR** engines, with optional **WeCantSpell.Hunspell** dictionary spell-correction for stylized game fonts.
 * **Text-To-Speech**: Listen to native audio pronunciations for source words and translated sentences.
 * **Dual Display Modes**:
   * **On Image**: Places interactive, clickable word boxes directly over the captured image.
@@ -16,7 +16,7 @@ ScreenLookup is a **Screen** & **VR** tool for learning foreign language vocabul
 * **History & Vocabulary Management**:
   * **History**: Automatically records previous captures and translations.
   * **Saved Words**: Bookmark new vocabulary and track your review priority scores.
-* **Multiple Translation Engines**: Switch between Google, Google New, Bing, Microsoft Azure, Yandex, local LLM, and cloud LLM.
+* **Multiple Translation Engines**: Switch between Google, Google New, Bing, Microsoft Azure, Yandex, local LLM, and cloud LLM providers.
 
 ## Prerequisites
 
@@ -119,7 +119,7 @@ ScreenLookup includes native **SteamVR / OpenVR** integration allowing you to ca
 
 * **[Tesseract OCR](https://github.com/charlesw/tesseract)**: Optical Character Recognition engine for text extraction.
 * **[PaddleOCRSharp](https://github.com/raoyutian/PaddleOCRSharp)**: Optical Character Recognition engine for text extraction.
-* **[HunspellSharp](https://github.com/Tomi-A/HunspellSharp)**: Spell checking and dictionary correction engine.
+* **[WeCantSpell.Hunspell](https://github.com/WeCantSpell/Hunspell)**: Spell checking and dictionary correction engine.
 * **[GTranslate](https://github.com/Hexed2/GTranslate)**: Multi-provider translation and Text-To-Speech library.
 * **[WPF-UI](https://github.com/lepoco/wpfui)**: Modern Fluent UI design system and Mica backdrop controls.
 * **[NAudio](https://github.com/naudio/NAudio)**: Audio rendering library for dynamic audio output routing.
